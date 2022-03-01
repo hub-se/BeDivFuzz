@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.google.errorprone:javac:9+181-r4173-1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/javac/9+181-r4173-1/javac-9+181-r4173-1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/javac/9+181-r4173-1/javac-9+181-r4173-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/javac/9+181-r4173-1/javac-9+181-r4173-1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
