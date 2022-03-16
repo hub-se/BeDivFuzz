@@ -1,7 +1,7 @@
 # BeDivFuzz: Behavioral Diversity Fuzzing
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6320229.svg)](https://doi.org/10.5281/zenodo.6320229)
 
-This repository provides the code and replication instructions for our paper *BeDivFuzz: Integrating Behaviorial Diversity into Generator-based Fuzzing* (ICSE'2022). 
+This repository provides the code and replication instructions for our paper *BeDivFuzz: Integrating Behaviorial Diversity into Generator-based Fuzzing* ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)).
 
 BeDivFuzz is implemented as an extension of [JQF](https://github.com/rohanpadhye/JQF).
 
