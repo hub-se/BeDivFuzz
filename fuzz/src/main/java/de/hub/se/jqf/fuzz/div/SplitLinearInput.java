@@ -4,6 +4,8 @@ import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance.Input;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance.LinearInput;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
+import edu.berkeley.cs.jqf.fuzz.util.ICoverage;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 
 import java.io.File;
@@ -48,7 +50,7 @@ public class SplitLinearInput implements SplitInput {
      *
      * <p>This field is null for inputs that are not saved.</p>
      */
-    Coverage coverage = null;
+    ICoverage coverage = null;
 
     /**
      * The number of non-zero elements in `coverage`.
@@ -85,7 +87,7 @@ public class SplitLinearInput implements SplitInput {
      * in at least some responsibility set. Hence, this list
      * needs to be kept in-sync with {@link BeDivFuzzGuidance#responsibleInputs}.</p>
      */
-    Set<Object> responsibilities = null;
+    IntHashSet responsibilities = null;
 
     public SplitLinearInput(Input primary, Input secondary) {
         this.primaryInput = primary;

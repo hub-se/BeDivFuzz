@@ -862,16 +862,10 @@ public class ZestGuidance implements Guidance {
                         appendLineToFile(stackTraceFile, s.toString());
                     }
 
-                    String branchesCovered = runCoverage.getCovered().stream()
-                            .map(String::valueOf)
-                            .collect(Collectors.joining(","));
-
                     // Save crash stats to disk
                     File statsFile = new File(failureStatsDirectory, saveFileName + ".stats");
                     appendLineToFile(statsFile, "Type: " + error.getClass());
                     appendLineToFile(statsFile, "TTD: " + elapsedMilliseconds);
-                    //appendLineToFile(statsFile, "ChoiceCounts: " + choiceCounts);
-                    appendLineToFile(statsFile, "Branches: " + branchesCovered);
                     appendLineToFile(statsFile, "HashCode: " + runCoverage.hashCode());
                     appendLineToFile(statsFile, "NonZeroHashCode: " + runCoverage.nonZeroHashCode());
 
@@ -1121,7 +1115,7 @@ public class ZestGuidance implements Guidance {
 
     private static MessageDigest sha1;
 
-    private static String failureDigest(StackTraceElement[] stackTrace) {
+    protected static String failureDigest(StackTraceElement[] stackTrace) {
         if (sha1 == null) {
             try {
                 sha1 = MessageDigest.getInstance("SHA-1");
