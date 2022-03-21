@@ -32,7 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import com.pholser.junit.quickcheck.From;
-import edu.berkeley.cs.jqf.examples.xml.SplitXmlDocumentGenerator;
+import de.hub.se.jqf.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;

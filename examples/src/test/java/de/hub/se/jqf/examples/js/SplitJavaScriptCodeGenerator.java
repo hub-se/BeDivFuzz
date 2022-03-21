@@ -1,4 +1,32 @@
-package edu.berkeley.cs.jqf.examples.js;
+/*
+ * Copyright (c) 2017-2018 The Regents of the University of California
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package de.hub.se.jqf.examples.js;
 
 import java.util.*;
 import java.util.function.*;
@@ -10,21 +38,18 @@ import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import de.hub.se.jqf.examples.common.SplitAsciiStringGenerator;
 import de.hub.se.jqf.fuzz.junit.quickcheck.NonTrackingSplitGenerationStatus;
 import de.hub.se.jqf.fuzz.junit.quickcheck.SplitSourceOfRandomness;
-import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 
 /* Generates random strings that are syntactically valid JavaScript */
-public class SplitJSCodeGenerator extends Generator<String> {
-    public SplitJSCodeGenerator() {
+public class SplitJavaScriptCodeGenerator extends Generator<String> {
+    public SplitJavaScriptCodeGenerator() {
         super(String.class); // Register type of generated object
     }
 
     private GenerationStatus status; // saved state object when generating
 
-    private static int MAX_IDENTIFIERS = 50;
-    private static int MAX_EXPRESSION_DEPTH = 7;
-    private static int MAX_STATEMENT_DEPTH = 4;
-    private static int MAX_INT = 5;
-
+    private static int MAX_IDENTIFIERS = 100;
+    private static int MAX_EXPRESSION_DEPTH = 10;
+    private static int MAX_STATEMENT_DEPTH = 6;
     private static Set<String> identifiers; // Stores generated IDs, to promote re-use
     private int statementDepth; // Keeps track of how deep the AST is at any point
     private int expressionDepth; // Keeps track of how nested an expression is at any point
@@ -55,7 +80,6 @@ public class SplitJSCodeGenerator extends Generator<String> {
     }
 
     /** Utility method for generating a random list of items (e.g. statements, arguments, attributes) */
-    // Note: Removed static keyword to keep track of choice type counts
     private List<String> generateItems(Function<SplitSourceOfRandomness, String> genMethod, SplitSourceOfRandomness random,
                                        int max) {
         int len = random.nextInt(max + 1, true); // Generate random number in [0, mean*2)
@@ -64,41 +88,6 @@ public class SplitJSCodeGenerator extends Generator<String> {
             items.add(genMethod.apply(random));
         }
         return items;
-    }
-
-    /** Generates a random JavaScript statement */
-    private String generateStatement(SplitSourceOfRandomness random) {
-        statementDepth++;
-        String result;
-        // If depth is too high, then generate only simple statements to prevent infinite recursion
-        // If not, generate simple statements after the flip of a coin
-        if (statementDepth >= MAX_STATEMENT_DEPTH || random.nextBoolean(true)) {
-
-            // Choose a random private method from this class, and then call it with `random`
-            result = random.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
-                    this::generateExpressionStatement,
-                    this::generateBreakNode,
-                    this::generateContinueNode,
-                    this::generateReturnNode,
-                    this::generateThrowNode,
-                    this::generateVarNode,
-                    this::generateEmptyNode
-            ), true).apply(random);
-        } else {
-            // If depth is low and we won the flip, then generate compound statements
-            // (that is, statements that contain other statements)
-            result = random.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
-                    this::generateIfNode,
-                    this::generateForNode,
-                    this::generateWhileNode,
-                    this::generateNamedFunctionNode,
-                    this::generateSwitchNode,
-                    this::generateTryNode,
-                    this::generateBlock
-            ), true).apply(random);
-        }
-        statementDepth--; // Reset statement depth when going up the recursive tree
-        return result;
     }
 
     /** Generates a random JavaScript expression using recursive calls */
@@ -128,6 +117,40 @@ public class SplitJSCodeGenerator extends Generator<String> {
         return "(" + result + ")";
     }
 
+    /** Generates a random JavaScript statement */
+    private String generateStatement(SplitSourceOfRandomness random) {
+        statementDepth++;
+        String result;
+        // If depth is too high, then generate only simple statements to prevent infinite recursion
+        // If not, generate simple statements after the flip of a coin
+        if (statementDepth >= MAX_STATEMENT_DEPTH || random.nextBoolean(true)) {
+            // Choose a random private method from this class, and then call it with `random`
+            result = random.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+                    this::generateExpressionStatement,
+                    this::generateBreakNode,
+                    this::generateContinueNode,
+                    this::generateReturnNode,
+                    this::generateThrowNode,
+                    this::generateVarNode,
+                    this::generateEmptyNode
+            ), true).apply(random);
+        } else {
+            // If depth is low and we won the flip, then generate compound statements
+            // (that is, statements that contain other statements)
+            result = random.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+                    this::generateIfNode,
+                    this::generateForNode,
+                    this::generateWhileNode,
+                    this::generateNamedFunctionNode,
+                    this::generateSwitchNode,
+                    this::generateTryNode,
+                    this::generateBlockStatement
+            ), true).apply(random);
+        }
+        statementDepth--; // Reset statement depth when going up the recursive tree
+        return result;
+    }
+
     /** Generates a random binary expression (e.g. A op B) */
     private String generateBinaryNode(SplitSourceOfRandomness random) {
         String token = random.choose(BINARY_TOKENS, false); // Choose a binary operator at random
@@ -139,7 +162,11 @@ public class SplitJSCodeGenerator extends Generator<String> {
 
     /** Generates a block of statements delimited by ';' and enclosed by '{' '}' */
     private String generateBlock(SplitSourceOfRandomness random) {
-        return "{ " + String.join(";", generateItems(this::generateStatement, random, MAX_INT)) + " }";
+        return "{ " + String.join(";", generateItems(this::generateStatement, random, 4)) + " }";
+    }
+
+    private String generateBlockStatement(SplitSourceOfRandomness random) {
+        return generateBlock(random);
     }
 
     private String generateBreakNode(SplitSourceOfRandomness random) {
@@ -148,7 +175,7 @@ public class SplitJSCodeGenerator extends Generator<String> {
 
     private String generateCallNode(SplitSourceOfRandomness random) {
         String func = generateExpression(random);
-        String args = String.join(",", generateItems(this::generateExpression, random, MAX_INT));
+        String args = String.join(",", generateItems(this::generateExpression, random, 3));
 
         String call = func + "(" + args + ")";
         if (random.nextBoolean(false)) {
@@ -198,15 +225,15 @@ public class SplitJSCodeGenerator extends Generator<String> {
     }
 
     private String generateFunctionNode(SplitSourceOfRandomness random) {
-        return "function(" + String.join(", ", generateItems(this::generateIdentNode, random, MAX_INT)) + ")" + generateBlock(random);
+        return "function(" + String.join(", ", generateItems(this::generateIdentNode, random, 5)) + ")" + generateBlock(random);
     }
 
     private String generateNamedFunctionNode(SplitSourceOfRandomness random) {
-        return "function " + generateIdentNode(random) + "(" + String.join(", ", generateItems(this::generateIdentNode, random, MAX_INT)) + ")" + generateBlock(random);
+        return "function " + generateIdentNode(random) + "(" + String.join(", ", generateItems(this::generateIdentNode, random, 5)) + ")" + generateBlock(random);
     }
 
     private String generateArrowFunctionNode(SplitSourceOfRandomness random) {
-        String params = "(" + String.join(", ", generateItems(this::generateIdentNode, random, MAX_INT)) + ")";
+        String params = "(" + String.join(", ", generateItems(this::generateIdentNode, random, 3)) + ")";
         if (random.nextBoolean(true)) {
             return params + " => " + generateBlock(random);
         } else {
@@ -248,10 +275,10 @@ public class SplitJSCodeGenerator extends Generator<String> {
         if (expressionDepth < MAX_EXPRESSION_DEPTH && random.nextBoolean(true)) {
             if (random.nextBoolean(true)) {
                 // Array literal
-                return "[" + String.join(", ", generateItems(this::generateExpression, random, MAX_INT)) + "]";
+                return "[" + String.join(", ", generateItems(this::generateExpression, random, 3)) + "]";
             } else {
                 // Object literal
-                return "{" + String.join(", ", generateItems(this::generateObjectProperty, random, MAX_INT)) + "}";
+                return "{" + String.join(", ", generateItems(this::generateObjectProperty, random, 3)) + "}";
 
             }
         } else {
@@ -287,7 +314,7 @@ public class SplitJSCodeGenerator extends Generator<String> {
 
     private String generateSwitchNode(SplitSourceOfRandomness random) {
         return "switch(" + generateExpression(random) + ") {"
-                + String.join(" ", generateItems(this::generateCaseNode, random, MAX_INT)) + "}";
+                + String.join(" ", generateItems(this::generateCaseNode, random, 2)) + "}";
     }
 
     private String generateTernaryNode(SplitSourceOfRandomness random) {

@@ -26,33 +26,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package edu.berkeley.cs.jqf.examples.xml;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
+package de.hub.se.jqf.examples.xml;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.internal.GeometricDistribution;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
+import de.hub.se.jqf.examples.common.SplitDictionaryBackedStringGenerator;
+import de.hub.se.jqf.fuzz.junit.quickcheck.SplitSourceOfRandomness;
 import edu.berkeley.cs.jqf.examples.common.AlphaStringGenerator;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
-import edu.berkeley.cs.jqf.examples.common.DictionaryBackedStringGenerator;
+import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import org.junit.Assume;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+
 /**
- * A generator for XML documents.
+ * A generator for XML documents. Adapted from {@link XmlDocumentGenerator}.
  *
- * @author Rohan Padhye
+ * @author Hoang Lam Nguyen
  */
-public class XmlDocumentGenerator extends Generator<Document> {
+public class SplitXmlDocumentGenerator extends Generator<Document> {
 
     private static DocumentBuilderFactory documentBuilderFactory =
             DocumentBuilderFactory.newInstance();
@@ -80,7 +82,7 @@ public class XmlDocumentGenerator extends Generator<Document> {
 
     private Generator<String> stringGenerator = new AlphaStringGenerator();
 
-    public XmlDocumentGenerator() {
+    public SplitXmlDocumentGenerator() {
         super(Document.class);
     }
 
@@ -109,7 +111,7 @@ public class XmlDocumentGenerator extends Generator<Document> {
      * @throws IOException if the dictionary file cannot be read
      */
     public void configure(Dictionary dict) throws IOException {
-        stringGenerator = new DictionaryBackedStringGenerator(dict.value(), stringGenerator);
+        stringGenerator = new SplitDictionaryBackedStringGenerator(dict.value(), stringGenerator);
     }
 
     /**
@@ -133,7 +135,8 @@ public class XmlDocumentGenerator extends Generator<Document> {
 
         Document document = builder.newDocument();
         try {
-            populateDocument(document, random, status);
+            SplitSourceOfRandomness rdm = (SplitSourceOfRandomness) random;
+            populateDocument(document, rdm, status);
         } catch (DOMException e) {
             Assume.assumeNoException(e);
         }
@@ -141,36 +144,36 @@ public class XmlDocumentGenerator extends Generator<Document> {
 
     }
 
-    private String makeString(SourceOfRandomness random, GenerationStatus status) {
+    private String makeString(SplitSourceOfRandomness random, GenerationStatus status) {
         return stringGenerator.generate(random, status);
     }
 
-    private Document populateDocument(Document document, SourceOfRandomness random, GenerationStatus status) {
+    private Document populateDocument(Document document, SplitSourceOfRandomness random, GenerationStatus status) {
         Element root = document.createElement(makeString(random, status));
         populateElement(document, root, random, status, 0);
         document.appendChild(root);
         return document;
     }
 
-    private void populateElement(Document document, Element elem, SourceOfRandomness random, GenerationStatus status, int depth) {
+    private void populateElement(Document document, Element elem, SplitSourceOfRandomness random, GenerationStatus status, int depth) {
         // Add attributes
-        int numAttributes = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_ATTRIBUTES, random)-1);
+        int numAttributes = random.nextInt((2 * (int)MEAN_NUM_ATTRIBUTES) + 1, true);
         for (int i = 0; i < numAttributes; i++) {
             elem.setAttribute(makeString(random, status), makeString(random, status));
         }
         // Make children
-        if (depth < minDepth || (depth < maxDepth && random.nextBoolean())) {
-            int numChildren = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_CHILDREN, random)-1);
+        if (depth < minDepth || (depth < maxDepth && random.nextBoolean(true))) {
+            int numChildren = random.nextInt((2 * (int) MEAN_NUM_CHILDREN) + 1, true);
             for (int i = 0; i < numChildren; i++) {
                 Element child = document.createElement(makeString(random, status));
                 populateElement(document, child, random, status, depth+1);
                 elem.appendChild(child);
             }
-        } else if (random.nextBoolean()) {
+        } else if (random.nextBoolean(true)) {
             // Add text
             Text text = document.createTextNode(makeString(random, status));
             elem.appendChild(text);
-        } else if (random.nextBoolean()) {
+        } else if (random.nextBoolean(true)) {
             // Add text as CDATA
             Text text = document.createCDATASection(makeString(random, status));
             elem.appendChild(text);

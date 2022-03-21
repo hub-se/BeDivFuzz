@@ -2,7 +2,7 @@ package edu.berkeley.cs.jqf.examples.plexus;
 
 import com.pholser.junit.quickcheck.From;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
-import edu.berkeley.cs.jqf.examples.xml.SplitXmlDocumentGenerator;
+import de.hub.se.jqf.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
@@ -10,7 +10,6 @@ import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
