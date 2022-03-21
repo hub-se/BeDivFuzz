@@ -1,6 +1,7 @@
 package de.hub.se.jqf.fuzz.repro;
 
-import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
+import de.hub.se.jqf.fuzz.div.SplitInput;
+import de.hub.se.jqf.fuzz.guidance.BeDivGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.repro.ReproGuidance;
@@ -15,25 +16,22 @@ import java.util.function.Consumer;
 /**
  * DivReproGuidance implementation based on {@link ReproGuidance}.
  */
-public class DivReproGuidance implements Guidance {
+public class BeDivReproGuidance implements BeDivGuidance {
     private File[] primaryInputFiles;
     private final File traceDir;
     private int nextFileIdx = 0;
 
     private List<PrintStream> traceStreams = new ArrayList<>();
-    private InputStream primaryInputStream;
-    private InputStream secondaryInputStream;
+    private SplitReproInput currentInput;
     private Coverage coverage = new Coverage();
 
-    public DivReproGuidance(File[] inputFiles, File traceDir) {
+    public BeDivReproGuidance(File[] inputFiles, File traceDir) {
         this.traceDir = traceDir;
         this.primaryInputFiles = inputFiles;
         int numPrimaryInputs = 0;
         int numSecondaryInputs = 0;
         for (File file : inputFiles) {
             File secondaryInput = new File(file.getAbsolutePath() + "_secondary");
-            System.out.println(file.getAbsolutePath());
-            System.out.println(secondaryInput.getAbsolutePath());
             if (!secondaryInput.isFile()) {
                 throw new GuidanceException("No secondary input found for file: " + file.getName());
             }
@@ -41,8 +39,8 @@ public class DivReproGuidance implements Guidance {
         assert(numPrimaryInputs == numSecondaryInputs);
     }
 
-    public DivReproGuidance(File inputFile, File traceDir) {
-        assert(!inputFile.getName().endsWith("_secondary")): "DivReproGuidance must be run with primary input.";
+    public BeDivReproGuidance(File inputFile, File traceDir) {
+        assert(!inputFile.getName().endsWith("_secondary")): "BeDivReproGuidance must be run with primary input.";
         File secondaryInput = new File(inputFile.getAbsolutePath() + "_secondary");
         if (!secondaryInput.isFile()) {
             throw new GuidanceException("No secondary input found for file: " + inputFile.getName());
@@ -58,21 +56,15 @@ public class DivReproGuidance implements Guidance {
 
     @Override
     public InputStream getInput() {
-        throw new GuidanceException("DivReproGuidance does not support getInput(), use getSplitReproInput() instead.");
+        throw new UnsupportedOperationException("BeDivReproGuidance does not support getInput(), use getInput() instead.");
     }
 
-    public SplitReproInput getSplitReproInput() throws GuidanceException {
-        try {
-            File primaryInput = primaryInputFiles[nextFileIdx];
-            File secondaryInput = new File(primaryInput.getAbsolutePath() + "_secondary");
+    public SplitInput getSplitInput() throws GuidanceException {
+        File primaryRandomFile = primaryInputFiles[nextFileIdx];
+        File secondaryRandomFile = new File(primaryRandomFile.getAbsolutePath() + "_secondary");
+        currentInput = new SplitReproInput(primaryRandomFile, secondaryRandomFile);
 
-            this.primaryInputStream = new BufferedInputStream(new FileInputStream(primaryInput));
-            this.secondaryInputStream = new BufferedInputStream(new FileInputStream(secondaryInput));
-
-            return new SplitReproInput(primaryInputStream, secondaryInputStream);
-        } catch (IOException e) {
-            throw new GuidanceException(e);
-        }
+        return currentInput;
     }
 
     @Override
@@ -83,16 +75,7 @@ public class DivReproGuidance implements Guidance {
     @Override
     public void handleResult(Result result, Throwable error) {
         // Close the open input
-        try {
-            if (primaryInputStream != null) {
-                primaryInputStream.close();
-            }
-            if (secondaryInputStream != null) {
-                secondaryInputStream.close();
-            }
-        } catch (IOException e) {
-            throw new GuidanceException(e);
-        }
+        currentInput.gc();
 
         // Print result
         File inputFile = getCurrentInputFile();
@@ -145,17 +128,6 @@ public class DivReproGuidance implements Guidance {
 
     public Coverage getCoverage() {
         return coverage;
-    }
-
-
-    public class SplitReproInput{
-        public InputStream primaryParameterStream;
-        public InputStream secondaryParameterStream;
-
-        public SplitReproInput(InputStream primary, InputStream secondary) {
-            this.primaryParameterStream = primary;
-            this.secondaryParameterStream = secondary;
-        }
     }
 
 }
