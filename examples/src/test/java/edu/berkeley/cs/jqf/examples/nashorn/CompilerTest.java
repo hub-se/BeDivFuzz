@@ -1,8 +1,8 @@
 package edu.berkeley.cs.jqf.examples.nashorn;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
-import edu.berkeley.cs.jqf.examples.js.SplitJSCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.Assume;
@@ -29,7 +29,7 @@ public class CompilerTest {
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJSCodeGenerator.class) String code) {
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
         //System.setProperty("nashorn.args", "--no-deprecation-warning");
         try {
             CompiledScript compiled = ((Compilable) engine).compile(code);
