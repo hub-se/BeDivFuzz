@@ -30,6 +30,7 @@
 package edu.berkeley.cs.jqf.fuzz.ei;
 
 import java.io.File;
+import java.util.Locale;
 
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.junit.runner.Result;
@@ -72,6 +73,8 @@ public class ZestDriver {
                 guidance = new ZestGuidance(title, null, outputDirectory, seedFiles);
             }
 
+            // To ensure correct printing of float decimal separator
+            Locale.setDefault(Locale.US);
 
             // Run the Junit test
             Result res = GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);

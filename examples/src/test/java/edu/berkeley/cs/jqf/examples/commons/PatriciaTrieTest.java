@@ -72,7 +72,6 @@ public class PatriciaTrieTest {
         assertTrue(trie.containsKey(key));
     }
 
-
     @Fuzz
     public void testCopyAscii(Map<@From(AsciiStringGenerator.class) String, Integer> map,
                               @From(AsciiStringGenerator.class) String key) {

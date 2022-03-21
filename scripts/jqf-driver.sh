@@ -38,6 +38,9 @@ if [ -n "$JAVA_HOME" ]; then
 else
     java="java"
 fi
+
+export JVM_OPTS="$JVM_OPTS -Dnashorn.args=--no-deprecation-warning"
+
 "$java" -ea \
   -Xbootclasspath/a:"$INST_CLASSPATH" \
   ${JAVAAGENT} \
