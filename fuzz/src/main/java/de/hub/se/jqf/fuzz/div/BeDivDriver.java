@@ -34,7 +34,7 @@ public class BeDivDriver {
             // Load the guidance
             String title = testClassName+"#"+testMethodName;
             Random rnd = new Random(); // TODO: Support deterministic PRNG
-            BeDivGuidance guidance = new BeDivGuidance(title, null, null, outputDirectory, rnd);
+            BeDivFuzzGuidance guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
 
             Locale.setDefault(Locale.US);
 

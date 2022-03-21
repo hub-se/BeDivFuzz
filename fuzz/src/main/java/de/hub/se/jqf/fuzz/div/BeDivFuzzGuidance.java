@@ -1,5 +1,6 @@
 package de.hub.se.jqf.fuzz.div;
 
+import de.hub.se.jqf.fuzz.guidance.BeDivGuidance;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
@@ -15,12 +16,12 @@ import java.util.stream.Collectors;
  * A guidance that performs structure-changing (exploration) and structure-preserving (exploitation) mutations.
  * @author lam
  */
-public class BeDivGuidance extends ZestGuidance{
+public class BeDivFuzzGuidance extends ZestGuidance implements BeDivGuidance {
 
     // ------------ ALGORITHM BOOKKEEPING ------------
 
     /** Set of saved inputs to fuzz. */
-    protected ArrayList<SplitInput> savedInputs = new ArrayList<>();
+    protected ArrayList<SplitLinearInput> savedInputs = new ArrayList<>();
 
     /** Set of input structures explored so far. */
     protected Set<Integer> exploredInputStructures = new HashSet<>();
@@ -29,10 +30,10 @@ public class BeDivGuidance extends ZestGuidance{
     protected int lastGeneratedStructureHash;
 
     /** Current input that's running -- valid after getInput() and before handleResult(). */
-    protected SplitInput currentInput;
+    protected SplitLinearInput currentInput;
 
     /** A mapping of coverage keys to inputs that are responsible for them. */
-    protected Map<Object, SplitInput> responsibleInputs = new HashMap<>(totalCoverage.size());
+    protected Map<Object, SplitLinearInput> responsibleInputs = new HashMap<>(totalCoverage.size());
 
     /** Whether the last mutation was on the primary or secondary input (exploration or exploitation)*/
     enum Phase {INIT, EXPLORATION, EXPLOITATION, HAVOC}
@@ -87,7 +88,7 @@ public class BeDivGuidance extends ZestGuidance{
      * @param sourceOfRandomness      a pseudo-random number generator
      * @throws IOException if the output directory could not be prepared
      */
-    public BeDivGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
+    public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
 
         // Make sure at most one strategy is selected
@@ -126,7 +127,7 @@ public class BeDivGuidance extends ZestGuidance{
             currentParentInputDesc = "<seed>";
         }
         else {
-            SplitInput currentParentInput = savedInputs.get(currentParentInputIdx);
+            SplitLinearInput currentParentInput = savedInputs.get(currentParentInputIdx);
             currentParentInputDesc = currentParentInputIdx + " ";
             currentParentInputDesc += currentParentInput.isFavored() ? "(favored)" : "(not favored)";
             currentParentInputDesc += " {" + numChildrenGeneratedForCurrentParentInput +
@@ -191,7 +192,7 @@ public class BeDivGuidance extends ZestGuidance{
         return "BeDivFuzz: Behavioral Diversity Fuzzing.";
     }
 
-    protected int getTargetChildrenForParent(SplitInput parentInput) {
+    protected int getTargetChildrenForParent(SplitLinearInput parentInput) {
         // Baseline is a constant
         int target = NUM_CHILDREN_BASELINE;
 
@@ -219,7 +220,7 @@ public class BeDivGuidance extends ZestGuidance{
         //infoLog("Here is a list of favored inputs:");
         int sumResponsibilities = 0;
         numFavoredLastCycle = 0;
-        for (SplitInput input : savedInputs) {
+        for (SplitLinearInput input : savedInputs) {
             if (input.isFavored()) {
                 int responsibleFor = input.responsibilities.size();
                 //infoLog("Input %d is responsible for %d branches", input.id, responsibleFor);
@@ -254,7 +255,7 @@ public class BeDivGuidance extends ZestGuidance{
         throw new GuidanceException("BeDivGuidance does not support getInput()");
     }
 
-    public SplitInput getSplitInput() throws GuidanceException {
+    public SplitLinearInput getSplitInput() throws GuidanceException {
         conditionallySynchronize(multiThreaded, () -> {
             // Clear coverage stats for this run
             runCoverage.clear();
@@ -266,12 +267,12 @@ public class BeDivGuidance extends ZestGuidance{
                             "likely all assumption violations");
                 }
 
-                currentInput = new SplitInput(createFreshInput(), createFreshInput());
+                currentInput = new SplitLinearInput(createFreshInput(), createFreshInput());
 
             } else {
                 // The number of children to produce is determined by how much of the coverage
                 // pool this parent input hits
-                SplitInput currentParentInput = savedInputs.get(currentParentInputIdx);
+                SplitLinearInput currentParentInput = savedInputs.get(currentParentInputIdx);
                 int targetNumChildren = getTargetChildrenForParent(currentParentInput);
                 if (numChildrenGeneratedForCurrentParentInput >= targetNumChildren) {
                     // Select the next saved input to fuzz
@@ -318,10 +319,10 @@ public class BeDivGuidance extends ZestGuidance{
 
                 if (currentMutationPhase == Phase.EXPLORATION) {
                     currentExplorationCount++;
-                    currentInput = new SplitInput(primaryParent.fuzz(random), new LinearInput(secondaryParent));
+                    currentInput = new SplitLinearInput(primaryParent.fuzz(random), new LinearInput(secondaryParent));
                 } else {
                     currentExploitationCount++;
-                    currentInput = new SplitInput(new LinearInput(primaryParent), secondaryParent.fuzz(random));
+                    currentInput = new SplitLinearInput(new LinearInput(primaryParent), secondaryParent.fuzz(random));
                 }
 
                 numChildrenGeneratedForCurrentParentInput++;
@@ -664,7 +665,7 @@ public class BeDivGuidance extends ZestGuidance{
         for (Object b : responsibilities) {
             // If there is an old input that is responsible,
             // subsume it
-            SplitInput oldResponsible = responsibleInputs.get(b);
+            SplitLinearInput oldResponsible = responsibleInputs.get(b);
             if (oldResponsible != null) {
                 oldResponsible.responsibilities.remove(b);
                 // infoLog("-- Stealing responsibility for %s from input %d", b, oldResponsible.id);

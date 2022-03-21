@@ -36,11 +36,11 @@ import java.io.File;
 /**
  * Adapted from {@link ReproGuidance}.
  */
-public class DivReproDriver {
+public class BeDivReproDriver {
 
     public static void main(String[] args) {
         if (args.length < 3){
-            System.err.println("Usage: java " + DivReproDriver.class + " TEST_CLASS TEST_METHOD TEST_INPUT_FILE...");
+            System.err.println("Usage: java " + BeDivReproDriver.class + " TEST_CLASS TEST_METHOD TEST_INPUT_FILE...");
             System.exit(1);
         }
 
@@ -58,7 +58,7 @@ public class DivReproDriver {
             File traceDir = traceDirName != null ? new File(traceDirName) : null;
 
             // Load the guidance
-            DivReproGuidance guidance = new DivReproGuidance(testInputFiles, traceDir);
+            BeDivReproGuidance guidance = new BeDivReproGuidance(testInputFiles, traceDir);
 
             // Run the Junit test
             GuidedFuzzing.run(testClassName, testMethodName, guidance, System.out);

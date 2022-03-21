@@ -41,8 +41,10 @@ import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import de.hub.se.jqf.fuzz.div.BeDivGuidance;
+import de.hub.se.jqf.fuzz.div.BeDivFuzzGuidance;
 import de.hub.se.jqf.fuzz.div.SplitInput;
+import de.hub.se.jqf.fuzz.div.SplitLinearInput;
+import de.hub.se.jqf.fuzz.guidance.BeDivGuidance;
 import de.hub.se.jqf.fuzz.junit.quickcheck.NonTrackingSplitGenerationStatus;
 import de.hub.se.jqf.fuzz.junit.quickcheck.SplitSourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
@@ -125,7 +127,6 @@ public class FuzzStatement extends Statement {
                             args = generators.stream()
                                     .map(g -> g.generate(random, genStatus))
                                     .toArray();
-
                         }
                         else {
                             StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
