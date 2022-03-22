@@ -89,7 +89,7 @@ public class DivMetricsCounter {
         IntIterator it = coveredBranches.intIterator();
         while (it.hasNext()) {
             int idx = it.next();
-            double  p_i = ((double) counter.getAtIndex(idx)) / totalBranchHitCount;
+            double  p_i = ((double) counter.get(idx)) / totalBranchHitCount;
             sum += p_i * Math.log(p_i);
         }
         return - sum;
@@ -105,7 +105,7 @@ public class DivMetricsCounter {
         IntIterator it = coveredBranches.intIterator();
         while (it.hasNext()) {
             int idx = it.next();
-            double  p_i = ((double) counter.getAtIndex(idx)) / totalBranchHitCount;
+            double  p_i = ((double) counter.get(idx)) / totalBranchHitCount;
             sum += Math.pow(p_i, order);
         }
         return Math.pow(sum, 1/(1-order));
