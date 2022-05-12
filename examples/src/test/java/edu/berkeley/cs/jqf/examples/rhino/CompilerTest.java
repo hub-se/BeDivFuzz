@@ -35,9 +35,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
-import edu.berkeley.cs.jqf.examples.js.SplitJSCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.apache.commons.io.IOUtils;
@@ -109,7 +109,7 @@ public class CompilerTest {
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJSCodeGenerator.class) String code) {
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
         testWithString(code);
     }
 

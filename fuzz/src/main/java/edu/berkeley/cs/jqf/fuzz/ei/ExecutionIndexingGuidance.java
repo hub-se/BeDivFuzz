@@ -41,19 +41,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import edu.berkeley.cs.jqf.fuzz.ei.ExecutionIndex.Prefix;
 import edu.berkeley.cs.jqf.fuzz.ei.ExecutionIndex.Suffix;
+import edu.berkeley.cs.jqf.fuzz.ei.state.AbstractExecutionIndexingState;
+import edu.berkeley.cs.jqf.fuzz.ei.state.FastExecutionIndexingState;
+import edu.berkeley.cs.jqf.fuzz.ei.state.JanalaExecutionIndexingState;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
-import edu.berkeley.cs.jqf.fuzz.util.Coverage;
-import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
+import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
+import edu.berkeley.cs.jqf.fuzz.util.CoverageFactory;
 import edu.berkeley.cs.jqf.fuzz.util.ProducerHashMap;
+import edu.berkeley.cs.jqf.instrument.tracing.FastCoverageSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.SingleSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.events.CallEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import janala.instrument.FastCoverageListener;
+import org.eclipse.collections.api.iterator.IntIterator;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.TestClass;
 
 /**
  * A guidance that represents inputs as maps from
@@ -64,7 +72,7 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 public class ExecutionIndexingGuidance extends ZestGuidance {
 
     /** The execution indexing logic. */
-    protected ExecutionIndexingState eiState;
+    protected AbstractExecutionIndexingState eiState;
 
     /**
      * A map of execution contexts (call stacks) to locations in saved inputs with those contexts.
@@ -82,9 +90,6 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
 
     /** Whether the the entry point has been encountered in the current run. */
     protected boolean testEntered;
-
-    /** The last event handled by this guidance */
-    protected TraceEvent lastEvent;
 
     /** Maps a hash code of coverage bits to an index in savedInputs queue. */
     protected Map<Integer, Integer> coverageHashToSavedInputIdx = new HashMap<>();
@@ -111,7 +116,8 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
     protected final double DEMAND_DRIVEN_SPLICING_PROBABILITY = 0.0;
 
     /**
-     * Constructs a new guidance instance.
+     * Constructs a new EI guidance instance with optional duration,
+     * optional trial limit, and possibly deterministic PRNG.
      *
      * @param testName the name of test to display on the status screen
      * @param duration the amount of time to run fuzzing for, where
@@ -120,20 +126,15 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
      *                 {@code null} indicates unlimited trials.
      * @param outputDirectory the directory where fuzzing results will be written
      * @param sourceOfRandomness      a pseudo-random number generator
-     * @param seedInputFiles one or more input files to be used as initial inputs
      * @throws IOException if the output directory could not be prepared
      */
-    public ExecutionIndexingGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness, File... seedInputFiles) throws IOException {
+    public ExecutionIndexingGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
-        if (seedInputFiles != null) {
-            for (File seedInputFile : seedInputFiles) {
-                seedInputs.add(new MappedSeedInput(seedInputFile));
-            }
-        }
     }
 
     /**
-     * Creates a new guidance instance.
+     * Constructs a new EI guidance instance with seed input directory and optional
+     * duration, optional trial limit, an possibly deterministic PRNG.
      *
      * @param testName the name of test to display on the status screen
      * @param duration the amount of time to run fuzzing for, where
@@ -146,10 +147,24 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
      * @throws IOException if the output directory could not be prepared
      */
     public ExecutionIndexingGuidance(String testName, Duration duration, Long trials, File outputDirectory, File seedInputDir, Random sourceOfRandomness) throws IOException {
-        this(testName, duration, trials, outputDirectory, sourceOfRandomness, IOUtils.resolveInputFileOrDirectory(seedInputDir));
+        super(testName, duration, trials, outputDirectory, seedInputDir, sourceOfRandomness);
     }
 
-        /** Returns the banner to be displayed on the status screen */
+    /**
+     * Creates a new EI guidance instance with seed input files and
+     * optional duration.
+     *
+     * @param testName the name of test to display on the status screen
+     * @param duration the amount of time to run fuzzing for, where
+     *                 {@code null} indicates unlimited time.
+     * @param outputDirectory the directory where fuzzing results will be written
+     * @throws IOException if the output directory could not be prepared
+     */
+    public ExecutionIndexingGuidance(String testName, Duration duration, File outputDirectory, File[] seedFiles) throws IOException {
+        super(testName, duration, outputDirectory, seedFiles);
+    }
+
+    /** Returns the banner to be displayed on the status screen */
     protected String getTitle() {
         if (blind) {
             return super.getTitle();
@@ -179,7 +194,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
             public int read() throws IOException {
 
                 // lastEvent must not be null
-                if (lastEvent == null) {
+                if (eiState.getLastEventIid() == -1) {
                     throw new GuidanceException("Could not compute execution index; no instrumentation?");
                 }
 
@@ -188,7 +203,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
                 MappedInput mappedInput = (MappedInput) currentInput;
 
                 // Get the execution index of the last event
-                ExecutionIndex executionIndex = eiState.getExecutionIndex(lastEvent);
+                ExecutionIndex executionIndex = eiState.getExecutionIndex(eiState.getLastEventIid());
 
                 // Attempt to get a value from the map, or else generate a random value
                 int value = mappedInput.getOrGenerateFresh(executionIndex, random);
@@ -201,13 +216,25 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
     @Override
     public InputStream getInput() throws GuidanceException {
         // First, reset execution indexing state
-        eiState = new ExecutionIndexingState();
+        eiState = CoverageFactory.newEIState();
+        if (eiState instanceof FastExecutionIndexingState) {
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) eiState);
+        }
+
 
         // Unmark "test started"
         testEntered = false;
 
         // Then, do the same logic as ZestGuidance (e.g. returning seeds, mutated inputs, or new input)
         return super.getInput();
+    }
+
+    @Override
+    public void run(TestClass testClass, FrameworkMethod method, Object[] args) throws Throwable {
+        if (this.runCoverage instanceof FastCoverageListener) {
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
+        }
+        super.run(testClass, method, args);
     }
 
     /**
@@ -250,7 +277,9 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
                         savedInputs.set(otherIdx, currentInput);
 
                         // Second, update responsibilities
-                        for (Object b : otherInput.responsibilities) {
+                        IntIterator otherResponsibilitiesIter = otherInput.responsibilities.intIterator();
+                        while(otherResponsibilitiesIter.hasNext()){
+                            int b = otherResponsibilitiesIter.next();
                             // Subsume responsibility
                             // infoLog("-- Stealing responsibility for %s from old input %d", b, otherIdx);
                             // We are now responsible
@@ -262,7 +291,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
                         // Third, store basic book-keeping data
                         currentInput.id = otherIdx;
                         currentInput.saveFile = otherInput.saveFile;
-                        currentInput.coverage = new Coverage(runCoverage);
+                        currentInput.coverage = runCoverage.copy();
                         currentInput.nonZeroCoverage = runCoverage.getNonZeroCount();
                         currentInput.offspring = 0;
                         savedInputs.get(currentParentInputIdx).offspring += 1;
@@ -286,7 +315,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
 
     /** Saves an interesting input to the queue. */
     @Override
-    protected void saveCurrentInput(Set<Object> responsibilities, String why) throws IOException {
+    protected void saveCurrentInput(IntHashSet responsibilities, String why) throws IOException {
         // First, do same as Zest
         super.saveCurrentInput(responsibilities, why);
 
@@ -340,11 +369,10 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
     /** Handles a trace event generated during test execution */
     @Override
     protected void handleEvent(TraceEvent e) {
-        // Set last event to this event
-        lastEvent = e;
-
-        // Update execution indexing logic regardless of whether we are in generator or test method
-        e.applyVisitor(eiState);
+        if (eiState instanceof JanalaExecutionIndexingState) {
+            // Update execution indexing logic regardless of whether we are in generator or test method
+            e.applyVisitor((JanalaExecutionIndexingState) eiState);
+        }
 
         // Do not handle code coverage unless test has been entered
         if (!testEntered) {

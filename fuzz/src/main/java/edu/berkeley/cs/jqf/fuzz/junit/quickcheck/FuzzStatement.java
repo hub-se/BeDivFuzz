@@ -52,6 +52,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
+import edu.berkeley.cs.jqf.fuzz.junit.TrialRunner;
 import edu.berkeley.cs.jqf.instrument.InstrumentationException;
 import org.junit.AssumptionViolatedException;
 import org.junit.runners.model.FrameworkMethod;
@@ -89,7 +90,6 @@ public class FuzzStatement extends Statement {
         this.expectedExceptions = Arrays.asList(method.getMethod().getExceptionTypes());
         this.guidance = fuzzGuidance;
     }
-
 
     /**
      * Run the test.
@@ -140,15 +140,11 @@ public class FuzzStatement extends Statement {
 
                         // Let guidance observe the generated input args
                         guidance.observeGeneratedArgs(args);
-
-
-
                     } catch (IllegalStateException e) {
                         if (e.getCause() instanceof EOFException) {
                             // This happens when we reach EOF before reading all the random values.
-                            // Treat this as an assumption failure, so that the guidance considers the
-                            // generated input as INVALID
-                            throw new AssumptionViolatedException("StreamBackedRandom does not have enough data", e.getCause());
+							// The only thing we can do is try again
+							continue;
                         } else {
                             throw e;
                         }
@@ -161,8 +157,6 @@ public class FuzzStatement extends Statement {
                     } catch (Throwable e) {
                         // Throw the guidance exception outside to stop fuzzing
                         throw new GuidanceException(e);
-                    } finally {
-                        // System.out.println(randomFile.getTotalBytesRead() + " random bytes read");
                     }
 
                     // Attempt to run the trial

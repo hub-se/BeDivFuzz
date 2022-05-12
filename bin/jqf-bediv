@@ -56,7 +56,7 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-export JVM_OPTS="$JVM_OPTS -Djqf.ei.SAVE_ONLY_VALID=true"
+export JVM_OPTS="$JVM_OPTS -Djqf.ei.SAVE_ONLY_VALID=true -DuseFastNonCollidingCoverageInstrumentation=true"
 
 # Run the Zest input driver
 $ROOT_DIR/scripts/jqf-driver.sh de.hub.se.jqf.fuzz.div.BeDivDriver $@

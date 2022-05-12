@@ -98,7 +98,6 @@ public class ParserTest {
         }
     }
 
-
     @Fuzz
     public void verifyJavaClass(@From(JavaClassGenerator.class) JavaClass javaClass) throws IOException {
         try {

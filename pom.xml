@@ -4,7 +4,7 @@
 
     <groupId>edu.berkeley.cs.jqf</groupId>
     <artifactId>jqf</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>jqf</name>
@@ -50,7 +50,19 @@
         </contributor>
         <contributor>
             <name>Vasudev Vikram</name>
-            <email>vasumv@berkeley.edu</email>
+            <email>vasumv@cmu.edu</email>
+        </contributor>
+        <contributor>
+            <name>Ao Li</name>
+            <email>aoli@cs.cmu.edu</email>
+        </contributor>
+        <contributor>
+            <name>Isabella Laybourn</name>
+            <email>ilaybour@andrew.cmu.edu</email>
+        </contributor>
+        <contributor>
+            <name>Jonathan Bell</name>
+            <email>jon@jonbell.net</email>
         </contributor>
     </contributors>
 
@@ -67,8 +79,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-    	<maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <modules>
@@ -118,17 +128,17 @@
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-fuzz</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-instrument</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-examples</artifactId>
-                <version>1.8-SNAPSHOT</version>
+                <version>2.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -141,7 +151,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-                        <!--release>9</release-->
+                        <release>9</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -196,7 +206,7 @@
                 <plugin>
                     <groupId>edu.berkeley.cs.jqf</groupId>
                     <artifactId>jqf-maven-plugin</artifactId>
-                    <version>1.8-SNAPSHOT</version>
+                    <version>2.0-SNAPSHOT</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -207,6 +217,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>1.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>2.22.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -243,6 +258,9 @@
     <profiles>
         <profile>
             <id>release-profile</id>
+            <modules>
+                <module>integration-tests</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>

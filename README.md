@@ -3,29 +3,29 @@
 
 This repository provides the code and replication instructions for our paper *BeDivFuzz: Integrating Behaviorial Diversity into Generator-based Fuzzing* ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)).
 
-BeDivFuzz is implemented as an extension of [JQF](https://github.com/rohanpadhye/JQF) (jqf-1.8). 
-We are currently working on updating BeDivFuzz to jqf-2.0. If you want to have a look, check out (no pun intended) the [development branch](https://github.com/hub-se/BeDivFuzz/tree/jqf-2.0).
+BeDivFuzz is implemented as an extension of [JQF](https://github.com/rohanpadhye/JQF). 
 
 
 ## Usage Guide
 Coming soon.
 
 ## Replication/Experimental Setup
-### Prerequisites
+
+## Prerequisites
 - Java 8-11
 - Apache Maven
 - Python 3
 
 We also provide a Dockerfile to build a Docker image with all required tools. 
 
-### Step 0: Setup Environment
-#### Local setup 
+## Step 0: Setup Environment
+### Local setup 
 Install the required Python packages with `pip`:
 ```
 pip install -r requirements.txt
 ```
 
-#### Using Docker
+### Using Docker
 First, build the image:
 ```
 docker build -t bedivfuzz .
@@ -36,7 +36,8 @@ Then, run the container (with the current directory mounted to `/workspace` insi
 docker run -it --rm -v ${PWD}:/workspace bedivfuzz
 ```
 
-### Step 1: Build BeDivFuzz, Zest, and RLCheck
+## Step 1: Build BeDivFuzz, Zest, and RLCheck
+>>>>>>> jqf-2.0
 
 To build BeDivFuzz and Zest, run:
 ```
@@ -50,7 +51,7 @@ mvn package
 cd ../..
 ```
 
-### Optional: Test BeDivFuzz
+## Optional: Test BeDivFuzz
 
 We can now perform a test run of BeDivFuzz (e.g., on Rhino) as follows:
 ```
@@ -82,7 +83,7 @@ Overall exploitation score: 0.990
 
 Since this process runs without a timeout, you have to manually abort it with `Ctrl+C`.
 
-### Step 2: Perform the Evaluation
+## Step 2: Perform the Evaluation
 The evaluation script can be executed as follows:
  ```
 scripts/run_parallel_experiments.sh -o out_dir -t timeout -n repetitions -p parallel_workers [-r]
@@ -105,7 +106,7 @@ scripts/run_parallel_experiments.sh -o crash-results -t 86400 -n 30 -p 15
 ```
 
 
-### Step 3: Generate the figures
+## Step 3: Generate the figures
 
 For this step, we assume that the results are stored under `coverage-results` (RQ1/RQ2) and `crash-results` (RQ3). 
 

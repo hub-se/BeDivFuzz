@@ -3,14 +3,14 @@ package de.hub.se.jqf.fuzz.div;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance.Input;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance.LinearInput;
-import edu.berkeley.cs.jqf.fuzz.util.Coverage;
+import edu.berkeley.cs.jqf.fuzz.util.ICoverage;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-import java.util.Set;
 
 public class SplitLinearInput implements SplitInput {
     // Global random instance for new input values
@@ -48,7 +48,7 @@ public class SplitLinearInput implements SplitInput {
      *
      * <p>This field is null for inputs that are not saved.</p>
      */
-    Coverage coverage = null;
+    ICoverage coverage = null;
 
     /**
      * The number of non-zero elements in `coverage`.
@@ -56,7 +56,7 @@ public class SplitLinearInput implements SplitInput {
      * <p>This field is -1 for inputs that are not saved.</p>
      *
      * <p></p>When this field is non-negative, the information is
-     * redundant (can be computed using {@link Coverage#getNonZeroCount()}),
+     * redundant (can be computed using {@link ICoverage#getNonZeroCount()}),
      * but we store it here for performance reasons.</p>
      */
     int nonZeroCoverage = -1;
@@ -85,7 +85,7 @@ public class SplitLinearInput implements SplitInput {
      * in at least some responsibility set. Hence, this list
      * needs to be kept in-sync with {@link BeDivFuzzGuidance#responsibleInputs}.</p>
      */
-    Set<Object> responsibilities = null;
+    IntHashSet responsibilities = null;
 
     public SplitLinearInput(Input primary, Input secondary) {
         this.primaryInput = primary;

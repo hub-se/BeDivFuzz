@@ -41,9 +41,9 @@ import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
-import edu.berkeley.cs.jqf.examples.js.SplitJSCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.apache.commons.io.IOUtils;
@@ -97,13 +97,12 @@ public class CompilerTest {
         debugWithString("x <<= Infinity");
     }
 
+    /*
     @Fuzz
     public void testWithInputStream(InputStream in) throws IOException {
-        String code = IOUtils.toString(in, StandardCharsets.UTF_8);
-        //SourceFile input = SourceFile.fromInputStream("input", in, StandardCharsets.UTF_8);
-        //doCompile(input);
-        testWithString(code);
-    }
+        SourceFile input = SourceFile.fromInputStream("input", in, StandardCharsets.UTF_8);
+        doCompile(input);
+    }*/
 
     @Fuzz
     public void debugWithInputStream(InputStream in) throws IOException {
@@ -117,7 +116,7 @@ public class CompilerTest {
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJSCodeGenerator.class) String code) {
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
         testWithString(code);
     }
 

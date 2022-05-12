@@ -30,11 +30,9 @@ package edu.berkeley.cs.jqf.fuzz.guidance;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import de.hub.se.jqf.fuzz.junit.quickcheck.tracking.ChoiceType;
 import edu.berkeley.cs.jqf.fuzz.junit.TrialRunner;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
@@ -134,10 +132,6 @@ public interface Guidance {
         // Do nothing
     }
 
-    default void observeGeneratedChoices(List<ChoiceType> choiceSequence) {
-        // Do nothing
-    }
-
     /**
      * Handles the end of a fuzzing trial.
      *
@@ -173,7 +167,6 @@ public interface Guidance {
      *                  in handling the result
      */
     void handleResult(Result result, Throwable error) throws GuidanceException;
-
 
     /**
      * Returns a callback generator for a thread's event trace.
