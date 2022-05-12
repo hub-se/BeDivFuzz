@@ -1,9 +1,6 @@
 /*
  * Copyright (c) 2017-2018 The Regents of the University of California
-<<<<<<< HEAD
-=======
  * Copyright (c) 2021 Rohan Padhye
->>>>>>> jqf-2.0
  *
  * All rights reserved.
  *
@@ -134,8 +131,6 @@ public class ReproGuidance implements Guidance {
     }
 
     /**
-<<<<<<< HEAD
-=======
      * Configure whether the repro execution should stop as soon as
      * the first failure is encountered.
      *
@@ -146,7 +141,6 @@ public class ReproGuidance implements Guidance {
     }
 
     /**
->>>>>>> jqf-2.0
      * Returns an input stream corresponding to the next input file.
      *
      * @return an input stream corresponding to the next input file

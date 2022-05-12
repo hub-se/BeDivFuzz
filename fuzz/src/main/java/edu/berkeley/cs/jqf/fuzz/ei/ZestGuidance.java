@@ -288,12 +288,8 @@ public class ZestGuidance implements Guidance {
     protected final boolean STEAL_RESPONSIBILITY = Boolean.getBoolean("jqf.ei.STEAL_RESPONSIBILITY");
 
     /**
-<<<<<<< HEAD
-     * Creates a new guidance instance.
-=======
      * Creates a new Zest guidance instance with optional duration,
      * optional trial limit, and possibly deterministic PRNG.
->>>>>>> jqf-2.0
      *
      * @param testName the name of test to display on the status screen
      * @param duration the amount of time to run fuzzing for, where

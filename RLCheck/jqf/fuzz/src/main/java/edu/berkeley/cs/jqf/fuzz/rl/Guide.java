@@ -7,12 +7,6 @@ import java.util.List;
  */
 public interface Guide {
 
-//<<<<<<< HEAD
-    Object select(List<Object> actions, String state, int id);
-//
-//=======
 //     <T> T Select(List<T> actions, String state, int id);
-//>>>>>>> 715460815ef1a9ccb816ba21e7bdbbe74e31c646
-
 
 }

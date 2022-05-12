@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>jqf</artifactId>
-        <groupId>edu.berkeley.cs.jqf</groupId>
-        <version>1.8-SNAPSHOT</version>
-=======
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>jqf</artifactId>
         <groupId>edu.berkeley.cs.jqf</groupId>
         <version>2.0-SNAPSHOT</version>
->>>>>>> jqf-2.0
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -41,8 +31,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-<<<<<<< HEAD
-=======
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
@@ -55,17 +43,11 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
->>>>>>> jqf-2.0
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
             </plugin>
-<<<<<<< HEAD
-        </plugins>
-    </build>
-</project>
-=======
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -77,4 +59,3 @@
         </plugins>
     </build>
 </project>
->>>>>>> jqf-2.0
