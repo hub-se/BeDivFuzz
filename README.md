@@ -37,7 +37,6 @@ docker run -it --rm -v ${PWD}:/workspace bedivfuzz
 ```
 
 ## Step 1: Build BeDivFuzz, Zest, and RLCheck
->>>>>>> jqf-2.0
 
 To build BeDivFuzz and Zest, run:
 ```
