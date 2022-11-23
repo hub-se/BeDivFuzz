@@ -115,7 +115,6 @@ python3 scripts/gen_figures.py coverage-results
 ```
 The plots will be produced in the subdirectory `coverage-results/figs`.
 
-<<<<<<< HEAD
 To generate the crash table (Table 1) from `crash-results`, the following command can be used:
 ```
 python3 scripts/gen_crash_table.py crash-results
