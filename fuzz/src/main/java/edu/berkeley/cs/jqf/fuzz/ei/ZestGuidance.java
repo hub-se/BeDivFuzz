@@ -498,15 +498,21 @@ public class ZestGuidance implements Guidance {
     protected void displayStats(boolean force) {
         Date now = new Date();
         long intervalMilliseconds = now.getTime() - lastRefreshTime.getTime();
+        intervalMilliseconds = Math.max(1, intervalMilliseconds);
         if (intervalMilliseconds < STATS_REFRESH_TIME_PERIOD && !force) {
             return;
         }
         long interlvalTrials = numTrials - lastNumTrials;
-        long intervalExecsPerSec = interlvalTrials * 1000L / intervalMilliseconds;
-        double intervalExecsPerSecDouble = interlvalTrials * 1000.0 / intervalMilliseconds;
+        long intervalExecsPerSec = interlvalTrials * 1000L;
+        double intervalExecsPerSecDouble = interlvalTrials * 1000.0;
+        if(intervalMilliseconds != 0) {
+            intervalExecsPerSec = interlvalTrials * 1000L / intervalMilliseconds;
+            intervalExecsPerSecDouble = interlvalTrials * 1000.0 / intervalMilliseconds;
+        }
         lastRefreshTime = now;
         lastNumTrials = numTrials;
         long elapsedMilliseconds = now.getTime() - startTime.getTime();
+        elapsedMilliseconds = Math.max(1, elapsedMilliseconds);
         long execsPerSec = numTrials * 1000L / elapsedMilliseconds;
 
         String currentParentInputDesc;
