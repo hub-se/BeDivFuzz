@@ -4,25 +4,6 @@
 This repository provides the code and replication instructions for our paper *BeDivFuzz: Integrating Behaviorial Diversity into Generator-based Fuzzing* ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)).
 
 BeDivFuzz is implemented as an extension of [JQF](https://github.com/rohanpadhye/JQF). 
-
-
-## Usage Guide
-Coming soon.
-
-## Replication/Experimental Setup
-
-## Prerequisites
-- Java 8-11
-- Apache Maven
-- Python 3
-
-We also provide a Dockerfile to build a Docker image with all required tools. 
-
-## Step 0: Setup Environment
-### Local setup 
-Install the required Python packages with `pip`:
-```
-pip install -r requirements.txt
 ```
 
 ### Using Docker

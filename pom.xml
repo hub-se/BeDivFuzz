@@ -4,7 +4,7 @@
 
     <groupId>edu.berkeley.cs.jqf</groupId>
     <artifactId>jqf</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>jqf</name>
@@ -21,13 +21,13 @@
         <developer>
             <name>Rohan Padhye</name>
             <email>rohanpadhye@cs.berkeley.edu</email>
-            <organization>University of California, Berkeley</organization>
-            <url>https://people.eecs.berkeley.edu/~rohanpadhye</url>
+            <organization>Carnegie Mellon University</organization>
+            <url>https://rohan.padhye.org</url>
         </developer>
         <developer>
             <name>Caroline Lemieux</name>
-            <email>clemieux@cs.berkeley.edu</email>
-            <organization>University of California, Berkeley</organization>
+            <email>clemieux@cs.ubc.ca</email>
+            <organization>University of British Columbia</organization>
             <url>http://www.carolemieux.com</url>
         </developer>
     </developers>
@@ -37,7 +37,6 @@
             <name>Koushik Sen</name>
             <email>ksen@cs.berkeley.edu</email>
             <organization>University of California, Berkeley</organization>
-            <url>https://people.eecs.berkeley.edu/~rohanpadhye/</url>
         </contributor>
         <contributor>
             <name>Tobias Ospelt</name>
@@ -46,23 +45,31 @@
         <contributor>
             <name>Yevgeny Pats</name>
             <email>yp@fuzzit.dev</email>
-            <url>https://fuzzit.dev</url>
         </contributor>
         <contributor>
             <name>Vasudev Vikram</name>
             <email>vasumv@cmu.edu</email>
+            <organization>Carnegie Mellon University</organization>
         </contributor>
         <contributor>
             <name>Ao Li</name>
             <email>aoli@cs.cmu.edu</email>
+            <organization>Carnegie Mellon University</organization>
         </contributor>
         <contributor>
             <name>Isabella Laybourn</name>
             <email>ilaybour@andrew.cmu.edu</email>
+            <organization>Carnegie Mellon University</organization>
         </contributor>
         <contributor>
             <name>Jonathan Bell</name>
             <email>jon@jonbell.net</email>
+            <organization>Northeastern University</organization>
+        </contributor>
+        <contributor>
+            <name>Katharine Hough</name>
+            <email>hough.k@northeastern.edu</email>
+            <organization>Northeastern University</organization>
         </contributor>
     </contributors>
 
@@ -118,27 +125,27 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>9.4</version>
+                <version>9.5</version>
             </dependency>
             <dependency>
                 <groupId>org.jacoco</groupId>
                 <artifactId>org.jacoco.report</artifactId>
-                <version>0.8.7</version>
+                <version>0.8.10</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-fuzz</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>2.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-instrument</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>2.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-examples</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>2.1-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -161,8 +168,13 @@
 		</plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <release>9</release>
                     </configuration>
@@ -170,17 +182,27 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.5.0</version>
                     <configuration>
                         <source>1.8</source>
                         <links>
@@ -204,37 +226,32 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
-                </plugin>
-                <plugin>
-                    <groupId>edu.berkeley.cs.jqf</groupId>
-                    <artifactId>jqf-maven-plugin</artifactId>
-                    <version>2.0-SNAPSHOT</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>1.6</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.9.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>edu.berkeley.cs.jqf</groupId>
+                    <artifactId>jqf-maven-plugin</artifactId>
+                    <version>2.1-SNAPSHOT</version>
                 </plugin>
             </plugins>
         </pluginManagement>

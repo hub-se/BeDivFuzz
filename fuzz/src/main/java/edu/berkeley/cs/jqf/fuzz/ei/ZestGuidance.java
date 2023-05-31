@@ -577,7 +577,7 @@ public class ZestGuidance implements Guidance {
         appendLineToFile(statsFile, plotData);
     }
 
-    /** Updates the data in the coverage file */ 
+    /** Updates the data in the coverage file */
     protected void updateCoverageFile() {
         try {
             PrintWriter pw = new PrintWriter(coverageFile);
@@ -588,7 +588,7 @@ public class ZestGuidance implements Guidance {
             throw new GuidanceException(ignore);
         }
     }
-    
+
     /* Returns the banner to be displayed on the status screen */
     protected String getTitle() {
         if (blind) {
@@ -1048,6 +1048,9 @@ public class ZestGuidance implements Guidance {
 
         // Fourth, assume responsibility for branches
         currentInput.responsibilities = responsibilities;
+        if (responsibilities.size() > 0) {
+          currentInput.setFavored();
+        }
         IntIterator iter = responsibilities.intIterator();
         while(iter.hasNext()){
             int b = iter.next();
@@ -1161,6 +1164,11 @@ public class ZestGuidance implements Guidance {
         int id;
 
         /**
+         * Whether this input is favored.
+         */
+        boolean favored;
+
+        /**
          * The description for this input.
          *
          * <p>This field is modified by the construction and mutation
@@ -1229,6 +1237,14 @@ public class ZestGuidance implements Guidance {
         public abstract void gc();
 
         /**
+         * Sets this input to be favored for fuzzing.
+         */
+        public void setFavored() {
+            favored = true;
+        }
+
+
+        /**
          * Returns whether this input should be favored for fuzzing.
          *
          * <p>An input is favored if it is responsible for covering
@@ -1237,7 +1253,7 @@ public class ZestGuidance implements Guidance {
          * @return whether or not this input is favored
          */
         public boolean isFavored() {
-            return responsibilities.size() > 0;
+            return favored;
         }
 
         /**
