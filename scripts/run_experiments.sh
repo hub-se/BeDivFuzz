@@ -115,7 +115,7 @@ for bench_index in {0..5}; do
       echo "[$(date)] Skipped replay for RLCheck." >> $LOG_FILE
     fi
 
-    # Run jqf-bediv with default (simple) strategy (save new counts + new valid counts) 
+    # Run jqf-bedivfuzz with default (simple) strategy (save new counts + new valid counts)
     DIRNAME=${OUT_DIR}/bediv-simple-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting bediv-simple. Writing results to $DIRNAME." >> $LOG_FILE
@@ -125,7 +125,7 @@ for bench_index in {0..5}; do
       echo "[$(date)] Finished bediv-simple. No need to replay." >> $LOG_FILE
     fi
 
-    # Run jqf-bediv with -s heuristic (save new counts + new valid counts for new structures only) 
+    # Run jqf-bedivfuzz with -s heuristic (save new counts + new valid counts for new structures only)
     DIRNAME=${OUT_DIR}/bediv-structure-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting bediv-structure. Writing results to $DIRNAME." >> $LOG_FILE

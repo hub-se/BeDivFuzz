@@ -35,7 +35,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import com.pholser.junit.quickcheck.From;
-import de.hub.se.jqf.examples.js.SplitJavaScriptCodeGenerator;
+import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;

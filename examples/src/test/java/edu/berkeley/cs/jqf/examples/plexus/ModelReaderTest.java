@@ -2,7 +2,7 @@ package edu.berkeley.cs.jqf.examples.plexus;
 
 import com.pholser.junit.quickcheck.From;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
-import de.hub.se.jqf.examples.xml.SplitXmlDocumentGenerator;
+import de.hub.se.jqf.bedivfuzz.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;

@@ -34,6 +34,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
@@ -41,18 +42,15 @@ import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import de.hub.se.jqf.fuzz.div.BeDivFuzzGuidance;
-import de.hub.se.jqf.fuzz.div.SplitInput;
-import de.hub.se.jqf.fuzz.div.SplitLinearInput;
-import de.hub.se.jqf.fuzz.guidance.BeDivGuidance;
-import de.hub.se.jqf.fuzz.junit.quickcheck.NonTrackingSplitGenerationStatus;
-import de.hub.se.jqf.fuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.guidance.SplitParameterStream;
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivGuidance;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
-import edu.berkeley.cs.jqf.fuzz.junit.TrialRunner;
 import edu.berkeley.cs.jqf.instrument.InstrumentationException;
 import org.junit.AssumptionViolatedException;
 import org.junit.runners.model.FrameworkMethod;
@@ -106,6 +104,13 @@ public class FuzzStatement extends Statement {
                 .map(generatorRepository::produceGenerator)
                 .collect(Collectors.toList());
 
+        // Make sure generators are SplitGenerators when using BeDivFuzz
+        if (guidance instanceof BeDivGuidance) {
+            if (!generators.stream().allMatch(SplitGenerator.class::isInstance)) {
+                throw new GuidanceException("Parameter generators must extend the SplitGenerator<T> class.");
+            }
+        }
+
         // Keep fuzzing until no more input or I/O error with guidance
         try {
 
@@ -118,16 +123,15 @@ public class FuzzStatement extends Statement {
                 try {
                     Object[] args;
                     try {
-
                         // Generate input values
                         if (guidance instanceof BeDivGuidance) {
-                            SplitInput input = ((BeDivGuidance) guidance).getSplitInput();
-                            StreamBackedRandom primaryRandomFile = new StreamBackedRandom(input.createPrimaryParameterStream(), Long.BYTES);
-                            StreamBackedRandom secondaryRandomFile = new StreamBackedRandom(input.createSecondaryParameterStream(), Long.BYTES);
-                            SplitSourceOfRandomness random = new SplitSourceOfRandomness(primaryRandomFile, secondaryRandomFile);
-                            GenerationStatus genStatus = new NonTrackingSplitGenerationStatus(random);
+                            SplitParameterStream input = ((BeDivGuidance) guidance).getSplitInput();
+                            StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
+                            StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
+                            SplitSourceOfRandomness random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
+                            GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructuralRandom());
                             args = generators.stream()
-                                    .map(g -> g.generate(random, genStatus))
+                                    .map(g -> ((SplitGenerator) g).generate(random, genStatus))
                                     .toArray();
                         }
                         else {

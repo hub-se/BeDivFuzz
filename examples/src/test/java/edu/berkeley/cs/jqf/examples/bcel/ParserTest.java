@@ -84,21 +84,6 @@ public class ParserTest {
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJavaClassGenerator.class) JavaClass javaClass) throws IOException {
-
-        try {
-            // Dump the javaclass to a byte stream and get an input pipe
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            javaClass.dump(out);
-
-            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-            testWithInputStream(in);
-        } catch (ClassFormatException e) {
-            throw e;
-        }
-    }
-
-    @Fuzz
     public void verifyJavaClass(@From(JavaClassGenerator.class) JavaClass javaClass) throws IOException {
         try {
             Repository.addClass(javaClass);

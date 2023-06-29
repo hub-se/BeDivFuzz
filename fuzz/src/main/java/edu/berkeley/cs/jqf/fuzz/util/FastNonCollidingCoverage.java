@@ -50,9 +50,9 @@ import java.util.Iterator;
 public class FastNonCollidingCoverage extends FastCoverageListener.Default implements ICoverage<FastNonCollidingCounter> {
 
     /** The starting size of the coverage map. */
-    private final int COVERAGE_MAP_SIZE = (1 << 8);
+    protected final int COVERAGE_MAP_SIZE = (1 << 8);
 
-    private final FastNonCollidingCounter counter = new FastNonCollidingCounter(COVERAGE_MAP_SIZE);
+    protected final FastNonCollidingCounter counter = new FastNonCollidingCounter(COVERAGE_MAP_SIZE);
 
     /** Creates a new coverage map. */
     public FastNonCollidingCoverage() {
