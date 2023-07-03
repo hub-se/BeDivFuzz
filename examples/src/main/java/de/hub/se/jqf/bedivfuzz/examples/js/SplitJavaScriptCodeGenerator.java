@@ -87,7 +87,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
     private static int sampleGeometric(SplitSourceOfRandomness random, double mean, boolean structural) {
         double p = 1 / mean;
-        double uniform = structural? random.nextStructuralDouble() : random.nextValueDouble();
+        double uniform = structural ? random.structure.nextDouble() : random.value.nextDouble();
         return (int) ceil(log(1 - uniform) / log(1 - p));
     }
 
@@ -105,13 +105,13 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
         expressionDepth++;
         // Choose between terminal or non-terminal
         String result;
-        if (expressionDepth >= MAX_EXPRESSION_DEPTH || random.nextStructuralBoolean()) {
-            result = random.structuralChoose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+        if (expressionDepth >= MAX_EXPRESSION_DEPTH || random.structure.nextBoolean()) {
+            result = random.structure.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
                     this::generateLiteralNode,
                     this::generateIdentNode
             )).apply(random);
         } else {
-            result = random.structuralChoose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+            result = random.structure.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
                     this::generateBinaryNode,
                     this::generateUnaryNode,
                     this::generateTernaryNode,
@@ -129,8 +129,8 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     private String generateStatement(SplitSourceOfRandomness random) {
         statementDepth++;
         String result;
-        if (statementDepth >= MAX_STATEMENT_DEPTH || random.nextStructuralBoolean()) {
-            result = random.structuralChoose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+        if (statementDepth >= MAX_STATEMENT_DEPTH || random.structure.nextBoolean()) {
+            result = random.structure.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
                     this::generateExpressionStatement,
                     this::generateBreakNode,
                     this::generateContinueNode,
@@ -140,7 +140,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
                     this::generateEmptyNode
             )).apply(random);
         } else {
-            result = random.structuralChoose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
+            result = random.structure.choose(Arrays.<Function<SplitSourceOfRandomness, String>>asList(
                     this::generateIfNode,
                     this::generateForNode,
                     this::generateWhileNode,
@@ -156,7 +156,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
 
     private String generateBinaryNode(SplitSourceOfRandomness random) {
-        String token = random.valueChoose(BINARY_TOKENS);
+        String token = random.value.choose(BINARY_TOKENS);
         String lhs = generateExpression(random);
         String rhs = generateExpression(random);
 
@@ -180,7 +180,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
         String args = String.join(",", generateItems(this::generateExpression, random, 3));
 
         String call = func + "(" + args + ")";
-        if (random.nextValueBoolean()) {
+        if (random.value.nextBoolean()) {
             return call;
         } else {
             return "new " + call;
@@ -210,15 +210,15 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
     private String generateForNode(SplitSourceOfRandomness random) {
         String s = "for(";
-        if (random.nextStructuralBoolean()) {
+        if (random.structure.nextBoolean()) {
             s += generateExpression(random);
         }
         s += ";";
-        if (random.nextStructuralBoolean()) {
+        if (random.structure.nextBoolean()) {
             s += generateExpression(random);
         }
         s += ";";
-        if (random.nextStructuralBoolean()) {
+        if (random.structure.nextBoolean()) {
             s += generateExpression(random);
         }
         s += ")";
@@ -236,7 +236,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
     private String generateArrowFunctionNode(SplitSourceOfRandomness random) {
         String params = "(" + String.join(", ", generateItems(this::generateIdentNode, random, 3)) + ")";
-        if (random.nextStructuralBoolean()) {
+        if (random.structure.nextBoolean()) {
             return params + " => " + generateBlock(random);
         } else {
             return params + " => " + generateExpression(random);
@@ -247,11 +247,11 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     private String generateIdentNode(SplitSourceOfRandomness random) {
         // Either generate a new identifier or use an existing one
         String identifier;
-        if (identifiers.isEmpty() || (identifiers.size() < MAX_IDENTIFIERS && random.nextStructuralBoolean())) {
-            identifier = random.nextValueChar('a', 'z') + "_" + identifiers.size();
+        if (identifiers.isEmpty() || (identifiers.size() < MAX_IDENTIFIERS && random.structure.nextBoolean())) {
+            identifier = random.value.nextChar('a', 'z') + "_" + identifiers.size();
             identifiers.add(identifier);
         } else {
-            identifier = random.valueChoose(identifiers);
+            identifier = random.value.choose(identifiers);
         }
 
         return identifier;
@@ -261,7 +261,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
         return "if (" +
                 generateExpression(random) + ") " +
                 generateBlock(random) +
-                (random.nextStructuralBoolean() ? " else " + generateBlock(random) : "");
+                (random.structure.nextBoolean() ? " else " + generateBlock(random) : "");
     }
 
     private String generateIndexNode(SplitSourceOfRandomness random) {
@@ -273,8 +273,8 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     }
 
     private String generateLiteralNode(SplitSourceOfRandomness random) {
-        if (expressionDepth < MAX_EXPRESSION_DEPTH && random.nextStructuralBoolean()) {
-            if (random.nextStructuralBoolean()) {
+        if (expressionDepth < MAX_EXPRESSION_DEPTH && random.structure.nextBoolean()) {
+            if (random.structure.nextBoolean()) {
                 // Array literal
                 return "[" + String.join(", ", generateItems(this::generateExpression, random, 3)) + "]";
             } else {
@@ -283,10 +283,10 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
             }
         } else {
-            return random.structuralChoose(Arrays.<Supplier<String>>asList(
-                    () -> String.valueOf(random.nextValueInt(-10, 1000)),
-                    () -> String.valueOf(random.nextValueBoolean()),
-                    () -> '"' + new AsciiStringGenerator().generate(random.getValueRandom(), status) + '"',
+            return random.structure.choose(Arrays.<Supplier<String>>asList(
+                    () -> String.valueOf(random.value.nextInt(-10, 1000)),
+                    () -> String.valueOf(random.value.nextBoolean()),
+                    () -> '"' + new AsciiStringGenerator().generate(random.value, status) + '"',
                     () -> "undefined",
                     () -> "null",
                     () -> "this"
@@ -299,7 +299,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     }
 
     private String generateReturnNode(SplitSourceOfRandomness random) {
-        return random.nextStructuralBoolean() ? "return" : "return " + generateExpression(random);
+        return random.structure.nextBoolean() ? "return" : "return " + generateExpression(random);
     }
 
     private String generateSwitchNode(SplitSourceOfRandomness random) {
@@ -321,7 +321,7 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     }
 
     private String generateUnaryNode(SplitSourceOfRandomness random) {
-        String token = random.valueChoose(UNARY_TOKENS);
+        String token = random.value.choose(UNARY_TOKENS);
         return token + " " + generateExpression(random);
     }
 
