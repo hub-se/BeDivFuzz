@@ -129,7 +129,7 @@ public class FuzzStatement extends Statement {
                             StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
                             StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
                             SplitSourceOfRandomness random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
-                            GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructuralRandom());
+                            GenerationStatus genStatus = new NonTrackingGenerationStatus(random.structure);
                             args = generators.stream()
                                     .map(g -> ((SplitGenerator) g).generate(random, genStatus))
                                     .toArray();
