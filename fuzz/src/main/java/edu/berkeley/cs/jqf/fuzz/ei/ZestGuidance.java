@@ -417,7 +417,7 @@ public class ZestGuidance implements Guidance {
         }
         this.statsFile = new File(outputDirectory, "plot_data");
         this.logFile = new File(outputDirectory, "fuzz.log");
-        this.failureStatsFile = new File(outputDirectory, "failure_stats.csv");
+        this.failureStatsFile = new File(outputDirectory, "failure_info.csv");
         this.currentInputFile = new File(outputDirectory, ".cur_input");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
@@ -430,9 +430,19 @@ public class ZestGuidance implements Guidance {
         logFile.delete();
         coverageFile.delete();
         for (File file : savedCorpusDirectory.listFiles()) {
+            if (file.isDirectory()) { // BeDivFuzz generated folder structure
+                for (File innerFile : file.listFiles()) {
+                    innerFile.delete();
+                }
+            }
             file.delete();
         }
         for (File file : savedFailuresDirectory.listFiles()) {
+            if (file.isDirectory()) { // BeDivFuzz generated folder structure
+                for (File innerFile : file.listFiles()) {
+                    innerFile.delete();
+                }
+            }
             file.delete();
         }
 

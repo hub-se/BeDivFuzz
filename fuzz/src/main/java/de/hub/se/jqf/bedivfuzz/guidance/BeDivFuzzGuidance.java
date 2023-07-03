@@ -429,7 +429,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         }
         this.statsFile = new File(outputDirectory, "plot_data");
         this.logFile = new File(outputDirectory, "fuzz.log");
-        this.failureStatsFile = new File(outputDirectory, "failure_stats.csv");
+        this.failureStatsFile = new File(outputDirectory, "failure_info.csv");
         this.currentStructuralInputFile = new File(outputDirectory, ".cur_structural_parameters");
         this.currentValueInputFile = new File(outputDirectory, ".cur_value_parameters");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
