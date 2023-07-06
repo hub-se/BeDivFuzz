@@ -42,17 +42,7 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -571,6 +561,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                 console.printf("Valid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
                 console.printf("Unique valid paths:   %,d \n", uniqueValidPaths.size());
+                console.printf("Input structures:     %,d \n", exploredInputStructures.size());
                 console.printf("Exploration score:    %.2f \n", explorationScore.get());
                 console.printf("Exploitation score:   %.2f \n", exploitationScore.get());
             }
@@ -708,7 +699,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
                     numChildrenGeneratedForCurrentParentInput = 0;
                 }
-                SplitLinearInput parent = (SplitLinearInput) savedInputs.get(currentParentInputIdx);
+                SplitLinearInput parent = savedInputs.get(currentParentInputIdx);
 
                 // We still want to do some havoc mutations
                 if (numChildrenGeneratedForCurrentParentInput <= 0.2 * targetNumChildren) {
@@ -819,9 +810,6 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                 boolean toSave = savingCriteriaSatisfied.size() > 0;
 
                 if (toSave) {
-                    // Add new valid structure which has increased coverage
-                    exploredInputStructures.add(currentInput.structuralParameters.hashCode());
-
 
                     String why = String.join(" ", savingCriteriaSatisfied);
 
@@ -830,6 +818,9 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
                     // It must still be non-empty
                     assert (currentInput.size() > 0) : String.format("Empty input: %s", currentInput.desc);
+
+                    // Add new valid structure which has increased coverage
+                    exploredInputStructures.add(currentInput.structuralParameters.hashCode());
 
                     // libFuzzerCompat stats are only displayed when they hit new coverage
                     if (LIBFUZZER_COMPAT_OUTPUT) {
