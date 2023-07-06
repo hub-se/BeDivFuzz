@@ -70,18 +70,12 @@ public class BranchHitCounter {
             int hitCount = counter.get(idx);
 
             double p = ((double) hitCount) / totalBranchHitCount;
-            /**
-             * Probabilities may become very small, so we use log(a/b) = log(a) - log(b) to
-             * reduce the risk of floating-point underflow
-             */
-            h1 += p * Math.log(hitCount) - p * Math.log(totalBranchHitCount);
-            //h2 += Math.pow(p, 2);
-            h2 += p * Math.log(p);
+            h1 += p * Math.log(p);
+            h2 += Math.pow(p, 2);
 
         }
         bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
         bedivMetrics.b1 = Math.exp(-h1); // Hill-number of order 1 (= exp(shannon index))
-        bedivMetrics.b2 = Math.exp(-h2); // Hill-number of order 1 (= exp(shannon index))
-        //bedivMetrics.b2 = Math.pow(h2, -1); // Hill-number of order 2 (= 1/(simpson index))
+        bedivMetrics.b2 = Math.pow(h2, -1); // Hill-number of order 2 (= 1/(simpson index))
     }
 }
