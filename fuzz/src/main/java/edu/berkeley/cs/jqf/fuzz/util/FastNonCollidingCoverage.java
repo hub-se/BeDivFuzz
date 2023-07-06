@@ -28,18 +28,12 @@
  */
 package edu.berkeley.cs.jqf.fuzz.util;
 
-import edu.berkeley.cs.jqf.instrument.tracing.events.BranchEvent;
-import edu.berkeley.cs.jqf.instrument.tracing.events.CallEvent;
-import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import janala.instrument.FastCoverageListener;
 import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.api.tuple.primitive.IntIntPair;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
