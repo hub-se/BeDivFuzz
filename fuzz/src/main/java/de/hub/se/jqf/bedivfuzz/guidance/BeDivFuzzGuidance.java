@@ -788,10 +788,6 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
             boolean valid = result == Result.SUCCESS;
 
-            if (uniquePaths.add(runCoverage.hashCode())) {
-                branchHitCounter.incrementBranchCounts(runCoverage);
-            }
-
             if (valid) {
                 // Increment valid counter
                 numValid++;
@@ -933,6 +929,11 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
+        }
+
+        // Update hit counts
+        if (uniquePaths.add(runCoverage.hashCode())) {
+            branchHitCounter.incrementBranchCounts(runCoverage);
         }
 
         // Coverage after

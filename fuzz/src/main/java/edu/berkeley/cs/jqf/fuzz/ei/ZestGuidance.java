@@ -781,11 +781,6 @@ public class ZestGuidance implements Guidance {
 
             boolean valid = result == Result.SUCCESS;
 
-            if (uniquePaths.add(runCoverage.hashCode())) {
-                branchHitCounter.incrementBranchCounts(runCoverage);
-            }
-
-
             if (valid) {
                 // Increment valid counter
                 numValid++;
@@ -915,6 +910,11 @@ public class ZestGuidance implements Guidance {
         boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
+        }
+
+        // Update hit counts
+        if (uniquePaths.add(runCoverage.hashCode())) {
+            branchHitCounter.incrementBranchCounts(runCoverage);
         }
 
         // Coverage after
