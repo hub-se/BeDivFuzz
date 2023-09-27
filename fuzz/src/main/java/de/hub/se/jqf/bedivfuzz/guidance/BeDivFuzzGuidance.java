@@ -561,10 +561,10 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                 console.printf("Total coverage:       %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
                 console.printf("Valid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
-                console.printf("Unique valid paths:   %,d \n", uniqueValidPaths.size());
-                console.printf("Input structures:     %,d \n", exploredInputStructures.size());
-                console.printf("Exploration score:    %.2f \n", explorationScore.get());
-                console.printf("Exploitation score:   %.2f \n", exploitationScore.get());
+                console.printf("Unique valid paths:   %,d\n", uniqueValidPaths.size());
+                console.printf("Input structures:     %,d\n", exploredInputStructures.size());
+                console.printf("Exploration score:    %.2f\n", explorationScore.get());
+                console.printf("Exploitation score:   %.2f\n", exploitationScore.get());
             }
         }
 

@@ -16,7 +16,7 @@ public class BranchHitCounter {
     private final long STATS_REFRESH_TIME_PERIOD = 5000; // Every 5 seconds
 
     /** The size of the coverage map. */
-    private final int COVERAGE_MAP_SIZE = (1 << 8); // Map size taken from FastNonCollidingCoverage
+    private final int COVERAGE_MAP_SIZE = (1 << 8);
 
     /** The coverage counts for each edge. */
     private final FastNonCollidingCounter counter = new FastNonCollidingCounter(COVERAGE_MAP_SIZE);
