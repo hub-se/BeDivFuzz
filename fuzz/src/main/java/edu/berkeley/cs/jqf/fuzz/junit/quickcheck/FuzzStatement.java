@@ -34,7 +34,6 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
@@ -136,7 +135,7 @@ public class FuzzStatement extends Statement {
                         }
                         else {
                             StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
-                            SourceOfRandomness random = new SourceOfRandomness(randomFile);
+                            SourceOfRandomness random = new FastSourceOfRandomness(randomFile);
                             GenerationStatus genStatus = new NonTrackingGenerationStatus(random);
                             args = generators.stream()
                                     .map(g -> g.generate(random, genStatus))
