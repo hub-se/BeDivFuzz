@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:lnbusvr:x" opt; do
+while getopts ":c:N:r:t:dflns" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -22,32 +22,29 @@ while getopts ":c:N:lnbusvr:x" opt; do
     c)
       export CLASSPATH="$OPTARG"
       ;;
+    N)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.MAX_TRIALS=$OPTARG"
+      ;;
+    r)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.STATS_REFRESH_TIME_PERIOD=$OPTARG"
+      ;;
+    t)
+      export JVM_OPTS="$JVM_OPTS -Djqf.ei.TIMEOUT=$OPTARG"
+      ;;
+    d)
+      debug=true
+      ;;
+    f)
+      export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
+      ;;
     l)
       export JVM_OPTS="$JVM_OPTS -Djqf.logCoverage=true"
       ;;
     n) 
       export JQF_DISABLE_INSTRUMENTATION=1
       ;;
-    N)
-      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.MAX_TRIALS=$OPTARG"
-      ;;
-    b)
-      export JVM_OPTS="$JVM_OPTS -Djqf.div.REWARD_NEW_COVERAGE=true"
-      ;;
-    u)
-      export JVM_OPTS="$JVM_OPTS -Djqf.div.REWARD_UNIQUE_VALIDITY=true"
-      ;;
     s)
-      export JVM_OPTS="$JVM_OPTS -Djqf.div.SAVE_ONLY_NEW_STRUCTURES=true"
-      ;;
-    v)
-      export JVM_OPTS="$JVM_OPTS -Djqf.div.SAVE_OLD_STRUCTURE_IF_VALID_COV=true"
-      ;;
-    r)
-    	export JVM_OPTS="$JVM_OPTS -Djqf.guidance.STATS_REFRESH_TIME_PERIOD=$OPTARG"
-      ;;
-    x)
-      debug=true
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
       ;;
   esac
 done
@@ -59,7 +56,6 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-export JVM_OPTS="$JVM_OPTS-DuseFastNonCollidingCoverageInstrumentation=true"
 
 if [ "$debug" = true ] ; then
   $ROOT_DIR/scripts/jqf-debug-driver.sh de.hub.se.jqf.bedivfuzz.guidance.BeDivDriver $@

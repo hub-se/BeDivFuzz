@@ -14,7 +14,9 @@ public class GlobalStateForInstrumentation {
     fastCoverageIID++;
     return fastCoverageIID;
   }
-
+  public int getFastCoverageId() {
+    return fastCoverageIID;
+  }
 
   // When one gets the id, she gets the result of merging all three ids.
   // NOTE: Beaware of truncation errors.

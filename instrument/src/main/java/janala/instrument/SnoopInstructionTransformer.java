@@ -9,8 +9,8 @@ import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.regex.Pattern;
+
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -23,6 +23,14 @@ public class SnoopInstructionTransformer implements ClassFileTransformer {
   private static String[] banned = {"[", "java/lang", "org/eclipse/collections", "edu/berkeley/cs/jqf/fuzz/util", "janala", "org/objectweb/asm", "sun", "jdk", "java/util/function"};
   private static String[] excludes = Config.instance.excludeInst;
   private static String[] includes = Config.instance.includeInst;
+  private static Pattern[] semantic = new Pattern[Config.instance.semanticAnalysisClasses.length];
+  static {
+    String[] patterns = Config.instance.semanticAnalysisClasses;
+    for (int i = 0; i < patterns.length; i++) {
+      semantic[i] = Pattern.compile(patterns[i] + ".*");
+    }
+  }
+
   public static void premain(String agentArgs, Instrumentation inst) throws ClassNotFoundException {
 
     preloadClasses();
@@ -122,7 +130,7 @@ public class SnoopInstructionTransformer implements ClassFileTransformer {
         ClassReader cr = new ClassReader(cbuf);
         ClassWriter cw = new SafeClassWriter(cr,  loader,
                 ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-        ClassVisitor cv = new SnoopInstructionClassAdapter(cw, cname);
+        ClassVisitor cv = new SnoopInstructionClassAdapter(cw, cname, semantic);
 
         cr.accept(cv, 0);
 

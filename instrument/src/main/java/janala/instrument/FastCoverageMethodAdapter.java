@@ -15,6 +15,7 @@ public class FastCoverageMethodAdapter extends MethodVisitor implements Opcodes 
   private final GlobalStateForInstrumentation instrumentationState;
 
   private final int methodIID;
+  private ProbeCounter probeCounter = ProbeCounter.instance;
   public FastCoverageMethodAdapter(MethodVisitor mv, String className,
                                    String methodName, String descriptor, String superName,
                                    GlobalStateForInstrumentation instrumentationState) {
@@ -39,6 +40,7 @@ public class FastCoverageMethodAdapter extends MethodVisitor implements Opcodes 
     addBipushInsn(mv, iid);
     mv.visitInsn(ICONST_0);
     mv.visitMethodInsn(INVOKESTATIC, Config.instance.analysisClass, "LOGJUMP", "(II)V", false);
+    probeCounter.incrementTotalProbes();
 
     if (opcode == INVOKESPECIAL && name.equals("<init>")) {
 
@@ -134,6 +136,7 @@ public class FastCoverageMethodAdapter extends MethodVisitor implements Opcodes 
       case IFNULL:
       case IFNONNULL:
         addConditionalJumpInstrumentation(opcode, label,  "LOGJUMP", "(II)V");
+        probeCounter.addTotalProbes(2);
         break;
       case GOTO:
       case JSR:
@@ -196,6 +199,7 @@ public class FastCoverageMethodAdapter extends MethodVisitor implements Opcodes 
     //create a coverage probe for the default case
     instrumentationState.incAndGetFastCoverageId();
     mv.visitMethodInsn(INVOKESTATIC, Config.instance.analysisClass, "LOGTABLESWITCH", "(IIIII)V", false);
+    probeCounter.addTotalProbes(labels.length + 1);
     mv.visitTableSwitchInsn(min, max, dflt, labels);
   }
 
@@ -224,6 +228,7 @@ public class FastCoverageMethodAdapter extends MethodVisitor implements Opcodes 
     //create a coverage probe for the default case
     instrumentationState.incAndGetFastCoverageId();
     mv.visitMethodInsn(INVOKESTATIC, Config.instance.analysisClass, "LOGLOOKUPSWITCH", "(III[I)V", false);
+    probeCounter.addTotalProbes(keys.length + 1);
     mv.visitLookupSwitchInsn(dflt, keys, labels);
   }
 

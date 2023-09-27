@@ -15,10 +15,12 @@ class Config {
   public final String analysisClass;
   public final String[] excludeInst;
   public final String[] includeInst;
+  public final String[] semanticAnalysisClasses;
   public final boolean instrumentHeapLoad;
   public final boolean instrumentAlloc;
   public final String instrumentationCacheDir;
   public final boolean useFastCoverageInstrumentation;
+  public final boolean trackSemanticCoverage;
 
   private Config() {
       // Read properties from the conf file
@@ -66,6 +68,19 @@ class Config {
       } else {
           includeInst = new String[0];
       }
+
+      trackSemanticCoverage = Boolean.parseBoolean(properties.getProperty("jqf.guidance.TRACK_SEMANTIC_COVERAGE", "false"));
+
+      String semanticAnalysisStr = properties.getProperty("janala.semanticAnalysisClasses", null);
+      if (semanticAnalysisStr != null) {
+          semanticAnalysisClasses = semanticAnalysisStr.replace('.', '/').split(",");
+      } else {
+          if (trackSemanticCoverage) {
+              throw new IllegalArgumentException("trackSemanticCoverage is enabled but no semantic classes are specified.");
+          }
+          semanticAnalysisClasses = new String[0];
+      }
+
 
       instrumentationCacheDir = properties.getProperty("janala.instrumentationCacheDir");
 

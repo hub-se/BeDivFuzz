@@ -71,8 +71,10 @@ import edu.berkeley.cs.jqf.fuzz.util.FastNonCollidingCoverage;
 import edu.berkeley.cs.jqf.fuzz.util.ICoverage;
 import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
 import edu.berkeley.cs.jqf.instrument.tracing.FastCoverageSnoop;
+import edu.berkeley.cs.jqf.instrument.tracing.FastSemanticCoverageSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import janala.instrument.FastCoverageListener;
+import janala.instrument.ProbeCounter;
 import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
@@ -164,6 +166,12 @@ public class ZestGuidance implements Guidance {
     /** Cumulative coverage for valid inputs. */
     protected ICoverage validCoverage = CoverageFactory.newInstance();
 
+    /** Semantic coverage for a single run. */
+    protected ICoverage semanticRunCoverage = CoverageFactory.newInstance();
+
+    /** Cumulative coverage of semantic analysis classes. */
+    protected ICoverage semanticTotalCoverage = CoverageFactory.newInstance();
+
     /**
      * Set of hashes of all paths generated so far.
      */
@@ -230,6 +238,10 @@ public class ZestGuidance implements Guidance {
 
     /** Whether to store all generated inputs to disk (can get slowww!) */
     protected final boolean LOG_ALL_INPUTS = Boolean.getBoolean("jqf.ei.LOG_ALL_INPUTS");
+
+    protected final boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
+
+    protected final ProbeCounter probeCounter = ProbeCounter.instance;
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -307,6 +319,12 @@ public class ZestGuidance implements Guidance {
 
         if(this.runCoverage instanceof FastCoverageListener){
             FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
+        }
+
+        if(TRACK_SEMANTIC_COVERAGE) {
+            FastSemanticCoverageSnoop.setCoverageListeners(
+                    (FastCoverageListener) this.runCoverage,
+                    (FastCoverageListener) this.semanticRunCoverage);
         }
 
         // Try to parse the single-run timeout
@@ -457,8 +475,8 @@ public class ZestGuidance implements Guidance {
     protected String getStatNames() {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
-                "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, " +
-                "b0, b1, b2";
+                "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
+                "covered_semantic_probes, num_semantic_probes, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -535,9 +553,19 @@ public class ZestGuidance implements Guidance {
         }
 
         int nonZeroCount = totalCoverage.getNonZeroCount();
-        double nonZeroFraction = nonZeroCount * 100.0 / totalCoverage.size();
         int nonZeroValidCount = validCoverage.getNonZeroCount();
-        double nonZeroValidFraction = nonZeroValidCount * 100.0 / validCoverage.size();
+        double nonZeroFraction;
+        double nonZeroValidFraction;
+        int numTotalProbes = probeCounter.getNumTotalProbes();
+        if (this.runCoverage instanceof FastNonCollidingCoverage) {
+            nonZeroFraction = numTotalProbes > 0 ? nonZeroCount * 100.0 / numTotalProbes : 0;
+            nonZeroValidFraction = numTotalProbes > 0 ? nonZeroValidCount * 100.0 / numTotalProbes : 0;
+        } else {
+            nonZeroFraction = nonZeroCount * 100.0 / totalCoverage.size();
+            nonZeroValidFraction = nonZeroValidCount * 100.0 / validCoverage.size();
+        }
+        long semanticNonZeroCount = semanticTotalCoverage.getNonZeroCount();
+        int numSemanticProbes = probeCounter.getNumSemanticProbes();
 
         BehavioralDiversityMetrics divMetrics = branchHitCounter.getCachedMetrics(force);
 
@@ -570,15 +598,20 @@ public class ZestGuidance implements Guidance {
                 console.printf("Execution speed:      %,d/sec now | %,d/sec overall\n", intervalExecsPerSec, execsPerSec);
                 console.printf("Total coverage:       %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
                 console.printf("Valid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
+                if (TRACK_SEMANTIC_COVERAGE) {
+                    double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
+                    console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
+                }
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
                 console.printf("Unique valid paths:   %,d \n", uniqueValidPaths.size());
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %.2f, %.2f, %.2f",
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f,",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
                 numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
-                numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount,
+                numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
+                semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
                 divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
         appendLineToFile(statsFile, plotData);
     }
@@ -700,6 +733,8 @@ public class ZestGuidance implements Guidance {
         conditionallySynchronize(multiThreaded, () -> {
             // Clear coverage stats for this run
             runCoverage.clear();
+            semanticRunCoverage.clear();
+
 
             // Choose an input to execute based on state of queues
             if (!seedInputs.isEmpty()) {
@@ -911,13 +946,18 @@ public class ZestGuidance implements Guidance {
 
         // Update total coverage
         boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
+        semanticTotalCoverage.updateBits(semanticRunCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
         }
 
         // Update hit counts
         if (uniquePaths.add(runCoverage.hashCode())) {
-            branchHitCounter.incrementBranchCounts(runCoverage);
+            if (TRACK_SEMANTIC_COVERAGE) {
+                branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+            } else {
+                branchHitCounter.incrementBranchCounts(runCoverage);
+            }
         }
 
         // Coverage after

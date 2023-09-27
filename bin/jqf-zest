@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-v] TEST_CLASS TEST_METHOD [OUT_DIR [SEED_FILES...]]"
 }
 
-while getopts ":c:vt:x" opt; do
+while getopts ":c:vt:dfs" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -27,8 +27,14 @@ while getopts ":c:vt:x" opt; do
     t)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.TIMEOUT=$OPTARG"
       ;;
-    x)
+    d)
       debug=true
+      ;;
+    f)
+      export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
+      ;;
+    s)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
       ;;
   esac
 done
@@ -40,7 +46,6 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
 
 # Run the Zest input driver
 if [ "$debug" = true ] ; then
