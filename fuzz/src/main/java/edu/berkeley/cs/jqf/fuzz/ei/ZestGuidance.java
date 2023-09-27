@@ -73,8 +73,10 @@ import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
 import edu.berkeley.cs.jqf.instrument.tracing.FastCoverageSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import janala.instrument.FastCoverageListener;
+import janala.instrument.GlobalStateForInstrumentation;
 import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import static java.lang.Math.ceil;
@@ -163,11 +165,13 @@ public class ZestGuidance implements Guidance {
     /** Cumulative coverage for valid inputs. */
     protected ICoverage validCoverage = CoverageFactory.newInstance();
 
-    /** Set of hashes of all paths generated so far. */
-    protected Set<Integer> uniquePaths = new HashSet<>();
+    /**
+     * Set of hashes of all paths generated so far.
+     */
+    protected IntHashSet uniquePaths = new IntHashSet();
 
     /** Set of hashes of all valid paths generated so far. */
-    protected Set<Integer> uniqueValidPaths = new HashSet<>();
+    protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Coverage diversity metrics for all unique paths. */
     protected BranchHitCounter branchHitCounter = new BranchHitCounter();
@@ -176,7 +180,7 @@ public class ZestGuidance implements Guidance {
     protected int maxCoverage = 0;
 
     /** A mapping of coverage keys to inputs that are responsible for them. */
-    protected Map<Object, Input> responsibleInputs = new HashMap<>(totalCoverage.size());
+    protected IntObjectHashMap<Input> responsibleInputs = new IntObjectHashMap<>(totalCoverage.size());
 
     /** The set of unique failures found so far. */
     protected Set<String> uniqueFailures = new HashSet<>();

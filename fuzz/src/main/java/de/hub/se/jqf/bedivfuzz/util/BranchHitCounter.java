@@ -2,7 +2,6 @@ package de.hub.se.jqf.bedivfuzz.util;
 
 import edu.berkeley.cs.jqf.fuzz.util.*;
 import org.eclipse.collections.api.iterator.IntIterator;
-import org.eclipse.collections.api.list.primitive.IntList;
 
 import java.util.*;
 

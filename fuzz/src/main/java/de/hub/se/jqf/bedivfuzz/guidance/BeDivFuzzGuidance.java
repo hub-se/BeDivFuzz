@@ -58,6 +58,7 @@ import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 import janala.instrument.FastCoverageListener;
 import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 /**
@@ -165,10 +166,10 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
     protected ICoverage validCoverage = CoverageFactory.newInstance();
 
     /** Set of hashes of all paths generated so far. */
-    protected Set<Integer> uniquePaths = new HashSet<>();
+    protected IntHashSet uniquePaths = new IntHashSet();
 
     /** Set of hashes of all valid paths generated so far. */
-    protected Set<Integer> uniqueValidPaths = new HashSet<>();
+    protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Branch hit-count metrics for all unique paths. */
     protected BranchHitCounter branchHitCounter = new BranchHitCounter();
@@ -177,7 +178,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
     protected int maxCoverage = 0;
 
     /** A mapping of coverage keys to inputs that are responsible for them. */
-    protected Map<Object, SplitLinearInput> responsibleInputs = new HashMap<>(totalCoverage.size());
+    protected IntObjectHashMap<SplitLinearInput> responsibleInputs = new IntObjectHashMap<>(totalCoverage.size());
 
     /** The set of unique failures found so far. */
     protected Set<String> uniqueFailures = new HashSet<>();
