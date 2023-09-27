@@ -72,7 +72,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     // ------------ BeDivFuzz Variables ------------
     /** Set of input structures explored so far. */
-    protected Set<Integer> exploredInputStructures = new HashSet<>();
+    protected IntHashSet exploredInputStructures = new IntHashSet();
 
     /** Hash code of last generated structure */
     protected int lastGeneratedStructureHash;
