@@ -57,24 +57,23 @@ public class BranchHitCounter {
      * Updates the behavioral diversity metrics based on the current branch hit count distribution.
      */
     public void updateMetrics() {
-        IntList coveredBranches = counter.getNonZeroIndices();
-        int totalBranchHitCount = counter.getNonZeroValues().primitiveStream().sum();
+        long totalBranchHitCount = counter.getNonZeroValues().sum();
 
         double h1 = 0; // = shannon entropy
         double h2 = 0;
 
-        IntIterator it = coveredBranches.intIterator();
+        IntIterator it = counter.getNonZeroValues().intIterator();
         while (it.hasNext()) {
-            int idx = it.next();
-            int hitCount = counter.get(idx);
+            int hitcount = it.next();
 
-            double p = ((double) hitCount) / totalBranchHitCount;
+            double p = ((double) hitcount) / totalBranchHitCount;
             h1 += p * Math.log(p);
             h2 += Math.pow(p, 2);
 
         }
         bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
         bedivMetrics.b1 = Math.exp(-h1); // Hill-number of order 1 (= exp(shannon index))
-        bedivMetrics.b2 = Math.pow(h2, -1); // Hill-number of order 2 (= 1/(simpson index))
+        bedivMetrics.b2 = 1 / h2; // Hill-number of order 2 (= 1/(simpson index))
     }
+
 }
