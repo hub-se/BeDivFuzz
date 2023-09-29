@@ -40,8 +40,10 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Random;
 
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
 import edu.berkeley.cs.jqf.fuzz.ei.ExecutionIndexingGuidance;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
+import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.berkeley.cs.jqf.instrument.InstrumentingClassLoader;
@@ -101,6 +103,14 @@ public class FuzzGoal extends AbstractMojo {
      */
     @Parameter(property="method", required=true)
     private String testMethod;
+
+    /**
+     * The instrumentation method.
+     *
+     * <p>One of 'janala' and 'fast'. Default is 'fast'.</p>
+     */
+    @Parameter(property="instrumentation", defaultValue="fast")
+    private String instrumentation;
 
     /**
      * Comma-separated list of FQN prefixes to exclude from
@@ -182,10 +192,31 @@ public class FuzzGoal extends AbstractMojo {
     /**
      * The fuzzing engine.
      *
-     * <p>One of 'zest' and 'zeal'. Default is 'zest'.</p>
+     * <p>One of 'zest', 'zeal', and 'bedivfuzz'. Default is 'bedivfuzz'.</p>
      */
-    @Parameter(property="engine", defaultValue="zest")
+    @Parameter(property="engine", defaultValue="bedivfuzz")
     private String engine;
+
+
+    /**
+     * Whether to track coverage of semantic analysis classes.
+     *
+     * <p>The packages/classes that should be considered as part of
+     * the semantic analysis stage need to be specified with the
+     * -DsemanticAnalysisClasses parameter.</p>
+     */
+    @Parameter(property = "trackSemanticCoverage")
+    private boolean trackSemanticCoverage;
+
+    /**
+     * Comma-separated list of FQN prefixes to consider as
+     * semantic analysis classes. Can be specified as
+     * regular expressions.
+     *
+     */
+    @Parameter(property = "semanticAnalysisClasses")
+    private String semanticAnalysisClasses;
+
 
     /**
      * Whether to disable code-coverage instrumentation.
@@ -232,6 +263,13 @@ public class FuzzGoal extends AbstractMojo {
      */
     @Parameter(property="saveAll")
     private boolean saveAll;
+
+    /**
+     *  The minimum amount of time (in millis) between two stats refreshes.
+     */
+    @Parameter(property="statsRefreshTimePeriod")
+    private int statsRefreshTimePeriod;
+
 
     /**
      * Weather to use libFuzzer like output instead of AFL like stats
@@ -289,10 +327,22 @@ public class FuzzGoal extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         ClassLoader loader;
-        ZestGuidance guidance;
+        Guidance guidance;
         Log log = getLog();
         PrintStream out = log.isDebugEnabled() ? System.out : null;
         Result result;
+
+        // Configure instrumentation
+        switch (instrumentation) {
+            case "fast":
+                System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(true));
+                break;
+            case "janala":
+                System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(false));
+                break;
+            default:
+                throw new MojoExecutionException("Unknown instrumentation method: " + instrumentation);
+        }
 
         // Configure classes to instrument
         if (excludes != null) {
@@ -305,6 +355,9 @@ public class FuzzGoal extends AbstractMojo {
         // Configure Zest Guidance
         if (saveAll) {
             System.setProperty("jqf.ei.SAVE_ALL_INPUTS", "true");
+        }
+        if (statsRefreshTimePeriod > 0) {
+            System.setProperty("jqf.guidance.STATS_REFRESH_TIME_PERIOD", String.valueOf(statsRefreshTimePeriod));
         }
         if (libFuzzerCompatOutput != null) {
             System.setProperty("jqf.ei.LIBFUZZER_COMPAT_OUTPUT", libFuzzerCompatOutput);
@@ -329,6 +382,16 @@ public class FuzzGoal extends AbstractMojo {
             } catch (DateTimeParseException e) {
                 throw new MojoExecutionException("Invalid time duration: " + time);
             }
+        }
+
+        if (trackSemanticCoverage) {
+            if (!instrumentation.equals("fast")) {
+                throw new MojoExecutionException(
+                        "Semantic coverage can only be tracked using fast instrumentation, currently using: " + instrumentation);
+            }
+
+            System.setProperty("jqf.guidance.TRACK_SEMANTIC_COVERAGE", String.valueOf(true));
+            System.setProperty("janala.semanticAnalysisClasses", semanticAnalysisClasses);
         }
 
         if (outputDirectory == null || outputDirectory.isEmpty()) {
@@ -358,18 +421,23 @@ public class FuzzGoal extends AbstractMojo {
         Random rnd = randomSeed != null ? new Random(randomSeed) : new Random();
         try {
             switch (engine) {
+                case "bedivfuzz":
+                    guidance = new BeDivFuzzGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
+                    ((BeDivFuzzGuidance) guidance).setBlind(blind);
+                    break;
                 case "zest":
                     guidance = new ZestGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
+                    ((ZestGuidance) guidance).setBlind(blind);
                     break;
                 case "zeal":
                     System.setProperty("jqf.tracing.TRACE_GENERATORS", "true");
                     System.setProperty("jqf.tracing.MATCH_CALLEE_NAMES", "true");
                     guidance = new ExecutionIndexingGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
+                    ((ExecutionIndexingGuidance) guidance).setBlind(blind);
                     break;
                 default:
                     throw new MojoExecutionException("Unknown fuzzing engine: " + engine);
             }
-            guidance.setBlind(blind);
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException("File not found", e);
         } catch (IOException e) {
