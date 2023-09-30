@@ -6,6 +6,7 @@ import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.repro.ReproGuidance;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
+import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 
 import java.io.*;
@@ -33,6 +34,10 @@ public class BeDivReproGuidance extends ReproGuidance implements BeDivGuidance {
                 throw new GuidanceException("Input directory is missing value_parameters file.");
             }
         }
+    }
+
+    public BeDivReproGuidance(File inputFile, File traceDir) throws IOException {
+        this(IOUtils.resolveInputFileOrDirectory(inputFile), traceDir);
     }
 
     @Override

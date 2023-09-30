@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import de.hub.se.jqf.bedivfuzz.guidance.repro.BeDivReproGuidance;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.berkeley.cs.jqf.fuzz.repro.ReproGuidance;
 import edu.berkeley.cs.jqf.instrument.InstrumentingClassLoader;
@@ -171,6 +172,14 @@ public class ReproGoal extends AbstractMojo {
     @Parameter(property="dumpArgsDir")
     private String dumpArgsDir;
 
+    /**
+     * The fuzzing engine used to create the test inputs.
+     *
+     * <p>One of 'zest', 'zeal', or 'bedivfuzz'. Default is 'bedivfuzz'.</p>
+     */
+    @Parameter(property="engine", defaultValue="bedivfuzz")
+    private String engine;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         ClassLoader loader;
@@ -218,7 +227,17 @@ public class ReproGoal extends AbstractMojo {
         }
 
         try {
-            guidance = new ReproGuidance(inputFile, null);
+            switch (engine) {
+                case "bedivfuzz":
+                    guidance = new BeDivReproGuidance(inputFile, null);
+                    break;
+                case "zest":
+                case "zeal":
+                    guidance = new ReproGuidance(inputFile, null);
+                    break;
+                default:
+                    throw new MojoExecutionException("Unknown engine: " + engine);
+            }
             result = GuidedFuzzing.run(testClassName, testMethod, loader, guidance, out);
         } catch (ClassNotFoundException e) {
             throw new MojoExecutionException("Could not load test class", e);
