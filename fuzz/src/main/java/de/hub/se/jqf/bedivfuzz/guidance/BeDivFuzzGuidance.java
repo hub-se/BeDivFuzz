@@ -240,10 +240,8 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
     /** The object mapper responsible for serializing the branch hit counts. */
     protected ObjectMapper mapper;
 
-    /**
-     * Whether to serialize the branch hit counts.
-     */
-    protected final boolean SERIALIZE_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.bediv.SERIALIZE_BRANCH_HIT_COUNTS");
+    /** Whether to serialize the branch hit counts. **/
+    protected final boolean SERIALIZE_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.guidance.SERIALIZE_BRANCH_HIT_COUNTS");
 
     /** Use libFuzzer like output instead of AFL like stats screen (https://llvm.org/docs/LibFuzzer.html#output) **/
     protected final boolean LIBFUZZER_COMPAT_OUTPUT = Boolean.getBoolean("jqf.ei.LIBFUZZER_COMPAT_OUTPUT");

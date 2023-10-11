@@ -40,6 +40,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -59,6 +60,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule;
 import de.hub.se.jqf.bedivfuzz.util.BehavioralDiversityMetrics;
 import de.hub.se.jqf.bedivfuzz.util.BranchHitCounter;
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
@@ -229,6 +232,15 @@ public class ZestGuidance implements Guidance {
 
     /** The file containing the coverage information */
     protected File coverageFile;
+
+    /** The file containing the branch hit counts. */
+    protected File branchHitCountsFile;
+
+    /** The object mapper responsible for serializing the branch hit counts. */
+    protected ObjectMapper mapper;
+
+    /** Whether to serialize the branch hit counts. **/
+    protected final boolean SERIALIZE_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.guidance.SERIALIZE_BRANCH_HIT_COUNTS");
 
     /** Use libFuzzer like output instead of AFL like stats screen (https://llvm.org/docs/LibFuzzer.html#output) **/
     protected final boolean LIBFUZZER_COMPAT_OUTPUT = Boolean.getBoolean("jqf.ei.LIBFUZZER_COMPAT_OUTPUT");
@@ -442,6 +454,12 @@ public class ZestGuidance implements Guidance {
         this.currentInputFile = new File(outputDirectory, ".cur_input");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
+        if (SERIALIZE_BRANCH_HIT_COUNTS) {
+            this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
+            this.branchHitCountsFile = new File(outputDirectory, "branch_hit_counts");
+            this.branchHitCountsFile.delete();
+        }
+
         // Delete everything that we may have created in a previous run.
         // Trying to stay away from recursive delete of parent output directory in case there was a
         // typo and that was not a directory we wanted to nuke.
@@ -614,6 +632,19 @@ public class ZestGuidance implements Guidance {
                 semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
                 divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
         appendLineToFile(statsFile, plotData);
+
+        if (SERIALIZE_BRANCH_HIT_COUNTS) {
+            updateBranchHitCountFile();
+        }
+    }
+
+    /** Updates the branch hit count file. */
+    protected void updateBranchHitCountFile() throws GuidanceException{
+        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(branchHitCountsFile.toPath()))) {
+            out.write(mapper.writeValueAsBytes(branchHitCounter.getHitCounts()));
+        } catch (IOException e) {
+            throw new GuidanceException(e);
+        }
     }
 
     /** Updates the data in the coverage file */
