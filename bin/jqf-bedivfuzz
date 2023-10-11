@@ -39,6 +39,7 @@ while getopts ":c:N:r:t:dflns" opt; do
       ;;
     l)
       export JVM_OPTS="$JVM_OPTS -Djqf.logCoverage=true"
+      export JVM_OPTS="$JVM_OPTS -Djqf.bediv.SERIALIZE_BRANCH_HIT_COUNTS=true"
       ;;
     n) 
       export JQF_DISABLE_INSTRUMENTATION=1

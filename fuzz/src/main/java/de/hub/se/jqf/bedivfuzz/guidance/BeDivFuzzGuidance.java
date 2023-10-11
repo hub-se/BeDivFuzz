@@ -62,6 +62,8 @@ import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule;
 
 /**
  * A guidance that performs structure-changing (exploration) and structure-preserving (exploitation) mutations.
@@ -231,6 +233,17 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     /** The file containing the coverage information */
     protected File coverageFile;
+
+    /** The file containing the branch hit counts. */
+    protected File branchHitCountsFile;
+
+    /** The object mapper responsible for serializing the branch hit counts. */
+    protected ObjectMapper mapper;
+
+    /**
+     * Whether to serialize the branch hit counts.
+     */
+    protected final boolean SERIALIZE_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.bediv.SERIALIZE_BRANCH_HIT_COUNTS");
 
     /** Use libFuzzer like output instead of AFL like stats screen (https://llvm.org/docs/LibFuzzer.html#output) **/
     protected final boolean LIBFUZZER_COMPAT_OUTPUT = Boolean.getBoolean("jqf.ei.LIBFUZZER_COMPAT_OUTPUT");
@@ -443,6 +456,12 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         this.currentValueInputFile = new File(outputDirectory, ".cur_value_parameters");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
+        if (SERIALIZE_BRANCH_HIT_COUNTS) {
+            this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
+            this.branchHitCountsFile = new File(outputDirectory, "branch_hit_counts");
+            this.branchHitCountsFile.delete();
+        }
+
         // Delete everything that we may have created in a previous run.
         // Trying to stay away from recursive delete of parent output directory in case there was a
         // typo and that was not a directory we wanted to nuke.
@@ -607,6 +626,19 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                 semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
                 divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
         appendLineToFile(statsFile, plotData);
+
+        if (SERIALIZE_BRANCH_HIT_COUNTS) {
+            updateBranchHitCountFile();
+        }
+    }
+
+    /** Updates the branch hit count file. */
+    protected void updateBranchHitCountFile() throws GuidanceException{
+        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(branchHitCountsFile.toPath()))) {
+            out.write(mapper.writeValueAsBytes(branchHitCounter.getHitCounts()));
+        } catch (IOException e) {
+            throw new GuidanceException(e);
+        }
     }
 
     /** Updates the data in the coverage file */
