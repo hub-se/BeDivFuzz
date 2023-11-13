@@ -199,7 +199,7 @@ public class FuzzGoal extends AbstractMojo {
 
 
     /**
-     * Whether to track coverage of semantic analysis classes.
+     * Whether to track coverage and behavioral diversity of semantic analysis classes.
      *
      * <p>The packages/classes that should be considered as part of
      * the semantic analysis stage need to be specified with the
@@ -391,7 +391,12 @@ public class FuzzGoal extends AbstractMojo {
             }
 
             System.setProperty("jqf.guidance.TRACK_SEMANTIC_COVERAGE", String.valueOf(true));
-            System.setProperty("janala.semanticAnalysisClasses", semanticAnalysisClasses);
+            if (semanticAnalysisClasses != null) {
+                System.setProperty("janala.semanticAnalysisClasses", semanticAnalysisClasses);
+            } else {
+                throw new MojoExecutionException(
+                        "No semantic analysis classes specified. Specify with -DsemanticAnalysisClasses");
+            }
         }
 
         if (outputDirectory == null || outputDirectory.isEmpty()) {
