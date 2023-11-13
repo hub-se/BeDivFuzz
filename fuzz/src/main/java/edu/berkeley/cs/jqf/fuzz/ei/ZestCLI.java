@@ -30,6 +30,8 @@
 
 package edu.berkeley.cs.jqf.fuzz.ei;
 
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
+import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import edu.berkeley.cs.jqf.instrument.InstrumentingClassLoader;
 import org.junit.runner.Result;
@@ -92,6 +94,22 @@ public class ZestCLI implements Runnable{
             description = "Blind fuzzing: do not use coverage feedback (default: false)")
     private boolean blindFuzzing;
 
+    @Option(names = {"--fastInstrumentation"},
+            description = "Enable fast non-colliding instrumentation (default: false)")
+    private boolean useFastNonCollidingInstrumentation = false;
+
+    @Option(names = {"--trackSemanticCoverage"},
+            description = "Collect coverage and behavioral diversity of semantic analysis classes (default: false)")
+    private boolean trackSemanticCoverage = false;
+
+    @Option(names = {"--semanticAnalysisClasses"},
+            description = "Comma-separated list (or regex) of FQN prefixes to consider as semantic analysis classes.")
+    private String semanticAnalysisClasses;
+
+    @Option(names = {"--engine"},
+            description = "The fuzzing engine to use (bedivfuzz or zest, default: bedivfuzz)")
+    private String engine = "bedivfuzz";
+
     @Parameters(index = "0", paramLabel = "PACKAGE", description = "package containing the fuzz target and all dependencies")
     private String testPackageName;
 
@@ -140,6 +158,26 @@ public class ZestCLI implements Runnable{
             System.setProperty("jqf.ei.LIBFUZZER_COMPAT_OUTPUT", "true");
         }
 
+        if (this.useFastNonCollidingInstrumentation) {
+            System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(true));
+        }
+
+        if (this.trackSemanticCoverage) {
+            if (!this.useFastNonCollidingInstrumentation) {
+                throw new RuntimeException(
+                        "Semantic coverage can only be tracked using fast instrumentation, enable with --fastInstrumentation");
+            }
+            System.setProperty("jqf.guidance.TRACK_SEMANTIC_COVERAGE", String.valueOf(true));
+
+            if (semanticAnalysisClasses != null) {
+                System.setProperty("janala.semanticAnalysisClasses", semanticAnalysisClasses);
+            } else {
+                throw new RuntimeException(
+                        "No semantic analysis classes specified. Specify with --semanticAnalysisClasses");
+            }
+
+        }
+
 
         try {
             ClassLoader loader = new InstrumentingClassLoader(
@@ -149,16 +187,33 @@ public class ZestCLI implements Runnable{
             // Load the guidance
             String title = this.testClassName+"#"+this.testMethodName;
             Random rnd = det ? new Random(0) : new Random(); // TODO: Make seed configurable
-            ZestGuidance guidance =
-                seedFiles.length > 0 ?
-                new ZestGuidance(title, duration, trials, this.outputDirectory, seedFiles, rnd) :
-                new ZestGuidance(title, duration, trials, this.outputDirectory, inputDirectory, rnd);
-            guidance.setBlind(blindFuzzing);
+
+            Guidance guidance;
+            switch(engine) {
+                case "bedivfuzz":
+                    guidance = seedFiles.length > 0 ?
+                            new BeDivFuzzGuidance(title, duration, trials, this.outputDirectory, seedFiles, rnd) :
+                            new BeDivFuzzGuidance(title, duration, trials, this.outputDirectory, inputDirectory, rnd);
+                    ((BeDivFuzzGuidance) guidance).setBlind(blindFuzzing);
+                    break;
+                case "zest":
+                    guidance = seedFiles.length > 0 ?
+                            new ZestGuidance(title, duration, trials, this.outputDirectory, seedFiles, rnd) :
+                            new ZestGuidance(title, duration, trials, this.outputDirectory, inputDirectory, rnd);
+                    ((ZestGuidance) guidance).setBlind(blindFuzzing);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown fuzzing engine: " + engine);
+            }
+
             // Run the Junit test
             Result res = GuidedFuzzing.run(testClassName, testMethodName, loader, guidance, System.out);
             if (Boolean.getBoolean("jqf.logCoverage")) {
-                System.out.println(String.format("Covered %d edges.",
-                        guidance.getTotalCoverage().getNonZeroCount()));
+                int totalCoverageCount = (guidance instanceof BeDivFuzzGuidance) ?
+                        ((BeDivFuzzGuidance)  guidance).getTotalCoverage().getNonZeroCount() :
+                        ((ZestGuidance)  guidance).getTotalCoverage().getNonZeroCount();
+
+                    System.out.println(String.format("Covered %d edges.", totalCoverageCount));
             }
             if (Boolean.getBoolean("jqf.ei.EXIT_ON_CRASH") && !res.wasSuccessful()) {
                 System.exit(3);
