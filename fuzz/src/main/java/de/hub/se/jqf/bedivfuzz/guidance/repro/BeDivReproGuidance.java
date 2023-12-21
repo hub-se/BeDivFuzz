@@ -5,15 +5,12 @@ import de.hub.se.jqf.bedivfuzz.guidance.BeDivGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.repro.ReproGuidance;
-import edu.berkeley.cs.jqf.fuzz.util.Coverage;
 import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
-import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
 
 /**
  * Test case reproduction for test inputs produced by BeDivFuzz.
@@ -28,9 +25,9 @@ public class BeDivReproGuidance extends ReproGuidance implements BeDivGuidance {
         for (File inputFile : inputFiles) {
             if (!inputFile.isDirectory()) {
                 throw new GuidanceException("Not an input directory: " + inputFile.getAbsolutePath());
-            } else if (!new File(inputFile, "structural_parameters").exists()){
+            } else if (!new File(inputFile, "structural_parameters").isFile()){
                 throw new GuidanceException("Input directory is missing structural_parameters file.");
-            } else if (!new File(inputFile, "value_parameters").exists()){
+            } else if (!new File(inputFile, "value_parameters").isFile()){
                 throw new GuidanceException("Input directory is missing value_parameters file.");
             }
         }

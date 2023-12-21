@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-i] [-v] [-r] TEST_CLASS TEST_METHOD INPUT_FILE_DIR.."
 }
 
-while getopts ":c:ivr" opt; do
+while getopts ":c:ivrs:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -29,6 +29,12 @@ while getopts ":c:ivr" opt; do
       ;;
     v)
       export JVM_OPTS="$JVM_OPTS -Djqf.logCoverage=true -Djanala.verbose=true"
+      ;;
+    s)
+      instrument=1
+      export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
+      export JVM_OPTS="$JVM_OPTS -Djanala.semanticAnalysisClasses=$OPTARG"
       ;;
   esac
 done

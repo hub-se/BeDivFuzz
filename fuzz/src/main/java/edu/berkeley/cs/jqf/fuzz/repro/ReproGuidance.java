@@ -51,10 +51,15 @@ import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.util.Coverage;
+import edu.berkeley.cs.jqf.fuzz.util.CoverageFactory;
+import edu.berkeley.cs.jqf.fuzz.util.ICoverage;
 import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
+import edu.berkeley.cs.jqf.instrument.tracing.FastCoverageSnoop;
+import edu.berkeley.cs.jqf.instrument.tracing.FastSemanticCoverageSnoop;
 import edu.berkeley.cs.jqf.instrument.tracing.events.BranchEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.CallEvent;
 import edu.berkeley.cs.jqf.instrument.tracing.events.TraceEvent;
+import janala.instrument.FastCoverageListener;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.tools.ExecFileLoader;
@@ -77,6 +82,11 @@ public class ReproGuidance implements Guidance {
     private List<PrintStream> traceStreams = new ArrayList<>();
     private InputStream inputStream;
     private Coverage coverage = new Coverage();
+
+    // Fast coverage
+    private boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
+    private ICoverage totalCoverage = CoverageFactory.newInstance();
+    private ICoverage semanticCoverage = CoverageFactory.newInstance();
 
     protected Set<String> branchesCoveredInCurrentRun;
     protected Set<String> allBranchesCovered;
@@ -112,6 +122,13 @@ public class ReproGuidance implements Guidance {
         if (dumpArgsDir != null) {
             IOUtils.createDirectory(new File(dumpArgsDir));
         }
+
+        if(TRACK_SEMANTIC_COVERAGE) {
+            System.out.println("Tracking semantic coverage: " + System.getProperty("janala.semanticAnalysisClasses"));
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.totalCoverage);
+            FastSemanticCoverageSnoop.setCoverageListeners((FastCoverageListener) this.totalCoverage, (FastCoverageListener) this.semanticCoverage);
+        }
+
     }
 
     /**
@@ -234,13 +251,17 @@ public class ReproGuidance implements Guidance {
         File inputFile = getCurrentInputFile();
         if (result == Result.FAILURE) {
             observedFailure = true;
-            System.out.printf("%s ::= %s (%s)\n", inputFile.getName(), result, error.getClass().getName());
+            System.out.printf("%s ::= %s (%s)%n", inputFile.getName(), result, error.getClass().getName());
         } else {
-            System.out.printf("%s ::= %s\n", inputFile.getName(), result);
+            System.out.printf("%s ::= %s%n", inputFile.getName(), result);
+        }
+
+        if (TRACK_SEMANTIC_COVERAGE) {
+            System.out.printf("coverage  ::= total %d semantic %d%n", totalCoverage.getNonZeroCount(), semanticCoverage.getNonZeroCount());
         }
 
         // Possibly accumulate coverage
-        if (allBranchesCovered != null && (ignoreInvalidCoverage == false || result == Result.SUCCESS)) {
+        if (allBranchesCovered != null && (!ignoreInvalidCoverage || result == Result.SUCCESS)) {
             assert branchesCoveredInCurrentRun != null;
             allBranchesCovered.addAll(branchesCoveredInCurrentRun);
         }
@@ -252,7 +273,13 @@ public class ReproGuidance implements Guidance {
             try (PrintStream out = new PrintStream(new FileOutputStream(resultsCsv, append))) {
                 String inputName = getCurrentInputFile().toString();
                 String exception = result == Result.FAILURE ? error.getClass().getName() : "";
-                out.printf("%s,%s,%s\n", inputName, result, exception);
+                if (TRACK_SEMANTIC_COVERAGE) {
+                    int totalCov = totalCoverage.getNonZeroCount();
+                    int semanticCov = semanticCoverage.getNonZeroCount();
+                    out.printf("%s,%s,%s,%d,%d%n", inputName, result, exception, totalCov, semanticCov);
+                } else {
+                    out.printf("%s,%s,%s%n", inputName, result, exception);
+                }
             } catch (IOException e) {
                 throw new GuidanceException(e);
             }
