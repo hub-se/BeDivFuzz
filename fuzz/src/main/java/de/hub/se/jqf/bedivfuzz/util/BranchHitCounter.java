@@ -2,6 +2,7 @@ package de.hub.se.jqf.bedivfuzz.util;
 
 import edu.berkeley.cs.jqf.fuzz.util.*;
 import org.eclipse.collections.api.iterator.IntIterator;
+import org.eclipse.collections.impl.map.mutable.primitive.IntIntHashMap;
 
 import java.util.*;
 
@@ -28,6 +29,13 @@ public class BranchHitCounter {
      * Creates a new BeDivMetricsCounter instance.
      */
     public BranchHitCounter() {}
+
+    /**
+     * Creates a new BeDivMetricsCounter instance with a prepopulated branch hit count map.
+     */
+    public BranchHitCounter(IntIntHashMap branchHitCounts) {
+        branchHitCounts.forEachKeyValue(counter::increment);
+    }
 
     /**
      * Updates the global branch hit counts with the hit counts from the current input
@@ -74,6 +82,14 @@ public class BranchHitCounter {
         bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
         bedivMetrics.b1 = Math.exp(-h1); // Hill-number of order 1 (= exp(shannon index))
         bedivMetrics.b2 = 1 / h2; // Hill-number of order 2 (= 1/(simpson index))
+    }
+
+    /**
+     * Returns the map of branch hit counts (for serialization).
+     * @return map of branch hit counts.
+     */
+    public IntIntHashMap getHitCounts() {
+        return counter.getCounts();
     }
 
 }

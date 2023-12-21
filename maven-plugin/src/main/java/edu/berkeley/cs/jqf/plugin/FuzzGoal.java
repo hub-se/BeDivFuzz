@@ -265,6 +265,15 @@ public class FuzzGoal extends AbstractMojo {
     private boolean saveAll;
 
     /**
+     * Whether to save the latest branch hit count map as part of the output.
+     *
+     * <p>This writes the branch hit count map to a 'branch_hit_counts' file that
+     * can be deserialized into an IntIntHashMap using jackson-databind.</p>
+     */
+    @Parameter(property="saveBranchHitCounts")
+    private boolean saveBranchHitCounts;
+
+    /**
      *  The minimum amount of time (in millis) between two stats refreshes.
      */
     @Parameter(property="statsRefreshTimePeriod")
@@ -355,6 +364,9 @@ public class FuzzGoal extends AbstractMojo {
         // Configure Zest Guidance
         if (saveAll) {
             System.setProperty("jqf.ei.SAVE_ALL_INPUTS", "true");
+        }
+        if (saveBranchHitCounts) {
+            System.setProperty("jqf.guidance.SERIALIZE_BRANCH_HIT_COUNTS", "true");
         }
         if (statsRefreshTimePeriod > 0) {
             System.setProperty("jqf.guidance.STATS_REFRESH_TIME_PERIOD", String.valueOf(statsRefreshTimePeriod));

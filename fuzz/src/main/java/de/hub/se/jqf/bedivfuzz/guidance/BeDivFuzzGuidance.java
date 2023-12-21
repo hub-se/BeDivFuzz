@@ -62,6 +62,8 @@ import org.eclipse.collections.api.iterator.IntIterator;
 import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule;
 
 /**
  * A guidance that performs structure-changing (exploration) and structure-preserving (exploitation) mutations.
@@ -123,6 +125,9 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     /** The directory where all generated inputs are logged in sub-directories (if enabled). */
     protected File allInputsDirectory;
+
+    /** The directory where all branch hit count distributions are logged (if enabled). */
+    protected File branchHitCountsDirectory;
 
     /** Set of saved inputs to fuzz. */
     protected ArrayList<SplitLinearInput> savedInputs = new ArrayList<>();
@@ -231,6 +236,15 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     /** The file containing the coverage information */
     protected File coverageFile;
+
+    /** The object mapper responsible for serializing the branch hit counts. */
+    protected ObjectMapper mapper;
+
+    /** Whether to log the branch hit counts over time. **/
+    protected final boolean LOG_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.guidance.LOG_BRANCH_HIT_COUNTS");
+
+    /** Index of the current branch hit count distribution file. **/
+    protected int branchHitCountsFileIdx = 0;
 
     /** Use libFuzzer like output instead of AFL like stats screen (https://llvm.org/docs/LibFuzzer.html#output) **/
     protected final boolean LIBFUZZER_COMPAT_OUTPUT = Boolean.getBoolean("jqf.ei.LIBFUZZER_COMPAT_OUTPUT");
@@ -443,6 +457,14 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         this.currentValueInputFile = new File(outputDirectory, ".cur_value_parameters");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
+        if (LOG_BRANCH_HIT_COUNTS) {
+            this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
+            this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
+            for (File file : branchHitCountsDirectory.listFiles()) {
+                file.delete();
+            }
+        }
+
         // Delete everything that we may have created in a previous run.
         // Trying to stay away from recursive delete of parent output directory in case there was a
         // typo and that was not a directory we wanted to nuke.
@@ -607,6 +629,21 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                 semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
                 divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
         appendLineToFile(statsFile, plotData);
+
+        if (LOG_BRANCH_HIT_COUNTS) {
+            String branchHitCountsFileName = String.format("id_%09d", branchHitCountsFileIdx++);
+            File saveFile = new File(branchHitCountsDirectory, branchHitCountsFileName);
+            writeBranchHitCountFile(saveFile);
+        }
+    }
+
+    /** Updates the branch hit count file. */
+    protected void writeBranchHitCountFile(File saveFile) throws GuidanceException{
+        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(saveFile.toPath()))) {
+            out.write(mapper.writeValueAsBytes(branchHitCounter.getHitCounts()));
+        } catch (IOException e) {
+            throw new GuidanceException(e);
+        }
     }
 
     /** Updates the data in the coverage file */

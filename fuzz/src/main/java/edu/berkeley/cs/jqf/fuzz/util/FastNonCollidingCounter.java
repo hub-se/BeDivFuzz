@@ -161,4 +161,8 @@ public class FastNonCollidingCounter extends Counter {
     public boolean hasNonZeros() {
         return !this.nonZeroKeys.isEmpty();
     }
+
+    public IntIntHashMap getCounts() {
+        return counts;
+    }
 }
