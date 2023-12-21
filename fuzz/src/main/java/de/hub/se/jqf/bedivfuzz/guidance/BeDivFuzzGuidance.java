@@ -943,8 +943,8 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
             if (LOG_ALL_INPUTS && (SAVE_ONLY_VALID ? valid : true)) {
                 File logDirectory = new File(allInputsDirectory, result.toString().toLowerCase());
 
-                String structuralSaveFileName = String.format("id_%09d_structure", numTrials);
-                String valueSaveFileName = String.format("id_%09d_value", numTrials);
+                String structuralSaveFileName = String.format("id_%06d_structure", numTrials);
+                String valueSaveFileName = String.format("id_%06d_value", numTrials);
 
                 File structuralSaveFile = new File(logDirectory, structuralSaveFileName);
                 File valueSaveFile = new File(logDirectory, valueSaveFileName);
