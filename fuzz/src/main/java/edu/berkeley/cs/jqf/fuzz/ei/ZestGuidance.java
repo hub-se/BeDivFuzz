@@ -126,6 +126,9 @@ public class ZestGuidance implements Guidance {
     /** The directory where all generated inputs are logged in sub-directories (if enabled). */
     protected File allInputsDirectory;
 
+    /** The directory where all branch hit count distributions are logged (if enabled). */
+    protected File branchHitCountsDirectory;
+
     /** Set of saved inputs to fuzz. */
     protected ArrayList<Input> savedInputs = new ArrayList<>();
 
@@ -233,14 +236,14 @@ public class ZestGuidance implements Guidance {
     /** The file containing the coverage information */
     protected File coverageFile;
 
-    /** The file containing the branch hit counts. */
-    protected File branchHitCountsFile;
-
     /** The object mapper responsible for serializing the branch hit counts. */
     protected ObjectMapper mapper;
 
-    /** Whether to serialize the branch hit counts. **/
-    protected final boolean SERIALIZE_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.guidance.SERIALIZE_BRANCH_HIT_COUNTS");
+    /** Whether to log the branch hit counts over time. **/
+    protected final boolean LOG_BRANCH_HIT_COUNTS = Boolean.getBoolean("jqf.guidance.LOG_BRANCH_HIT_COUNTS");
+
+    /** Index of the current branch hit count distribution file. **/
+    protected int branchHitCountsFileIdx = 0;
 
     /** Use libFuzzer like output instead of AFL like stats screen (https://llvm.org/docs/LibFuzzer.html#output) **/
     protected final boolean LIBFUZZER_COMPAT_OUTPUT = Boolean.getBoolean("jqf.ei.LIBFUZZER_COMPAT_OUTPUT");
@@ -454,10 +457,12 @@ public class ZestGuidance implements Guidance {
         this.currentInputFile = new File(outputDirectory, ".cur_input");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
-        if (SERIALIZE_BRANCH_HIT_COUNTS) {
+        if (LOG_BRANCH_HIT_COUNTS) {
             this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
-            this.branchHitCountsFile = new File(outputDirectory, "branch_hit_counts");
-            this.branchHitCountsFile.delete();
+            this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
+            for (File file : branchHitCountsDirectory.listFiles()) {
+                file.delete();
+            }
         }
 
         // Delete everything that we may have created in a previous run.
@@ -633,14 +638,16 @@ public class ZestGuidance implements Guidance {
                 divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
         appendLineToFile(statsFile, plotData);
 
-        if (SERIALIZE_BRANCH_HIT_COUNTS) {
-            updateBranchHitCountFile();
+        if (LOG_BRANCH_HIT_COUNTS) {
+            String branchHitCountsFileName = String.format("id_%06d", branchHitCountsFileIdx++);
+            File saveFile = new File(branchHitCountsDirectory, branchHitCountsFileName);
+            writeBranchHitCountFile(saveFile);
         }
     }
 
     /** Updates the branch hit count file. */
-    protected void updateBranchHitCountFile() throws GuidanceException{
-        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(branchHitCountsFile.toPath()))) {
+    protected void writeBranchHitCountFile(File saveFile) throws GuidanceException{
+        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(saveFile.toPath()))) {
             out.write(mapper.writeValueAsBytes(branchHitCounter.getHitCounts()));
         } catch (IOException e) {
             throw new GuidanceException(e);
