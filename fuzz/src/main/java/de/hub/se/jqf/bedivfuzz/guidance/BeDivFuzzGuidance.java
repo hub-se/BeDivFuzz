@@ -631,7 +631,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         appendLineToFile(statsFile, plotData);
 
         if (LOG_BRANCH_HIT_COUNTS) {
-            String branchHitCountsFileName = String.format("id_%09d", branchHitCountsFileIdx++);
+            String branchHitCountsFileName = String.format("id_%06d", branchHitCountsFileIdx++);
             File saveFile = new File(branchHitCountsDirectory, branchHitCountsFileName);
             writeBranchHitCountFile(saveFile);
         }
