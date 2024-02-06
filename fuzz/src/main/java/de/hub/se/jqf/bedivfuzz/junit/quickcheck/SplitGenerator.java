@@ -15,6 +15,6 @@ public abstract class SplitGenerator<T> extends Generator<T> {
         throw new UnsupportedOperationException("SplitGenerators should generate values using SplitSourceOfRandomness.");
     }
 
-    public abstract T generate(SplitSourceOfRandomness random, GenerationStatus status);
+    public abstract T generate(SplitRandom random, GenerationStatus status);
 
 }

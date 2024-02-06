@@ -3,7 +3,7 @@ package de.hub.se.jqf.bedivfuzz.examples.bcel;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Size;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 
 import static com.pholser.junit.quickcheck.internal.Ranges.Type.INTEGRAL;
 import static com.pholser.junit.quickcheck.internal.Ranges.checkRange;
@@ -19,7 +19,7 @@ public final class SplitJavaIdentifierGenerator extends SplitGenerator<String> {
     }
 
     @Override
-    public String generate(SplitSourceOfRandomness random, GenerationStatus status) {
+    public String generate(SplitRandom random, GenerationStatus status) {
         return generate(random);
     }
 
@@ -33,8 +33,8 @@ public final class SplitJavaIdentifierGenerator extends SplitGenerator<String> {
         maxSize = size.max();
     }
 
-    public String generate(SplitSourceOfRandomness random) {
-        int size = random.structure.nextInt(minSize, maxSize);
+    public String generate(SplitRandom random) {
+        int size = random.nextStructureInt(minSize, maxSize);
         char[] values = new char[size];
         values[0] = generateJavaIdentifierStart(random);
         for (int i = 1; i < values.length; i++) {
@@ -43,16 +43,16 @@ public final class SplitJavaIdentifierGenerator extends SplitGenerator<String> {
         return new String(values);
     }
 
-    static char generateJavaIdentifierStart(SplitSourceOfRandomness random) {
-        char c = random.value.nextChar(MIN_VALID_CHAR, MAX_VALID_CHAR);
+    static char generateJavaIdentifierStart(SplitRandom random) {
+        char c = random.nextValueChar(MIN_VALID_CHAR, MAX_VALID_CHAR);
         if (!Character.isJavaIdentifierStart(c)) {
             return mapToAlpha(c);
         }
         return c;
     }
 
-    static char generateJavaIdentifierPart(SplitSourceOfRandomness random) {
-        char c = random.value.nextChar(MIN_VALID_CHAR, MAX_VALID_CHAR);
+    static char generateJavaIdentifierPart(SplitRandom random) {
+        char c = random.nextValueChar(MIN_VALID_CHAR, MAX_VALID_CHAR);
         if (!Character.isJavaIdentifierPart(c)) {
             return mapToAlpha(c);
         }

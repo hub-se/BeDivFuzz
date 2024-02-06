@@ -4,7 +4,7 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.java.lang.StringGenerator;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AccessFlags;
 import org.apache.bcel.classfile.Field;
@@ -30,11 +30,11 @@ public final class SplitFieldGenerator {
     private final SplitGenerator<String> identifierGenerator = new SplitJavaIdentifierGenerator();
     private final Generator<String> stringConstantGenerator = new StringGenerator();
     private final SplitTypeGenerator typeGenerator;
-    private final SplitSourceOfRandomness random;
+    private final SplitRandom random;
     private final GenerationStatus status;
     private final ClassGen clazz;
 
-    public SplitFieldGenerator(SplitSourceOfRandomness random, GenerationStatus status, ClassGen clazz) {
+    public SplitFieldGenerator(SplitRandom random, GenerationStatus status, ClassGen clazz) {
         this.random = random;
         this.status = status;
         this.clazz = clazz;
@@ -54,43 +54,43 @@ public final class SplitFieldGenerator {
 
     private void setInitValue(Type type, FieldGen field) {
         if (type instanceof BasicType) {
-            if (random.structure.nextBoolean()) {
+            if (random.nextStructureBoolean()) {
                 switch (type.getType()) {
                     case Const.T_BOOLEAN:
-                        field.setInitValue(random.value.nextBoolean());
+                        field.setInitValue(random.nextValueBoolean());
                         break;
                     case Const.T_BYTE:
-                        field.setInitValue(random.value.nextByte(Byte.MIN_VALUE, Byte.MAX_VALUE));
+                        field.setInitValue(random.nextValueByte(Byte.MIN_VALUE, Byte.MAX_VALUE));
                         break;
                     case Const.T_SHORT:
-                        field.setInitValue(random.value.nextShort(Short.MIN_VALUE, Short.MAX_VALUE));
+                        field.setInitValue(random.nextValueShort(Short.MIN_VALUE, Short.MAX_VALUE));
                         break;
                     case Const.T_CHAR:
-                        field.setInitValue(random.value.nextChar(Character.MIN_VALUE, Character.MAX_VALUE));
+                        field.setInitValue(random.nextValueChar(Character.MIN_VALUE, Character.MAX_VALUE));
                         break;
                     case Const.T_INT:
-                        field.setInitValue(random.value.nextInt());
+                        field.setInitValue(random.nextValueInt());
                         break;
                     case Const.T_LONG:
-                        field.setInitValue(random.value.nextLong());
+                        field.setInitValue(random.nextValueLong());
                         break;
                     case Const.T_DOUBLE:
-                        field.setInitValue(random.value.nextDouble());
+                        field.setInitValue(random.nextValueDouble());
                         break;
                     case Const.T_FLOAT:
-                        field.setInitValue(random.value.nextFloat());
+                        field.setInitValue(random.nextValueFloat());
                         break;
                 }
             }
         } else if (type.equals(Type.STRING)) {
-            if (random.structure.nextBoolean()) {
-                field.setInitValue(stringConstantGenerator.generate(random.value, status));
+            if (random.nextStructureBoolean()) {
+                field.setInitValue(stringConstantGenerator.generate(random.getValueDelegate(), status));
             }
         }
     }
 
     void setAccessFlags(FieldGen field) {
-        if (random.value.nextBoolean()) {
+        if (random.nextValueBoolean()) {
             field.isSynthetic(true);
         }
         if (clazz.isInterface()) {
@@ -98,17 +98,17 @@ public final class SplitFieldGenerator {
             field.isStatic(true);
             field.isFinal(true);
         } else {
-            random.value.choose(VISIBILITY_SETTERS).accept(field);
-            if (random.value.nextBoolean()) {
+            random.chooseValue(VISIBILITY_SETTERS).accept(field);
+            if (random.nextValueBoolean()) {
                 field.isStatic(true);
             }
-            if (random.value.nextBoolean()) {
+            if (random.nextValueBoolean()) {
                 field.isTransient(true);
             }
-            if (random.value.nextBoolean()) {
+            if (random.nextValueBoolean()) {
                 field.isEnum(true);
             }
-            switch (random.value.nextInt(3)) {
+            switch (random.nextValueInt(3)) {
                 case 0:
                     field.isFinal(true);
                     break;

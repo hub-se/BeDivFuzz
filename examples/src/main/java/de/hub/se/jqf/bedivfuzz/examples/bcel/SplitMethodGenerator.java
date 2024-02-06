@@ -2,7 +2,7 @@ package de.hub.se.jqf.bedivfuzz.examples.bcel;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.*;
@@ -21,10 +21,10 @@ public class SplitMethodGenerator {
     private final Supplier<String> classNameSupplier;
     private final Supplier<String> identifierSupplier;
     private final SplitTypeGenerator typeGenerator;
-    private final SplitSourceOfRandomness random;
+    private final SplitRandom random;
     private final ClassGen clazz;
 
-    SplitMethodGenerator(SplitSourceOfRandomness random, GenerationStatus status, ClassGen clazz) {
+    SplitMethodGenerator(SplitRandom random, GenerationStatus status, ClassGen clazz) {
         this.random = random;
         this.clazz = clazz;
         SplitGenerator<String> classNameGenerator = new SplitJavaClassNameGenerator();
@@ -36,13 +36,13 @@ public class SplitMethodGenerator {
 
     public Method generate() {
         String methodName = identifierSupplier.get();
-        Type returnType = random.structure.nextBoolean() ? Type.VOID : typeGenerator.generate();
-        int numberOfArguments = random.structure.nextInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
+        Type returnType = random.nextStructureBoolean() ? Type.VOID : typeGenerator.generate();
+        int numberOfArguments = random.nextStructureInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
         Type[] argumentTypes = Stream.generate(typeGenerator::generate).limit(numberOfArguments).toArray(Type[]::new);
         String[] argumentNames = Stream.generate(identifierSupplier).limit(numberOfArguments).toArray(String[]::new);
         InstructionFactory factory = new InstructionFactory(clazz);
         InstructionList code = generateInstructions(factory, argumentTypes);
-        short accessFlags = random.value.nextShort((short) 0, Short.MAX_VALUE);
+        short accessFlags = random.nextValueShort((short) 0, Short.MAX_VALUE);
         MethodGen method = new MethodGen(accessFlags,
                 returnType,
                 argumentTypes,
@@ -56,8 +56,8 @@ public class SplitMethodGenerator {
 
     private InstructionList generateInstructions(InstructionFactory factory, Type[] argumentTypes) {
         InstructionList instructionList = new InstructionList();
-        int numberOfInstructions = random.structure.nextInt(MIN_INSTRUCTIONS, MAX_INSTRUCTIONS);
-        int maxLocals = random.structure.nextInt(argumentTypes.length + 1, 2 * argumentTypes.length + 1);
+        int numberOfInstructions = random.nextStructureInt(MIN_INSTRUCTIONS, MAX_INSTRUCTIONS);
+        int maxLocals = random.nextStructureInt(argumentTypes.length + 1, 2 * argumentTypes.length + 1);
         while (instructionList.size() < numberOfInstructions) {
             Instruction ins = generateInstruction(factory, maxLocals, instructionList);
             if (ins instanceof BranchInstruction) {
@@ -71,31 +71,31 @@ public class SplitMethodGenerator {
 
     private Instruction generateInstruction(InstructionFactory factory, int maxLocals,
                                             InstructionList instructionList) {
-        short opcode = random.structure.nextShort(Const.NOP, Const.BREAKPOINT);
+        short opcode = random.nextStructureShort(Const.NOP, Const.BREAKPOINT);
         Instruction ins = InstructionConst.getInstruction(opcode);
         if (ins != null) {
             return ins; // Used predefined immutable object, if available
         }
         switch (opcode) {
             case Const.BIPUSH:
-                return factory.createConstant(random.value.nextByte(Byte.MIN_VALUE, Byte.MAX_VALUE));
+                return factory.createConstant(random.nextValueByte(Byte.MIN_VALUE, Byte.MAX_VALUE));
             case Const.SIPUSH:
-                return factory.createConstant(random.value.nextShort(Short.MIN_VALUE, Short.MAX_VALUE));
+                return factory.createConstant(random.nextValueShort(Short.MIN_VALUE, Short.MAX_VALUE));
             case Const.LDC:
             case Const.LDC_W:
                 return factory.createConstant("?");
             case Const.LDC2_W:
-                return factory.createConstant(random.value.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE));
+                return factory.createConstant(random.nextValueDouble(Double.MIN_VALUE, Double.MAX_VALUE));
             case Const.ILOAD:
-                return new ILOAD(random.value.nextInt(maxLocals));
+                return new ILOAD(random.nextValueInt(maxLocals));
             case Const.LLOAD:
-                return new LLOAD(random.value.nextInt(maxLocals));
+                return new LLOAD(random.nextValueInt(maxLocals));
             case Const.FLOAD:
-                return new FLOAD(random.value.nextInt(maxLocals));
+                return new FLOAD(random.nextValueInt(maxLocals));
             case Const.DLOAD:
-                return new DLOAD(random.value.nextInt(maxLocals));
+                return new DLOAD(random.nextValueInt(maxLocals));
             case Const.ALOAD:
-                return new ALOAD(random.value.nextInt(maxLocals));
+                return new ALOAD(random.nextValueInt(maxLocals));
             case Const.ILOAD_0:
             case Const.ILOAD_1:
             case Const.ILOAD_2:
@@ -122,15 +122,15 @@ public class SplitMethodGenerator {
             case Const.ALOAD_3:
                 return new ALOAD(opcode - Const.ALOAD_0);
             case Const.ISTORE:
-                return new ISTORE(random.value.nextInt(maxLocals));
+                return new ISTORE(random.nextValueInt(maxLocals));
             case Const.LSTORE:
-                return new LSTORE(random.value.nextInt(maxLocals));
+                return new LSTORE(random.nextValueInt(maxLocals));
             case Const.FSTORE:
-                return new FSTORE(random.value.nextInt(maxLocals));
+                return new FSTORE(random.nextValueInt(maxLocals));
             case Const.DSTORE:
-                return new DSTORE(random.value.nextInt(maxLocals));
+                return new DSTORE(random.nextValueInt(maxLocals));
             case Const.ASTORE:
-                return new ASTORE(random.value.nextInt(maxLocals));
+                return new ASTORE(random.nextValueInt(maxLocals));
             case Const.ISTORE_0:
             case Const.ISTORE_1:
             case Const.ISTORE_2:
@@ -157,7 +157,7 @@ public class SplitMethodGenerator {
             case Const.ASTORE_3:
                 return new ASTORE(opcode - Const.ASTORE_0);
             case Const.IINC:
-                return new IINC(random.value.nextInt(maxLocals), random.value.nextInt(-128, 128));
+                return new IINC(random.nextValueInt(maxLocals), random.nextValueInt(-128, 128));
             case Const.GETSTATIC:
             case Const.PUTSTATIC:
             case Const.GETFIELD:
@@ -178,7 +178,7 @@ public class SplitMethodGenerator {
             case Const.NEWARRAY:
             case Const.ANEWARRAY:
             case Const.MULTIANEWARRAY:
-                return factory.createNewArray(typeGenerator.generate(), random.value.nextShort((short) 1, (short) 20));
+                return factory.createNewArray(typeGenerator.generate(), random.nextValueShort((short) 1, (short) 20));
             case Const.IFEQ:
             case Const.IFNE:
             case Const.IFLT:
@@ -201,7 +201,7 @@ public class SplitMethodGenerator {
             case Const.JSR_W:
                 return InstructionFactory.createBranchInstruction(opcode, chooseTarget(instructionList));
             case Const.RET:
-                return new RET(random.value.nextInt(maxLocals));
+                return new RET(random.nextValueInt(maxLocals));
             case Const.TABLESWITCH:
             case Const.LOOKUPSWITCH:
                 return generateSwitch(opcode, instructionList);
@@ -216,8 +216,8 @@ public class SplitMethodGenerator {
     private InvokeInstruction generateInvoke(InstructionFactory factory, short opcode) {
         String className = classNameSupplier.get();
         String name = identifierSupplier.get();
-        Type returnType = random.value.nextBoolean() ? Type.VOID : typeGenerator.generate();
-        int numberOfArguments = random.value.nextInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
+        Type returnType = random.nextValueBoolean() ? Type.VOID : typeGenerator.generate();
+        int numberOfArguments = random.nextValueInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
         Type[] argumentTypes = Stream.generate(typeGenerator::generate).limit(numberOfArguments).toArray(Type[]::new);
         return factory.createInvoke(className, name, returnType, argumentTypes, opcode);
     }
@@ -228,12 +228,12 @@ public class SplitMethodGenerator {
         if (handles.length == 0) {
             handles = new InstructionHandle[]{instructionList.append(new NOP())};
         }
-        return random.value.choose(handles);
+        return random.chooseValue(handles);
     }
 
     private Select generateSwitch(int opcode, InstructionList instructionList) {
-        int[] matches = IntStream.generate(random.structure::nextInt)
-                .limit(random.structure.nextInt(0, MAX_SWITCH_KEYS))
+        int[] matches = IntStream.generate(random::nextStructureInt)
+                .limit(random.nextStructureInt(0, MAX_SWITCH_KEYS))
                 .distinct()
                 .sorted()
                 .toArray();

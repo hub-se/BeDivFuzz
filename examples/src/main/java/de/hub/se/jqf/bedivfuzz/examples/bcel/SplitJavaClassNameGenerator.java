@@ -2,6 +2,7 @@ package de.hub.se.jqf.bedivfuzz.examples.bcel;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
 
 public class SplitJavaClassNameGenerator extends SplitGenerator<String> {
@@ -26,11 +27,11 @@ public class SplitJavaClassNameGenerator extends SplitGenerator<String> {
     }
 
     @Override
-    public String generate(SplitSourceOfRandomness random, GenerationStatus status) {
-        if (random.structure.nextBoolean()) {
-            return random.value.choose(BASIC_CLASS_NAMES);
+    public String generate(SplitRandom random, GenerationStatus status) {
+        if (random.nextStructureBoolean()) {
+            return random.chooseValue(BASIC_CLASS_NAMES);
         }
-        String[] parts = new String[random.structure.nextInt(1, 5)];
+        String[] parts = new String[random.nextStructureInt(1, 5)];
         for (int i = 0; i < parts.length; i++) {
             parts[i] = identifierGenerator.generate(random, status);
         }

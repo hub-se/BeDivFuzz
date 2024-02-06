@@ -30,7 +30,7 @@ package de.hub.se.jqf.bedivfuzz.examples.bcel;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.generic.ClassGen;
@@ -68,7 +68,7 @@ public class SplitJavaClassGenerator extends SplitGenerator<JavaClass> {
         super(JavaClass.class);
     }
 
-    public JavaClass generate(SplitSourceOfRandomness random, GenerationStatus status) {
+    public JavaClass generate(SplitRandom random, GenerationStatus status) {
         ConstantPoolGen pool = new ConstantPoolGen();
         String className = classNameGenerator.generate(random, status);
         String superClassName = classNameGenerator.generate(random, status);
@@ -77,50 +77,50 @@ public class SplitJavaClassGenerator extends SplitGenerator<JavaClass> {
         setVersion(random, clazz);
         setAccessFlags(random, clazz);
         Stream.generate(() -> classNameGenerator.generate(random, status))
-                .limit(random.structure.nextInt(MIN_INTERFACES, MAX_INTERFACES))
+                .limit(random.nextStructureInt(MIN_INTERFACES, MAX_INTERFACES))
                 .forEach(clazz::addInterface);
         Stream.generate(new SplitFieldGenerator(random, status, clazz)::generate)
-                .limit(random.structure.nextInt(MIN_FIELDS, MAX_FIELDS))
+                .limit(random.nextStructureInt(MIN_FIELDS, MAX_FIELDS))
                 .forEach(clazz::addField);
         Stream.generate(new SplitMethodGenerator(random, status, clazz)::generate)
-                .limit(random.structure.nextInt(MIN_METHODS, MAX_METHODS))
+                .limit(random.nextStructureInt(MIN_METHODS, MAX_METHODS))
                 .forEach(clazz::addMethod);
         return clazz.getJavaClass();
     }
 
-    static void setAccessFlags(SplitSourceOfRandomness random, ClassGen clazz) {
-        if (random.structure.nextBoolean()) {
+    static void setAccessFlags(SplitRandom random, ClassGen clazz) {
+        if (random.nextStructureBoolean()) {
             clazz.isPublic(true);
         }
-        if (random.structure.nextBoolean()) {
+        if (random.nextStructureBoolean()) {
             clazz.isSynthetic(true);
         }
-        if (random.structure.nextBoolean()) {
+        if (random.nextStructureBoolean()) {
             // Abstract
             clazz.isAbstract(true);
-            if (random.structure.nextBoolean()) {
+            if (random.nextStructureBoolean()) {
                 clazz.isInterface(true);
-                if (random.structure.nextBoolean()) {
+                if (random.nextStructureBoolean()) {
                     clazz.isAnnotation(true);
                 }
             } else {
-                if (random.structure.nextBoolean()) {
+                if (random.nextStructureBoolean()) {
                     clazz.isEnum(true);
                 }
             }
         } else {
             // Concrete
-            if (random.structure.nextBoolean()) {
+            if (random.nextStructureBoolean()) {
                 clazz.isEnum(true);
             }
-            if (random.structure.nextBoolean()) {
+            if (random.nextStructureBoolean()) {
                 clazz.isFinal(true);
             }
         }
     }
 
-    static void setVersion(SplitSourceOfRandomness random, ClassGen clazz) {
-        random.value.choose(versionList).accept(clazz);
+    static void setVersion(SplitRandom random, ClassGen clazz) {
+        random.chooseValue(versionList).accept(clazz);
     }
 
     static void setVersion(ClassGen clazz, int major, int minor) {

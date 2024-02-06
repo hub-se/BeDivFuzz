@@ -33,7 +33,7 @@ import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.internal.GeometricDistribution;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import edu.berkeley.cs.jqf.examples.common.AlphaStringGenerator;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
 import edu.berkeley.cs.jqf.examples.common.DictionaryBackedStringGenerator;
@@ -118,7 +118,7 @@ public class SplitXmlDocumentGenerator extends SplitGenerator<Document> {
      * @return a randomly-generated XML document
      */
     @Override
-    public Document generate(SplitSourceOfRandomness random, GenerationStatus status) {
+    public Document generate(SplitRandom random, GenerationStatus status) {
         DocumentBuilder builder;
         try {
             builder = documentBuilderFactory.newDocumentBuilder();
@@ -140,36 +140,36 @@ public class SplitXmlDocumentGenerator extends SplitGenerator<Document> {
 
     }
 
-    private String makeString(SplitSourceOfRandomness random, GenerationStatus status) {
-        return stringGenerator.generate(random.value, status);
+    private String makeString(SplitRandom random, GenerationStatus status) {
+        return stringGenerator.generate(random.getValueDelegate(), status);
     }
 
-    private Document populateDocument(Document document, SplitSourceOfRandomness random, GenerationStatus status) {
+    private Document populateDocument(Document document, SplitRandom random, GenerationStatus status) {
         Element root = document.createElement(makeString(random, status));
         populateElement(document, root, random, status, 0);
         document.appendChild(root);
         return document;
     }
 
-    private void populateElement(Document document, Element elem, SplitSourceOfRandomness random, GenerationStatus status, int depth) {
+    private void populateElement(Document document, Element elem, SplitRandom random, GenerationStatus status, int depth) {
         // Add attributes
-        int numAttributes = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_ATTRIBUTES, random.structure)-1);
+        int numAttributes = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_ATTRIBUTES, random.getStructureDelegate())-1);
         for (int i = 0; i < numAttributes; i++) {
             elem.setAttribute(makeString(random, status), makeString(random, status));
         }
         // Make children
-        if (depth < minDepth || (depth < maxDepth && random.structure.nextBoolean())) {
-            int numChildren = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_CHILDREN, random.structure)-1);
+        if (depth < minDepth || (depth < maxDepth && random.nextStructureBoolean())) {
+            int numChildren = Math.max(0, geometricDistribution.sampleWithMean(MEAN_NUM_CHILDREN, random.getStructureDelegate())-1);
             for (int i = 0; i < numChildren; i++) {
                 Element child = document.createElement(makeString(random, status));
                 populateElement(document, child, random, status, depth+1);
                 elem.appendChild(child);
             }
-        } else if (random.structure.nextBoolean()) {
+        } else if (random.nextStructureBoolean()) {
             // Add text
             Text text = document.createTextNode(makeString(random, status));
             elem.appendChild(text);
-        } else if (random.structure.nextBoolean()) {
+        } else if (random.nextStructureBoolean()) {
             // Add text as CDATA
             Text text = document.createCDATASection(makeString(random, status));
             elem.appendChild(text);
