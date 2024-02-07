@@ -2,189 +2,87 @@ package de.hub.se.jqf.bedivfuzz.junit.quickcheck;
 
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
-import java.math.BigInteger;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
 
 public interface SplitRandom {
 
-    SourceOfRandomness getValueDelegate();
+    /**
+     * Methods to access one of the underlying random sequences.
+     */
 
     SourceOfRandomness getStructureDelegate();
+    SourceOfRandomness getValueDelegate();
 
     /**
-     * Structure random choices.
+     * Methods to perform structure random choices.
      */
 
-    default byte nextStructureByte(byte min, byte max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    byte nextStructureByte(byte min, byte max);
 
-    default byte[] nextStructureBytes(int count) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    void nextStructureBytes(byte[] bytes);
 
-    default void nextStructureBytes(byte[] bytes) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    double nextStructureDouble();
 
-    default double nextStructureDouble() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    double nextStructureDouble(double min, double max);
 
-    default double nextStructureDouble(double min, double max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    float nextStructureFloat();
 
-    default float nextStructureFloat() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    float nextStructureFloat(float min, float max);
 
-    default float nextStructureFloat(float min, float max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-    default short nextStructureShort(short min, short max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    short nextStructureShort(short min, short max);
 
-    default char nextStructureChar(char min, char max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    char nextStructureChar(char min, char max);
 
-    default int nextStructureInt() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextStructureInt();
 
-    default int nextStructureInt(int n) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextStructureInt(int n);
 
-    default int nextStructureInt(int min, int max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextStructureInt(int min, int max);
 
-    default boolean nextStructureBoolean() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    boolean nextStructureBoolean();
 
-    default long nextStructureLong() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    long nextStructureLong();
 
-    default long nextStructureLong(long min, long max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    long nextStructureLong(long min, long max);
 
-    default BigInteger nextStructureBigInteger(int numberOfBits) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    <T> T chooseStructure(Collection<T> items);
 
-    default <T> T chooseStructure(Collection<T> items) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    <T> T chooseStructure(T[] items);
 
-    default <T> T chooseStructure(T[] items) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default double nextStructureGaussian() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default Instant nextStructureInstant(Instant min, Instant max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default Duration nextStructureDuration(Duration min, Duration max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
 
     /**
-     * Value random choices.
-     */
+    * Methods to perform value random choices.
+    */
 
-    default byte nextValueByte(byte min, byte max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    byte nextValueByte(byte min, byte max);
 
-    default byte[] nextValueBytes(int count) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    byte[] nextValueBytes(int count);
 
-    default void nextValueBytes(byte[] bytes) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    double nextValueDouble();
 
-    default double nextValueDouble() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    double nextValueDouble(double min, double max);
 
-    default double nextValueDouble(double min, double max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    float nextValueFloat();
 
-    default float nextValueFloat() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    float nextValueFloat(float min, float max);
 
-    default float nextValueFloat(float min, float max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-    default short nextValueShort(short min, short max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    short nextValueShort(short min, short max);
 
-    default char nextValueChar(char min, char max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    char nextValueChar(char min, char max);
 
-    default int nextValueInt() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextValueInt();
 
-    default int nextValueInt(int n) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextValueInt(int n);
 
-    default int nextValueInt(int min, int max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    int nextValueInt(int min, int max);
 
-    default boolean nextValueBoolean() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    boolean nextValueBoolean();
 
-    default long nextValueLong() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    long nextValueLong();
 
-    default long nextValueLong(long min, long max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    long nextValueLong(long min, long max);
 
-    default BigInteger nextValueBigInteger(int numberOfBits) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
+    <T> T chooseValue(Collection<T> items);
 
-    default <T> T chooseValue(Collection<T> items) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default <T> T chooseValue(T[] items) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default double nextValueGaussian() {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default Instant nextValueInstant(Instant min, Instant max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    default Duration nextValueDuration(Duration min, Duration max) {
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-}
+    <T> T chooseValue(T[] items);
+ }
