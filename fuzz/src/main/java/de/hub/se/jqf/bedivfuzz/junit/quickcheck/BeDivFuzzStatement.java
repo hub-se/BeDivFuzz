@@ -63,6 +63,15 @@ public class BeDivFuzzStatement extends Statement {
             throw new GuidanceException("Parameter generators must extend the SplitGenerator<T> class.");
         }
 
+        if (fuzzGuidance instanceof TrackingBeDivFuzzGuidance) {
+            ((TrackingBeDivFuzzGuidance) fuzzGuidance).registerChoiceTracer(this::traceChoicesFromParameters);
+        }
+
+    }
+
+    public void traceChoicesFromParameters(SplitTrackingSourceOfRandomness random, GenerationStatus genStatus) {
+        //Let generator consume parameters, while source of randomness traces choice boundaries
+        generators.forEach(g -> ((SplitGenerator<?>) g).generate(random, genStatus));
     }
 
     /**
@@ -85,10 +94,17 @@ public class BeDivFuzzStatement extends Statement {
                     Object[] args;
                     try {
                         // Generate input values
-                        SplitParameterStream input = ((BeDivGuidance) guidance).getSplitInput();
-                        StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
-                        StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
-                        SplitSourceOfRandomness random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
+                        SplitRandom random;
+
+                        if (guidance instanceof TrackingBeDivFuzzGuidance) {
+                            random = new SplitSourceOfRandomness(guidance.getInput());
+                        } else {
+                            SplitParameterStream input = ((BeDivGuidance) guidance).getSplitInput();
+                            StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
+                            StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
+                            random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
+                        }
+
                         GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructureDelegate());
                         args = generators.stream()
                                 .map(g -> ((SplitGenerator<?>) g).generate(random, genStatus))
