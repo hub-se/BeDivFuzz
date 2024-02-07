@@ -1,52 +1,16 @@
-/*
- * Copyright (c) 2017-2018 The Regents of the University of California
- * Copyright (c) 2020-2021 Rohan Padhye
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-package edu.berkeley.cs.jqf.fuzz.junit.quickcheck;
-
-import java.io.EOFException;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+package de.hub.se.jqf.bedivfuzz.junit.quickcheck;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
-import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
-import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
-import edu.berkeley.cs.jqf.fuzz.guidance.TimeoutException;
-import edu.berkeley.cs.jqf.fuzz.guidance.Result;
-import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
-import edu.berkeley.cs.jqf.fuzz.junit.TrialRunner;
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.SplitParameterStream;
+import de.hub.se.jqf.bedivfuzz.guidance.TrackingBeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
+import edu.berkeley.cs.jqf.fuzz.guidance.*;
+import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
+import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
 import edu.berkeley.cs.jqf.instrument.InstrumentationException;
 import org.junit.AssumptionViolatedException;
 import org.junit.runners.model.FrameworkMethod;
@@ -56,35 +20,49 @@ import org.junit.runners.model.TestClass;
 import ru.vyarus.java.generics.resolver.GenericsResolver;
 import ru.vyarus.java.generics.resolver.context.MethodGenericsContext;
 
+import java.io.EOFException;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
 
 /**
  *
- * A JUnit {@link Statement} that will be run using guided fuzz
- * testing.
- *
- * @author Rohan Padhye
+ * Custom JUnit {@link Statement} adapted from {@link FuzzStatement} to perform
+ * guided fuzz testing with BeDivFuzz.
  */
-public class FuzzStatement extends Statement {
+
+public class BeDivFuzzStatement extends Statement {
     private final FrameworkMethod method;
     private final TestClass testClass;
     private final MethodGenericsContext generics;
-    private final GeneratorRepository generatorRepository;
     private final List<Class<?>> expectedExceptions;
     private final List<Throwable> failures = new ArrayList<>();
     private final Guidance guidance;
-    private boolean skipExceptionSwallow;
+    private final boolean skipExceptionSwallow;
+    private final List<Generator<?>> generators;
 
-    public FuzzStatement(FrameworkMethod method, TestClass testClass,
-                         GeneratorRepository generatorRepository, Guidance fuzzGuidance) {
+    public BeDivFuzzStatement(FrameworkMethod method, TestClass testClass,
+                              GeneratorRepository generatorRepository, Guidance fuzzGuidance) {
         this.method = method;
         this.testClass = testClass;
         this.generics = GenericsResolver.resolve(testClass.getJavaClass())
                 .method(method.getMethod());
-        this.generatorRepository = generatorRepository;
         this.expectedExceptions = Arrays.asList(method.getMethod().getExceptionTypes());
         this.guidance = fuzzGuidance;
         this.skipExceptionSwallow = Boolean.getBoolean("jqf.failOnDeclaredExceptions");
+        this.generators = Arrays.stream(method.getMethod().getParameters())
+                .map(this::createParameterTypeContext)
+                .map(generatorRepository::produceGenerator)
+                .collect(Collectors.toList());
+
+        if (!generators.stream().allMatch(SplitGenerator.class::isInstance)) {
+            throw new GuidanceException("Parameter generators must extend the SplitGenerator<T> class.");
+        }
+
     }
 
     /**
@@ -94,12 +72,6 @@ public class FuzzStatement extends Statement {
      */
     @Override
     public void evaluate() throws Throwable {
-        // Construct generators for each parameter
-        List<Generator<?>> generators = Arrays.stream(method.getMethod().getParameters())
-                .map(this::createParameterTypeContext)
-                .map(generatorRepository::produceGenerator)
-                .collect(Collectors.toList());
-
         // Keep fuzzing until no more input or I/O error with guidance
         try {
 
@@ -112,13 +84,14 @@ public class FuzzStatement extends Statement {
                 try {
                     Object[] args;
                     try {
-
                         // Generate input values
-                        StreamBackedRandom randomFile = new StreamBackedRandom(guidance.getInput(), Long.BYTES);
-                        SourceOfRandomness random = new FastSourceOfRandomness(randomFile);
-                        GenerationStatus genStatus = new NonTrackingGenerationStatus(random);
+                        SplitParameterStream input = ((BeDivGuidance) guidance).getSplitInput();
+                        StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
+                        StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
+                        SplitSourceOfRandomness random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
+                        GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructureDelegate());
                         args = generators.stream()
-                                .map(g -> g.generate(random, genStatus))
+                                .map(g -> ((SplitGenerator<?>) g).generate(random, genStatus))
                                 .toArray();
 
                         // Let guidance observe the generated input args
@@ -197,7 +170,6 @@ public class FuzzStatement extends Statement {
                 throw new MultipleFailureException(failures);
             }
         }
-
     }
 
     /**
@@ -222,4 +194,5 @@ public class FuzzStatement extends Statement {
     private ParameterTypeContext createParameterTypeContext(Parameter parameter) {
         return ParameterTypeContext.forParameter(parameter, generics).annotate(parameter);
     }
+
 }

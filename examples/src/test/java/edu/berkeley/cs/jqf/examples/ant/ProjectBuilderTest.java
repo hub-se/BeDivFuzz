@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
@@ -51,7 +52,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 
-@RunWith(JQF.class)
+@RunWith(BeDivFuzz.class)
 public class ProjectBuilderTest {
 
     private File serializeInputStream(InputStream in) throws IOException {
