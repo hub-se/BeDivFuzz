@@ -6,7 +6,6 @@ import de.hub.se.jqf.bedivfuzz.util.IntPair;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
-import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.File;
@@ -38,11 +37,12 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
         this.choiceTracer = tracer;
     }
 
-    /* Returns the banner to be displayed on the status screen */
+    @Override
     protected String getTitle() {
         return "TrackingBeDivFuzzGuidance";
     }
 
+    @Override
     protected void displayStats(boolean force) {
         Date now = new Date();
         long intervalMilliseconds = now.getTime() - lastRefreshTime.getTime();
