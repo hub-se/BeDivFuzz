@@ -611,12 +611,12 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f,",
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
                 numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
                 numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
-                semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
-                divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+
         appendLineToFile(statsFile, plotData);
 
         if (LOG_BRANCH_HIT_COUNTS) {
@@ -649,7 +649,8 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     /* Returns the banner to be displayed on the status screen */
     protected String getTitle() {
-        return "BeDivFuzz: Behavioral Diversity Fuzzing.";
+        return  "BeDivFuzz: Behavioral Diversity Fuzzing\n" +
+                "--------------------------------------------\n";
     }
 
 

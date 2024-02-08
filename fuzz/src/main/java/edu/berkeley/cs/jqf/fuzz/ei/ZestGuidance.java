@@ -626,16 +626,15 @@ public class ZestGuidance implements Guidance {
                     console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
-                console.printf("Unique valid paths:   %,d \n", uniqueValidPaths.size());
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f,",
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
                 numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
                 numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
-                semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
-                divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+
         appendLineToFile(statsFile, plotData);
 
         if (LOG_BRANCH_HIT_COUNTS) {
@@ -709,7 +708,7 @@ public class ZestGuidance implements Guidance {
         int sumResponsibilities = 0;
         numFavoredLastCycle = 0;
         for (Input input : savedInputs) {
-            if (input.isFavored()) {
+            if (!input.responsibilities.isEmpty()) {
                 int responsibleFor = input.responsibilities.size();
                 infoLog("Input %d is responsible for %d branches", input.id, responsibleFor);
                 sumResponsibilities += responsibleFor;
@@ -1130,7 +1129,7 @@ public class ZestGuidance implements Guidance {
         // Fourth, assume responsibility for branches
         currentInput.responsibilities = responsibilities;
         if (responsibilities.size() > 0) {
-          currentInput.setFavored();
+          currentInput.setFavored(true);
         }
         IntIterator iter = responsibilities.intIterator();
         while(iter.hasNext()){
@@ -1318,10 +1317,10 @@ public class ZestGuidance implements Guidance {
         public abstract void gc();
 
         /**
-         * Sets this input to be favored for fuzzing.
+         * (Un)sets this input to be favored for fuzzing.
          */
-        public void setFavored() {
-            favored = true;
+        public void setFavored(boolean isFavored) {
+            favored = isFavored;
         }
 
 
