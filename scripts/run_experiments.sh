@@ -23,7 +23,7 @@ while getopts ":o:t:n:r" opt; do
       exit 1
       ;;
     o)
-      BASE_OUT_DIR="$OPTARG"
+      OUT_DIR="$OPTARG"
       ;;
     t)
       TIMEOUT="$OPTARG"
@@ -38,7 +38,6 @@ while getopts ":o:t:n:r" opt; do
 done
 shift $((OPTIND-1))
 
-OUT_DIR=$BASE_OUT_DIR/java-data
 mkdir -p $OUT_DIR
 
 # Set name of the log file depending on whether coverage replay is enabled or not

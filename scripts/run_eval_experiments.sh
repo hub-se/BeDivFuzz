@@ -61,7 +61,7 @@ tmux new-session -d -s $SESSION_NAME
 # Create a separate window for each parallel worker within the tmux session and run evaluation script
 for (( WORKER_ID=1; WORKER_ID<=N_WORKERS; WORKER_ID++ )); do
     
-    tmux new-window -t $SESSION_NAME:WORKER_ID
-    tmux send-keys -t $SESSION_NAME:WORKER_ID "$SCRIPT_DIR/eval_worker.sh -o $BASE_OUT_DIR -t $TIMEOUT -n $TRIALS_PER_WORKER -w $WORKER_ID" ENTER
+    tmux new-window -t $SESSION_NAME:$WORKER_ID
+    tmux send-keys -t $SESSION_NAME:$WORKER_ID "$SCRIPT_DIR/eval_worker.sh -o $BASE_OUT_DIR -t $TIMEOUT -n $TRIALS_PER_WORKER -w $WORKER_ID" ENTER
 
 done
