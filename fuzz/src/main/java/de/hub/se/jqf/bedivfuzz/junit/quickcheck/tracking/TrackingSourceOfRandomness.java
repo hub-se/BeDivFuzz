@@ -1,6 +1,5 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking;
 
-import de.hub.se.jqf.bedivfuzz.util.IntPair;
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FastSourceOfRandomness;
 
@@ -12,7 +11,7 @@ import java.util.List;
 
 public class TrackingSourceOfRandomness extends FastSourceOfRandomness {
 
-    private final List<IntPair> choiceIndices;
+    private final List<Choice> choiceIndices;
     private final ChoiceTrackingState trackingState;
 
     public TrackingSourceOfRandomness(StreamBackedRandom delegate) {
@@ -22,13 +21,13 @@ public class TrackingSourceOfRandomness extends FastSourceOfRandomness {
         this.trackingState = new ChoiceTrackingState(delegate);
     }
 
-    public TrackingSourceOfRandomness(List<IntPair> choiceIndices, ChoiceTrackingState trackingState) {
+    public TrackingSourceOfRandomness(List<Choice> choiceIndices, ChoiceTrackingState trackingState) {
         super(trackingState.getDelegate());
         this.choiceIndices = choiceIndices;
         this.trackingState = trackingState;
     }
 
-    public List<IntPair> getChoiceIndices() {
+    public List<Choice> getChoiceIndices() {
         return choiceIndices;
     }
 

@@ -1,6 +1,5 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking;
 
-import de.hub.se.jqf.bedivfuzz.util.IntPair;
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
 
 import java.util.List;
@@ -14,15 +13,15 @@ public class ChoiceTrackingState {
         this.delegate = delegate;
     }
 
-    public void appendChoiceIndex(List<IntPair> choiceIndices) {
+    public void appendChoiceIndex(List<Choice> choiceIndices) {
         int bytesRead = delegate.getTotalBytesRead() - choiceOffset;
-        choiceIndices.add(new IntPair(choiceOffset, bytesRead));
+        choiceIndices.add(new Choice(choiceOffset, bytesRead));
         choiceOffset += bytesRead;
     }
 
-    public void appendChoiceIndex(List<IntPair> choiceIndices, int length) {
+    public void appendChoiceIndex(List<Choice> choiceIndices, int length) {
         int bytesRead = delegate.getTotalBytesRead() - choiceOffset;
-        choiceIndices.add(new IntPair(choiceOffset, length));
+        choiceIndices.add(new Choice(choiceOffset, length));
         choiceOffset += bytesRead;
     }
 

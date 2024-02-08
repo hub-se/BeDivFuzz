@@ -2,7 +2,6 @@ package de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking;
 
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
-import de.hub.se.jqf.bedivfuzz.util.IntPair;
 import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FastSourceOfRandomness;
 
@@ -13,8 +12,8 @@ import java.util.List;
 
 
 public class SplitTrackingSourceOfRandomness implements SplitRandom {
-    private final List<IntPair> structuralIndices;
-    private final List<IntPair> valueIndices;
+    private final List<Choice> structuralIndices;
+    private final List<Choice> valueIndices;
     private final ChoiceTrackingState trackingState;
 
     private final SourceOfRandomness random;
@@ -23,8 +22,8 @@ public class SplitTrackingSourceOfRandomness implements SplitRandom {
 
     public SplitTrackingSourceOfRandomness(
             InputStream input,
-            List<IntPair> structuralChoiceIndices,
-            List<IntPair> valueChoiceIndices
+            List<Choice> structuralChoiceIndices,
+            List<Choice> valueChoiceIndices
     ) {
         // We need to ignore 24 bytes because we instantiate 3 SourceOfRandomness instances
         StreamBackedRandom delegate = new StreamBackedRandom(input, 3 * Long.BYTES);
