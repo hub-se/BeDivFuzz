@@ -17,7 +17,14 @@ public class SplitLinearInput extends SplitInput {
     /** Mean number of contiguous bytes to mutate in each mutation. */
     protected static final double MEAN_MUTATION_SIZE = 4.0; // Bytes
 
-    // Global random instance for new input values
+    /** Parameter for epsilon-greedy exploration vs. exploitation trade-off. */
+    protected static final double EPSILON = 0.2;
+
+    /** Whether the last performed mutation was on the structural or value parameters (exploration or exploitation)*/
+    enum MutationType {HAVOC, STRUCTURE, VALUE}
+    protected MutationType lastMutationType = MutationType.HAVOC;
+
+    // Global random instance for new input values.
     protected static Random random = new Random();
 
     /** A list of structural byte parameters (0-255) ordered by their index. */
@@ -26,11 +33,19 @@ public class SplitLinearInput extends SplitInput {
     /** A list of value byte parameters (0-255) ordered by their index. */
     protected ArrayList<Integer> valueParameters;
 
-    /** The number of structural bytes requested so far */
+    /** The number of structural bytes requested so far. */
     protected int requestedStructure = 0;
 
-    /** The number of value bytes requested so far */
+    /** The number of value bytes requested so far. */
     protected int requestedValue = 0;
+
+    /** Structural mutation score: number of performed mutations / rewarded mutations. */
+    protected int structureScore = 0;
+    protected int structureCount = 0;
+
+    /* Value mutation score: number of performed mutations / rewarded mutations. */
+    protected int valueScore = 0;
+    protected int valueCount = 0;
 
     public SplitLinearInput() {
         super();
@@ -44,13 +59,6 @@ public class SplitLinearInput extends SplitInput {
         this.valueParameters = new ArrayList<>(other.valueParameters);
     }
 
-    public boolean structureMutable() {
-        return structuralParameters.size() > 0;
-    }
-
-    public boolean valueMutable() {
-        return valueParameters.size() > 0;
-    }
 
     @Override
     public int getOrGenerateFreshStructure(Integer key, Random random) {
@@ -146,12 +154,60 @@ public class SplitLinearInput extends SplitInput {
         return Objects.hash(structuralParameters, valueParameters);
     }
 
+    public void addScore(int score) {
+        if (lastMutationType == MutationType.STRUCTURE) {
+            structureScore += score;
+        } else if (lastMutationType == MutationType.VALUE) {
+            valueScore += score;
+        }
+    }
+
+    public double getStructureScore() {
+        return (structureCount == 0) ? 0 : ((double) structureScore) / structureCount;
+    }
+
+    public double getValueScore() {
+        return (valueCount == 0) ? 0 : ((double)valueScore) / valueCount;
+    }
+
+    protected MutationType chooseMutationType(Random random) {
+        if (requestedValue > 0) {
+            double avgStructureScore = getStructureScore();
+            double avgValueScore = getValueScore();
+
+            // With probability epsilon (or if both scores are tied), perform random mutation type
+            if ((random.nextDouble() < EPSILON) || (avgStructureScore == avgValueScore)) {
+                return random.nextBoolean() ? MutationType.STRUCTURE : MutationType.VALUE;
+            } else {
+                // otherwise, choose most promising mutation
+                return (avgStructureScore > avgValueScore) ? MutationType.STRUCTURE : MutationType.VALUE;
+            }
+        } else {
+            // can only perform structural mutation (exploration)
+            return MutationType.STRUCTURE;
+        }
+    }
+
     public SplitLinearInput fuzzHavoc(Random random) {
+        lastMutationType = MutationType.HAVOC;
         SplitLinearInput newInput = new SplitLinearInput(this);
         newInput.desc += ",havoc";
-        if (structuralParameters.size() > 0) fuzz(random, newInput.structuralParameters);
-        if (valueParameters.size() > 0) fuzz(random, newInput.valueParameters);
+        if (!structuralParameters.isEmpty()) fuzz(random, newInput.structuralParameters);
+        if (!valueParameters.isEmpty()) fuzz(random, newInput.valueParameters);
         return newInput;
+    }
+
+    public SplitLinearInput fuzz(Random random) {
+        lastMutationType = chooseMutationType(random);
+        if (lastMutationType == MutationType.STRUCTURE) {
+            structureCount++;
+            return fuzzStructure(random);
+        } else if (lastMutationType == MutationType.VALUE) {
+            valueCount++;
+            return fuzzValues(random);
+        } else {
+            throw new IllegalStateException("Expected mutation type STRUCTURE or VALUE, but was: " + lastMutationType);
+        }
     }
 
     public SplitLinearInput fuzzStructure(Random random) {
