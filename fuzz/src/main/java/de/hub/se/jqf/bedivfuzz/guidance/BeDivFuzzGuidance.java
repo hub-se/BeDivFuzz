@@ -79,19 +79,6 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
     /** Hash code of last generated structure */
     protected int lastGeneratedStructureHash;
 
-    /** Whether the last performed mutation was on the structural or value parameters (exploration or exploitation)*/
-    enum MutationType {HAVOC, EXPLORATION, EXPLOITATION}
-    protected MutationType mutationType = MutationType.HAVOC;
-
-    /** Parameter for epsilon-greedy exploration vs. exploitation trade-off */
-    protected double epsilon = 0.2;
-
-    /** Moving average reward for structural/exploration-based mutations */
-    protected MovingAverage explorationScore = new MovingAverage(1024);
-
-    /** Moving average reward for value/exploitation-based mutations */
-    protected MovingAverage exploitationScore = new MovingAverage(1024);
-
     // ------------ Zest Variables ------------
 
     /** A pseudo-random number generator for generating fresh values. */
@@ -615,19 +602,21 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
                     console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
-                console.printf("Unique valid paths:   %,d\n", uniqueValidPaths.size());
                 console.printf("Input structures:     %,d\n", exploredInputStructures.size());
-                console.printf("Exploration score:    %.2f\n", explorationScore.get());
-                console.printf("Exploitation score:   %.2f\n", exploitationScore.get());
+                if (!savedInputs.isEmpty()) {
+                    SplitLinearInput currentParentInput = savedInputs.get(currentParentInputIdx);
+                    console.printf("Exploration score:    %.2f\n", currentParentInput.getStructureScore());
+                    console.printf("Exploitation score:   %.2f\n", currentParentInput.getValueScore());
+                }
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f,",
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
                 numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
                 numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
-                semanticTotalCoverage.getNonZeroCount(), probeCounter.getNumSemanticProbes(),
-                divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+
         appendLineToFile(statsFile, plotData);
 
         if (LOG_BRANCH_HIT_COUNTS) {
@@ -660,7 +649,8 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
     /* Returns the banner to be displayed on the status screen */
     protected String getTitle() {
-        return "BeDivFuzz: Behavioral Diversity Fuzzing.";
+        return  "BeDivFuzz: Behavioral Diversity Fuzzing\n" +
+                "--------------------------------------------\n";
     }
 
 
@@ -775,39 +765,9 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
 
                 // We still want to do some havoc mutations
                 if (numChildrenGeneratedForCurrentParentInput <= 0.2 * targetNumChildren) {
-                    mutationType = MutationType.HAVOC;
-                } else if (parent.valueMutable()) {
-                    // with probability epsilon, perform random action
-                    if (random.nextDouble() < epsilon) {
-                        mutationType = random.nextBoolean() ? MutationType.EXPLORATION : MutationType.EXPLOITATION;
-                    } else {
-                        // otherwise, choose most promising action
-                        double currentExplorationScore = explorationScore.get();
-                        double currentExploitationScore = exploitationScore.get();
-
-                        if (currentExplorationScore != currentExploitationScore) {
-                            mutationType = (currentExplorationScore > currentExploitationScore) ?
-                                    MutationType.EXPLORATION : MutationType.EXPLOITATION;
-                        } else {
-                            // both scores are tied, perform random action...
-                            mutationType = random.nextBoolean() ? MutationType.EXPLORATION : MutationType.EXPLOITATION;
-                        }
-                    }
+                    currentInput = parent.fuzzHavoc(random);
                 } else {
-                    // can only perform exploration
-                    mutationType = MutationType.EXPLORATION;
-                }
-
-                switch(mutationType) {
-                    case HAVOC:
-                        currentInput = parent.fuzzHavoc(random);
-                        break;
-                    case EXPLORATION:
-                        currentInput = parent.fuzzStructure(random);
-                        break;
-                    case EXPLOITATION:
-                        currentInput = parent.fuzzValues(random);
-                        break;
+                    currentInput = parent.fuzz(random);
                 }
 
                 numChildrenGeneratedForCurrentParentInput++;
@@ -1013,6 +973,15 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
             }
         }
 
+        if (!savedInputs.isEmpty()) {
+            SplitLinearInput currentParent = savedInputs.get(currentParentInputIdx);
+            if (result == Result.SUCCESS && uniqueValidPaths.add(runCoverage.hashCode())) {
+                currentParent.addScore(1);
+            } else {
+                currentParent.addScore(0);
+            }
+        }
+
         // Coverage after
         int nonZeroAfter = totalCoverage.getNonZeroCount();
         if (nonZeroAfter > maxCoverage) {
@@ -1036,19 +1005,6 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
         // Save if new valid coverage is found
         if (this.validityFuzzing && validNonZeroAfter > validNonZeroBefore) {
             reasonsToSave.add("+valid");
-        }
-
-        // Update scores for valid inputs with unique paths
-        if (result == Result.SUCCESS) {
-            int reward = 0;
-            if (uniqueValidPaths.add(runCoverage.hashCode())) {
-                reward += 5;
-            }
-            if (mutationType == MutationType.EXPLORATION) {
-                explorationScore.add(reward);
-            } else if (mutationType == MutationType.EXPLOITATION) {
-                exploitationScore.add(reward);
-            }
         }
 
         return reasonsToSave;
