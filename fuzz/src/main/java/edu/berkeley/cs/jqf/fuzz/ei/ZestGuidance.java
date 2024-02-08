@@ -1370,6 +1370,9 @@ public class ZestGuidance implements Guidance {
             this.values = new ArrayList<>(other.values);
         }
 
+        public ArrayList<Integer> getValues() {
+            return this.values;
+        }
 
         @Override
         public int getOrGenerateFresh(Integer key, Random random) {
