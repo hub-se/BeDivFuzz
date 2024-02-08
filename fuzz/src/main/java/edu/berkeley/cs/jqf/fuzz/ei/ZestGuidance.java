@@ -1234,19 +1234,19 @@ public class ZestGuidance implements Guidance {
          *
          * <p>This field is null for inputs that are not saved.</p>
          */
-        File saveFile = null;
+        public File saveFile = null;
 
         /**
          * An ID for a saved input.
          *
          * <p>This field is -1 for inputs that are not saved.</p>
          */
-        int id;
+        public int id;
 
         /**
          * Whether this input is favored.
          */
-        boolean favored;
+        public boolean favored;
 
         /**
          * The description for this input.
@@ -1254,14 +1254,14 @@ public class ZestGuidance implements Guidance {
          * <p>This field is modified by the construction and mutation
          * operations.</p>
          */
-        String desc;
+        public String desc;
 
         /**
          * The run coverage for this input, if the input is saved.
          *
          * <p>This field is null for inputs that are not saved.</p>
          */
-        ICoverage coverage = null;
+        public ICoverage coverage = null;
 
         /**
          * The number of non-zero elements in `coverage`.
@@ -1272,7 +1272,7 @@ public class ZestGuidance implements Guidance {
          * redundant (can be computed using {@link Coverage#getNonZeroCount()}),
          * but we store it here for performance reasons.</p>
          */
-        int nonZeroCoverage = -1;
+        public int nonZeroCoverage = -1;
 
         /**
          * The number of mutant children spawned from this input that
@@ -1280,7 +1280,7 @@ public class ZestGuidance implements Guidance {
          *
          * <p>This field is -1 for inputs that are not saved.</p>
          */
-        int offspring = -1;
+        public int offspring = -1;
 
         /**
          * The set of coverage keys for which this input is
@@ -1293,7 +1293,7 @@ public class ZestGuidance implements Guidance {
          * in at least some responsibility set. Hence, this list
          * needs to be kept in-sync with {@link #responsibleInputs}.</p>
          */
-        IntHashSet responsibilities = null;
+        public IntHashSet responsibilities = null;
 
         /**
          * Create an empty input.
@@ -1355,7 +1355,7 @@ public class ZestGuidance implements Guidance {
     public class LinearInput extends Input<Integer> {
 
         /** A list of byte values (0-255) ordered by their index. */
-        protected ArrayList<Integer> values;
+        public ArrayList<Integer> values;
 
         /** The number of bytes requested so far */
         protected int requested = 0;
@@ -1370,9 +1370,6 @@ public class ZestGuidance implements Guidance {
             this.values = new ArrayList<>(other.values);
         }
 
-        public ArrayList<Integer> getValues() {
-            return this.values;
-        }
 
         @Override
         public int getOrGenerateFresh(Integer key, Random random) {
