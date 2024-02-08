@@ -12,7 +12,9 @@ public abstract class SplitGenerator<T> extends Generator<T> {
 
     @Override
     public T generate(SourceOfRandomness random, GenerationStatus status) {
-        throw new UnsupportedOperationException("SplitGenerators should generate values using SplitSourceOfRandomness.");
+        throw new UnsupportedOperationException("SplitGenerators should generate values using SplitSourceOfRandomness. " +
+                " Is the test class annotated with @RunWith(BeDivFuzz.class)?"
+        );
     }
 
     public abstract T generate(SplitRandom random, GenerationStatus status);
