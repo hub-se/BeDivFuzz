@@ -1,41 +1,46 @@
 package edu.berkeley.cs.jqf.examples.nashorn;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
-import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 
 import javax.script.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 
 
-@RunWith(JQF.class)
+@RunWith(BeDivFuzz.class)
 public class CompilerTest {
 
-    private ScriptEngineManager engineManager = new ScriptEngineManager();
-    private ScriptEngine engine = engineManager.getEngineByName("nashorn");
+    private static final ScriptEngineManager factory = new ScriptEngineManager();
+    private static final ScriptEngine engine = factory.getEngineByName("nashorn");
 
-    @Fuzz
-    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
+    public void testWithReader(Reader reader) {
         try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
+            ((Compilable) engine).compile(reader);
+        } catch (ScriptException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
-        try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
-            Assume.assumeNoException(e);
-        }
+    public void testWithInputStream(InputStream in) {
+        testWithReader(new InputStreamReader(in));
+    }
+
+    @Fuzz
+    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String s) {
+        testWithReader(new StringReader(s));
+    }
+
+    @Fuzz
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String s) {
+        testWithReader(new StringReader(s));
     }
 }

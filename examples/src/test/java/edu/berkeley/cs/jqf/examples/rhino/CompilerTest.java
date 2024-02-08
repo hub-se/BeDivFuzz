@@ -28,97 +28,60 @@
  */
 package edu.berkeley.cs.jqf.examples.rhino;
 
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 
 import com.pholser.junit.quickcheck.From;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
-import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
-import edu.berkeley.cs.jqf.fuzz.JQF;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
 import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
-import org.mozilla.javascript.Script;
+
 
 @RunWith(BeDivFuzz.class)
 public class CompilerTest {
 
-    private Context context;
-
-    @Before
-    public void initContext() {
-        context = Context.enter();
-    }
-
-    @After
-    public void exitContext() {
-        context.exit();
-    }
-
-    @Fuzz
-    public void testWithString(@From(AsciiStringGenerator.class) String input) {
+    public void testWithReader(Reader reader) throws IOException {
+        PrintStream err = suppressStandardErr();
         try {
-            Script script = context.compileString(input, "input", 0, null);
-        } catch (EvaluatorException e) {
-            Assume.assumeNoException(e);
+            Context context = Context.enter();
+            try {
+                context.compileReader(reader, "input", 0, null);
+            } catch (EvaluatorException e) {
+                Assume.assumeNoException(e);
+            } finally {
+                Context.exit();
+            }
+        } finally {
+            System.setErr(err);
         }
-
     }
 
-    @Fuzz
-    public void debugWithString(@From(AsciiStringGenerator.class) String code) {
-        System.out.println("\nInput:  " + code);
-        testWithString(code);
-        System.out.println("Success!");
-    }
-
-    @Test
-    public void smallTest() {
-        testWithString("x = 3 + 4");
-        testWithString("x <<= undefined");
+    public static PrintStream suppressStandardErr() {
+        PrintStream result = System.err;
+        System.setErr(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {
+            }
+        }));
+        return result;
     }
 
     @Fuzz
     public void testWithInputStream(InputStream in) throws IOException {
-        try {
-            Script script = context.compileReader(new InputStreamReader(in), "input", 0, null);
-        } catch (EvaluatorException e) {
-            Assume.assumeNoException(e);
-        }
+        testWithReader(new InputStreamReader(in));
     }
 
     @Fuzz
-    public void debugWithInputStream(InputStream in) throws IOException {
-        String input = IOUtils.toString(in, StandardCharsets.UTF_8);
-        debugWithString(input);
+    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String s) throws IOException {
+        testWithReader(new StringReader(s));
     }
 
     @Fuzz
-    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        testWithString(code);
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String s) throws IOException {
+        testWithReader(new StringReader(s));
     }
-
-    @Fuzz
-    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
-        testWithString(code);
-    }
-
-    @Fuzz
-    public void debugWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        debugWithString(code);
-    }
-
-
-
 }
