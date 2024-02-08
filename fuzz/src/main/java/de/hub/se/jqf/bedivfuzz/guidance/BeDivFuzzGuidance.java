@@ -204,7 +204,7 @@ public class BeDivFuzzGuidance implements BeDivGuidance {
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
-    protected final long STATS_REFRESH_TIME_PERIOD = Integer.getInteger("jqf.guidance.STATS_REFRESH_TIME_PERIOD", 300);
+    protected final long STATS_REFRESH_TIME_PERIOD = Integer.getInteger("jqf.guidance.STATS_REFRESH_TIME_PERIOD", 30_000);
 
     /** The file where log data is written. */
     protected File logFile;
