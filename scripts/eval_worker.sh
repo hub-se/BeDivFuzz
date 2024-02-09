@@ -82,7 +82,7 @@ for bench_index in {0..4}; do
     DIRNAME=${OUT_DIR}/bedivfuzz-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting BeDivFuzz. Writing results to $DIRNAME." >> $LOG_FILE
-      timeout $TIMEOUT $JQF_DIR/bin/jqf-bedivfuzz -f -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
+      timeout $TIMEOUT $JQF_DIR/bin/jqf-bedivfuzz -fs -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
       PID=$!
       wait $PID
       echo "[$(date)] Finished BeDivFuzz." >> $LOG_FILE
@@ -92,7 +92,7 @@ for bench_index in {0..4}; do
     DIRNAME=${OUT_DIR}/tracking-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting BeDivFuzz-tracking. Writing results to $DIRNAME." >> $LOG_FILE
-      timeout $TIMEOUT $JQF_DIR/bin/jqf-tracking -f -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
+      timeout $TIMEOUT $JQF_DIR/bin/jqf-tracking -fs -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
       PID=$!
       wait $PID
       echo "[$(date)] Finished BeDivFuzz-tracking." >> $LOG_FILE
@@ -102,7 +102,7 @@ for bench_index in {0..4}; do
     DIRNAME=${OUT_DIR}/zest-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting Zest. Writing results to $DIRNAME." >> $LOG_FILE
-      timeout $TIMEOUT $JQF_DIR/bin/jqf-zest -f -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithGenerator $DIRNAME &
+      timeout $TIMEOUT $JQF_DIR/bin/jqf-zest -fs -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithGenerator $DIRNAME &
       PID=$!
       wait $PID
       echo "[$(date)] Finished Zest." >> $LOG_FILE
