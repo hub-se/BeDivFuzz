@@ -40,7 +40,6 @@ import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
-import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assume;
