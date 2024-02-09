@@ -22,23 +22,7 @@ import sys
 import os
 import os.path
 
-if len(sys.argv) != 2:
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    sys.exit()
-basedir = sys.argv[1]
-if not os.path.isdir(basedir):
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    print("ERROR: {} is not a directory".format(basedir))
-    sys.exit()
-else:
-    try:
-        os.mkdir(os.path.join(basedir, "figs"))
-    except FileExistsError:
-        # That's ok, we just wanted to create it in case it didn't exist.
-        pass
 
-dl = DataLoader(os.path.join(basedir, 'java-data'))
-dl.load_data()
 
 ### MAIN PLOTTING ###
 def get_x(run):
@@ -74,16 +58,16 @@ def yFormat(x, pos):
             return f"{(x/1000000):.1f}m"
 
 def plot(valid_bench, ytype):
-    nicenames = {"quickcheck": "QuickCheck", 
+    nicenames = {
                  "zest": "Zest", 
-                 "rl": "RLCheck",
-                 "bediv-simple": "BeDiv-simple",
-                 "bediv-structure": "BeDiv-structure"}
+                 "bedivfuzz": "BeDivFuzz",
+                 "tracking": "BeDiv-Tracking",
+                 }
 
     fig, ax = plt.subplots(figsize=((10,7)))
     lss = iter([':', '--', '-.', '-', '-'])
     i = 0
-    approaches = [('quickcheck', True), ('zest', False), ('rl', True), ('bediv-simple', False), ('bediv-structure', False)]
+    approaches = [('zest', False), ('bedivfuzz', False), ('tracking', False)]
     for tech, replay in approaches:
         color = 'C%i' % (i)
         i += 1
@@ -142,8 +126,27 @@ def plot(valid_bench, ytype):
     plt.savefig(os.path.join(basedir, "figs/{}_{}.pdf".format(figname, valid_bench)), dpi=150)
     plt.close()
 
-# Generate all figures
-for YTYPE in ["percent_upaths", "valid_paths", "h0_uniquePaths", "h1_uniquePaths", "h2_uniquePaths"]:
-    print(f"Generating %s" % YTYPE)
-    for v in dl.validity:
-        plot(v, YTYPE)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        sys.exit()
+    basedir = sys.argv[1]
+    if not os.path.isdir(basedir):
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        print("ERROR: {} is not a directory".format(basedir))
+        sys.exit()
+    else:
+        try:
+            os.mkdir(os.path.join(basedir, "figs"))
+        except FileExistsError:
+            # That's ok, we just wanted to create it in case it didn't exist.
+            pass
+
+    dl = DataLoader(os.path.join(basedir, 'java-data'))
+    dl.load_data()
+
+    # Generate all figures
+    for YTYPE in ["valid_cov", "all_covered_probes", "valid_covered_probes", "b0", "b1", "b2"]:
+        print(f"Generating %s" % YTYPE)
+        for v in dl.validity:
+            plot(v, YTYPE)

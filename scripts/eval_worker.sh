@@ -37,7 +37,7 @@ while getopts ":o:t:n:w:" opt; do
 done
 shift $((OPTIND-1))
 
-OUT_DIR=$BASE_OUT_DIR/java-data
+OUT_DIR=$BASE_OUT_DIR
 mkdir -p $OUT_DIR
 
 # Compute range of trial ids for this worker. 
