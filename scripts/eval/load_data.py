@@ -116,7 +116,7 @@ class DataLoader:
 			l = str(l).replace('Infinity', "0")
 			l = str(l).replace('NaN', "0")
 
-			stats = [float(x) for x in l.split(',')]
+			stats = [float(x[:-1]) if x.endswith('%') else float(x) for x in l.split(',')]
 			for i, s in enumerate(stats):
 				try:
 					results[i].append(s)
