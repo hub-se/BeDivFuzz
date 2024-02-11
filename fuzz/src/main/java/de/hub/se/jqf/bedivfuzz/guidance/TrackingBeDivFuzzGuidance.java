@@ -10,6 +10,7 @@ import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -17,6 +18,7 @@ import java.util.function.BiConsumer;
 public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuidance {
 
     private BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> choiceTracer;
+    private int numUniquePathsBefore = 0;
 
     public TrackingBeDivFuzzGuidance(String testName, Duration duration, File outputDirectory) throws IOException {
         this(testName, duration, null, outputDirectory, new Random());
@@ -46,7 +48,6 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
         super.displayStats(force);
     }
 
-    /*
     @Override
     public InputStream getInput() throws GuidanceException {
         if (!savedInputs.isEmpty()) {
@@ -60,7 +61,6 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
                 // Unfavor inputs that do not produce new paths
                 if (currentParentInput.isFavored() && numUniquePathsAfter <= numUniquePathsBefore) {
                     currentParentInput.setFavored(false);
-                    numInputsUnfavored++;
                 }
 
                 numUniquePathsBefore = numUniquePathsAfter;
@@ -68,7 +68,6 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
         }
         return super.getInput();
     }
-     */
 
     @Override
     protected void saveCurrentInput(IntHashSet responsibilities, String why) throws IOException {

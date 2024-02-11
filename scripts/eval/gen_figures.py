@@ -146,7 +146,7 @@ if __name__ == "__main__":
     dl.load_data()
 
     # Generate all figures
-    for YTYPE in ["valid_cov", "all_covered_probes", "valid_covered_probes", "b0", "b1", "b2"]:
+    for YTYPE in ["valid_cov", "all_covered_probes", "valid_covered_probes", "covered_semantic_probes", "b0", "b1", "b2"]:
         print(f"Generating %s" % YTYPE)
         for v in dl.validity:
             plot(v, YTYPE)
