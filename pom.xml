@@ -4,7 +4,7 @@
 
     <groupId>edu.berkeley.cs.jqf</groupId>
     <artifactId>jqf</artifactId>
-    <version>2.1-SNAPSHOT</version>
+    <version>2.1-bedivfuzz</version>
     <packaging>pom</packaging>
 
     <name>jqf</name>
