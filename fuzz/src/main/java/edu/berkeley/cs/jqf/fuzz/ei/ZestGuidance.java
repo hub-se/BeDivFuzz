@@ -219,7 +219,7 @@ public class ZestGuidance implements Guidance {
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
-    protected final long STATS_REFRESH_TIME_PERIOD = Integer.getInteger("jqf.guidance.STATS_REFRESH_TIME_PERIOD", 30_000);
+    protected final long STATS_REFRESH_TIME_PERIOD = Integer.getInteger("jqf.guidance.STATS_REFRESH_TIME_PERIOD", 1000);
 
     /** The file where log data is written. */
     protected File logFile;
@@ -589,6 +589,7 @@ public class ZestGuidance implements Guidance {
         }
         long semanticNonZeroCount = semanticTotalCoverage.getNonZeroCount();
         int numSemanticProbes = probeCounter.getNumSemanticProbes();
+        int numUniquePaths = uniquePaths.size();
 
         BehavioralDiversityMetrics divMetrics = branchHitCounter.getCachedMetrics(force);
 
@@ -625,6 +626,7 @@ public class ZestGuidance implements Guidance {
                     double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
                     console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
+                console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                 console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
             }
         }
