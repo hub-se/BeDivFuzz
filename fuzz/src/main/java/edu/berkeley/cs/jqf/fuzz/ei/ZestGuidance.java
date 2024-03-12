@@ -49,11 +49,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -178,13 +176,8 @@ public class ZestGuidance implements Guidance {
     /** Cumulative coverage of semantic analysis classes. */
     protected ICoverage semanticTotalCoverage = CoverageFactory.newInstance();
 
-    /**
-     * Set of hashes of all paths generated so far.
-     */
+    /** Set of hashes of all paths generated so far. */
     protected IntHashSet uniquePaths = new IntHashSet();
-
-    /** Set of hashes of all valid paths generated so far. */
-    protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Coverage diversity metrics for all unique paths. */
     protected BranchHitCounter branchHitCounter = new BranchHitCounter();
@@ -254,9 +247,13 @@ public class ZestGuidance implements Guidance {
     /** Whether to store all generated inputs to disk (can get slowww!) */
     protected final boolean LOG_ALL_INPUTS = Boolean.getBoolean("jqf.ei.LOG_ALL_INPUTS");
 
-    protected final boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
-
+    /** The current number of probes inserted through instrumentation. */
     protected final ProbeCounter probeCounter = ProbeCounter.instance;
+
+    /** Metrics to collect. */
+    protected boolean COUNT_UNIQUE_PATHS;
+    protected boolean MEASURE_BEHAVIORAL_DIVERSITY;
+    protected boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -340,6 +337,21 @@ public class ZestGuidance implements Guidance {
             FastSemanticCoverageSnoop.setCoverageListeners(
                     (FastCoverageListener) this.runCoverage,
                     (FastCoverageListener) this.semanticRunCoverage);
+        }
+
+        String metrics = System.getProperty("jqf.guidance.METRICS");
+        if (metrics != null && !metrics.isEmpty()) {
+            for (String metric : metrics.split(":")) {
+               if (metric.equals("UPATHS")) {
+                   COUNT_UNIQUE_PATHS = true;
+               } else if (metric.equals("BEDIV")) {
+                   MEASURE_BEHAVIORAL_DIVERSITY = true;
+               } else if (metric.equals("SEMCOV")) {
+                   TRACK_SEMANTIC_COVERAGE = true;
+                } else {
+                   throw new GuidanceException("Unknown metric: " + metric);
+               }
+            }
         }
 
         // Try to parse the single-run timeout
@@ -458,6 +470,7 @@ public class ZestGuidance implements Guidance {
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
         if (LOG_BRANCH_HIT_COUNTS) {
+            this.MEASURE_BEHAVIORAL_DIVERSITY = true; // Make sure we are counting hit counts
             this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
             this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
             for (File file : branchHitCountsDirectory.listFiles()) {
@@ -587,10 +600,9 @@ public class ZestGuidance implements Guidance {
             nonZeroFraction = nonZeroCount * 100.0 / totalCoverage.size();
             nonZeroValidFraction = nonZeroValidCount * 100.0 / validCoverage.size();
         }
+
         long semanticNonZeroCount = semanticTotalCoverage.getNonZeroCount();
         int numSemanticProbes = probeCounter.getNumSemanticProbes();
-        int numUniquePaths = uniquePaths.size();
-
         BehavioralDiversityMetrics divMetrics = branchHitCounter.getCachedMetrics(force);
 
         if (console != null) {
@@ -626,8 +638,13 @@ public class ZestGuidance implements Guidance {
                     double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
                     console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
-                console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
-                console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                if (COUNT_UNIQUE_PATHS) {
+                    int numUniquePaths = uniquePaths.size();
+                    console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
+                }
+                if (MEASURE_BEHAVIORAL_DIVERSITY) {
+                    console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                }
             }
         }
 
@@ -861,9 +878,6 @@ public class ZestGuidance implements Guidance {
             if (valid) {
                 // Increment valid counter
                 numValid++;
-
-                // Add to unique
-                uniqueValidPaths.add(runCoverage.hashCode());
             }
 
             if (result == Result.SUCCESS || (result == Result.INVALID && !SAVE_ONLY_VALID)) {
@@ -991,7 +1005,8 @@ public class ZestGuidance implements Guidance {
         }
 
         // Update hit counts
-        if (uniquePaths.add(runCoverage.hashCode())) {
+        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY;
+        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode()) && MEASURE_BEHAVIORAL_DIVERSITY) {
             if (TRACK_SEMANTIC_COVERAGE) {
                 branchHitCounter.incrementBranchCounts(semanticRunCoverage);
             } else {

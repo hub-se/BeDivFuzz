@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsb" opt; do
+while getopts ":c:N:r:t:dflnsbm:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -48,6 +48,9 @@ while getopts ":c:N:r:t:dflnsb" opt; do
       ;;
     b)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"
+      ;;
+    m)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
       ;;
   esac
 done

@@ -27,6 +27,7 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
 
     public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
+        this.COUNT_UNIQUE_PATHS = true;
     }
 
     public void registerChoiceTracer(BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> tracer) {
