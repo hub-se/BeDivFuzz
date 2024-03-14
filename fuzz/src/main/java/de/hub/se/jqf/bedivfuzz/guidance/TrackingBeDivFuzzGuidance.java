@@ -7,6 +7,7 @@ import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
+import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
 import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.File;
@@ -17,17 +18,34 @@ import java.util.function.BiConsumer;
 
 public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuidance {
 
+    /** The mutation types that can be performed on the choice sequence. */
     private enum Mutation {HAVOC, STRUCTURE, VALUE};
 
+    /** The callback responsible for tracing the choice types for each saved input. */
     private BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> choiceTracer;
 
-    public TrackingBeDivFuzzGuidance(String testName, Duration duration, File outputDirectory) throws IOException {
-        this(testName, duration, null, outputDirectory, new Random());
-    }
+    /** The epsilon-greedy tradeoff between exploration and exploitation. */
+    protected final double EPSILON = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.epsilon", "0.2"));
+
+    /** The havoc mutation probability. */
+    protected final double HAVOC_RATE = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.3"));;
 
     public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
         this.COUNT_UNIQUE_PATHS = true;
+    }
+
+    public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File[] seedInputFiles, Random sourceOfRandomness) throws IOException {
+        this(testName, duration, null, outputDirectory, new Random());
+        if (seedInputFiles != null) {
+            for (File seedInputFile : seedInputFiles) {
+                seedInputs.add(new SeedInput(seedInputFile));
+            }
+        }
+    }
+
+    public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File seedInputDir, Random sourceOfRandomness) throws IOException {
+        this(testName, duration, trials, outputDirectory, IOUtils.resolveInputFileOrDirectory(seedInputDir), sourceOfRandomness);
     }
 
     public void registerChoiceTracer(BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> tracer) {
@@ -124,9 +142,6 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
         /** Whether the last performed mutation was on the structural or value parameters (exploration or exploitation)*/
         protected Mutation lastMutationType = Mutation.HAVOC;
 
-        /** The epsilon-greedy tradeoff between exploration and exploitation. */
-        protected final double EPSILON = 0.2;
-
         /** Structural mutation score: number of performed mutations / rewarded mutations. */
         protected int structureScore = 0;
         protected int structureCount = 0;
@@ -170,7 +185,7 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
 
         @Override
         public Input fuzz(Random random) {
-            if (!structureChoices.isEmpty() && !valueChoices.isEmpty() && random.nextBoolean()) {
+            if (!structureChoices.isEmpty() && !valueChoices.isEmpty() && (random.nextDouble() > HAVOC_RATE)) {
                 lastMutationType = chooseMutationType(random);
                 return fuzzTargeted(lastMutationType, random);
             } else {
