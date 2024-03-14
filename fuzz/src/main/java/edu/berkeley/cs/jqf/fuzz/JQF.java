@@ -65,7 +65,7 @@ public class JQF extends JUnitQuickcheck {
 
     protected final GeneratorRepository generatorRepository;
 
-    Map<String, FrameworkMethod> cmpNames;
+    protected Map<String, FrameworkMethod> cmpNames;
 
     @SuppressWarnings("unused") // Invoked reflectively by JUnit
     public JQF(Class<?> clazz) throws InitializationError {
