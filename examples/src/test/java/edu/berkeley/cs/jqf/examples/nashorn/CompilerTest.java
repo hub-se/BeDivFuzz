@@ -14,7 +14,8 @@ import javax.script.*;
 @RunWith(JQF.class)
 public class CompilerTest {
 
-    private ScriptEngineManager engineManager = new ScriptEngineManager();
+    // https://stackoverflow.com/questions/25332640/getenginebynamenashorn-returns-null
+    private ScriptEngineManager engineManager = new ScriptEngineManager(null);
     private ScriptEngine engine = engineManager.getEngineByName("nashorn");
 
     @Fuzz
