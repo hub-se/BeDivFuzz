@@ -46,6 +46,7 @@ import org.apache.bcel.verifier.VerificationResult;
 import org.apache.bcel.verifier.Verifier;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
+import proguard.util.ArrayUtil;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assume.assumeThat;
@@ -78,6 +79,18 @@ public class ParserTest {
             javaClass.dump(out);
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+            testWithInputStream(in);
+        } catch (ClassFormatException e) {
+            throw e;
+        }
+    }
+
+    @Fuzz
+    public void testWithByteGenerator(@From(ByteArrayJavaClassGenerator.class) Byte[] javaClass) throws IOException {
+        try {
+            byte[] byteArray = new byte[javaClass.length];
+            for(int i = 0; i < javaClass.length; i++) byteArray[i] = javaClass[i];
+            ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
             testWithInputStream(in);
         } catch (ClassFormatException e) {
             throw e;
