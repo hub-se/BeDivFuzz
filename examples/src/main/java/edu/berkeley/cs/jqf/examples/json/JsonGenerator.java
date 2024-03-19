@@ -16,22 +16,21 @@ public class JsonGenerator extends Generator<String> {
     private GenerationStatus status;
 
     private static final int MAX_WS_DEPTH = 3;
-    private static final int MAX_RECURSION_DEPTH = 85;
+    private static final int MAX_RECURSION_DEPTH = 20;
     private static final int MIN_MEMBERS_DEPTH = 10;
     private static final int MIN_CHAR_DEPTH = 10;
     private static final int MIN_ELEMENTS_DEPTH = 10;
 
 
     private int currentDepth;
-    private int currentwsDepth;
+    private int currentWhitespaceDepth;
 
 
-
-    private static final String[] whitespacevariants = {
+    private static final String[] whitespaceVariants = {
             " ", "\n", "\r", "\t"
     };
 
-    private static final String[] escapevariants = {
+    private static final String[] escapeVariants = {
             "\"", "\\", "/", "b", "f", "n", "r", "t", "u"
     };
 
@@ -39,13 +38,11 @@ public class JsonGenerator extends Generator<String> {
     public String generate(SourceOfRandomness random, GenerationStatus status) {
         this.status = status;
         this.currentDepth = 0;
-        this.currentwsDepth = 0;
-        String input = generateElement(random).toString();
-        return input;
+        this.currentWhitespaceDepth = 0;
+        return generateElement(random);
     }
 
     private String generateElement(SourceOfRandomness random) {
-
         String element = generateValue(random);
         String ws1 = generateWhitespace(random);
         String ws2 = generateWhitespace(random);
@@ -54,8 +51,7 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateValue(SourceOfRandomness random) {
-        String value;
-        value = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
+        return random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
                 this::generateObject,
                 this::generateArray,
                 this::generateString,
@@ -63,13 +59,10 @@ public class JsonGenerator extends Generator<String> {
                 (rdm -> "true"),
                 (rdm -> "false"),
                 (rdm -> "null"))).apply(random);
-        return value;
     }
 
     private String generateObject(SourceOfRandomness random) {
-
-        String object;
-        object = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
+        String object = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
                 this::generateWhitespace,
                 this::generateMembers)).apply(random);
 
@@ -77,9 +70,7 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateArray(SourceOfRandomness random) {
-
-        String array;
-        array = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
+        String array = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
                 this::generateWhitespace,
                 this::generateElements)).apply(random);
 
@@ -87,29 +78,27 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateString(SourceOfRandomness random) {
-
-        String resultString;
-        resultString = generateCharacters(random);
-        return '"' + resultString + '"';
+        String result = generateCharacters(random);
+        return '"' + result + '"';
     }
 
     private String generateNumber(SourceOfRandomness random) {
-        String zahl = generateInteger(random);
+        String number = generateInteger(random);
         String fraction = generateFraction(random);
         String exponent = generateExponent(random);
-        return zahl + fraction + exponent;
+        return number + fraction + exponent;
 
     }
 
     private String generateWhitespace(SourceOfRandomness random) {
         String whitespace;
-        if (currentwsDepth >= MAX_WS_DEPTH || random.nextBoolean()) {
+        if (currentWhitespaceDepth >= MAX_WS_DEPTH || random.nextBoolean()) {
             whitespace = "";
         }
         else {
-            currentwsDepth++;
-            whitespace = random.choose(whitespacevariants) + generateWhitespace(random);
-            currentwsDepth--;
+            currentWhitespaceDepth++;
+            whitespace = random.choose(whitespaceVariants) + generateWhitespace(random);
+            currentWhitespaceDepth--;
         }
         return whitespace;
     }
@@ -162,11 +151,9 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateCharacter(SourceOfRandomness random) {
-        String character;
-        character = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
+        return random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
                 this::generateUnicode,
                 this::generateBackslashEscape)).apply(random);
-        return character;
     }
 
     private String generateUnicode(SourceOfRandomness random) {
@@ -178,12 +165,11 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateBackslashEscape(SourceOfRandomness random) {
-        String escape = generateEscape(random);
-        return "\\" + escape;
+        return "\\" + generateEscape(random);
     }
 
     private String generateEscape(SourceOfRandomness random) {
-        String escape = random.choose(escapevariants);
+        String escape = random.choose(escapeVariants);
         if ("u".equals(escape)) {
             String hex1 = generateHex(random);
             String hex2 = generateHex(random);
@@ -196,43 +182,32 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateHex(SourceOfRandomness random) {
-        String hex;
-        hex = random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
+        return random.choose(Arrays.<Function<SourceOfRandomness, String>>asList(
                 this::generateDigit,
                 this::generateUpperCaseHex,
                 this::generateLowerCaseHex)).apply(random);
-        return hex;
     }
 
     private String generateDigit(SourceOfRandomness random) {
-        int digit;
-        digit = random.nextInt(10);
-        return String.valueOf(digit);
+        return String.valueOf(random.nextInt(10));
     }
 
     private String generateUpperCaseHex(SourceOfRandomness random) {
-        char randomChar;
-        randomChar = (char) ('A' + random.nextInt(6));
+        char randomChar = (char) ('A' + random.nextInt(6));
         return String.valueOf(randomChar);
     }
 
     private String generateLowerCaseHex(SourceOfRandomness random) {
-        char randomChar;
-        randomChar = (char) ('a' + random.nextInt(6));
+        char randomChar = (char) ('a' + random.nextInt(6));
         return String.valueOf(randomChar);
     }
 
     private String generateOneNine(SourceOfRandomness random) {
-        int randomnumber;
-        randomnumber = 1 + random.nextInt(9);
-        return String.valueOf(randomnumber);
+        return String.valueOf(1 + random.nextInt(9));
     }
 
     private String generateInteger(SourceOfRandomness random) {
-
-        int choice = random.nextInt(4);
-
-        switch (choice) {
+        switch (random.nextInt(4)) {
             case 0:
                 return generateDigit(random);
             case 1:
@@ -244,7 +219,6 @@ public class JsonGenerator extends Generator<String> {
             default:
                 return "";
         }
-
     }
 
     private String generateDigits(SourceOfRandomness random) {
@@ -253,7 +227,6 @@ public class JsonGenerator extends Generator<String> {
         }
         String digits;
         if (random.nextBoolean()) {
-
             digits = generateDigit(random);
         } else {
             currentDepth++;
@@ -274,7 +247,6 @@ public class JsonGenerator extends Generator<String> {
     }
 
     private String generateExponent(SourceOfRandomness random) {
-
         switch (random.nextInt(3)) {
             case 0:
                 return "E" + generateSign(random) + generateDigits(random);
@@ -295,5 +267,4 @@ public class JsonGenerator extends Generator<String> {
                 return "";
         }
     }
-
 }
