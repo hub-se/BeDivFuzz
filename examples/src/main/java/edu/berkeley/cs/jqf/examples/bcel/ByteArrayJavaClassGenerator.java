@@ -31,11 +31,10 @@ package edu.berkeley.cs.jqf.examples.bcel;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
+import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

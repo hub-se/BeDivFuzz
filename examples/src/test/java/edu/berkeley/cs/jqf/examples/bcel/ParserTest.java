@@ -36,6 +36,7 @@ import java.io.InputStream;
 import com.pholser.junit.quickcheck.From;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.bcel.SplitJavaClassGenerator;
+import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassFormatException;
@@ -46,7 +47,6 @@ import org.apache.bcel.verifier.VerificationResult;
 import org.apache.bcel.verifier.Verifier;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
-import proguard.util.ArrayUtil;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assume.assumeThat;
