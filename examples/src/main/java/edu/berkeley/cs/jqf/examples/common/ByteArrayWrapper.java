@@ -1,4 +1,4 @@
-package edu.berkeley.cs.jqf.examples.bcel;
+package edu.berkeley.cs.jqf.examples.common;
 
 import java.io.Serializable;
 

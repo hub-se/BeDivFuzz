@@ -193,6 +193,11 @@
           <artifactId>chocopy-artifacts</artifactId>
           <version>2.2</version>
         </dependency>
+        <dependency>
+            <groupId>ar.com.hjg</groupId>
+            <artifactId>pngj</artifactId>
+            <version>2.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
