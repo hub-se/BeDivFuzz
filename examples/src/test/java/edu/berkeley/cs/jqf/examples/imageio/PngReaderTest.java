@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import ar.com.hjg.pngj.PngReaderByte;
+import ar.com.hjg.pngj.PngjBadCrcException;
+import ar.com.hjg.pngj.PngjInputException;
 import com.pholser.junit.quickcheck.From;
 import com.pholser.junit.quickcheck.generator.Size;
 import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
@@ -166,12 +168,26 @@ public class PngReaderTest {
     }
 
     @Fuzz
+    public void fuzzPngJKaitai(@From(PngKaitaiGenerator.class) @Size(max = 1024) InputStream input){
+        try {
+            PngReaderByte reader = new PngReaderByte(input);
+            reader.getMetadata();
+            reader.close();
+        } catch (PngjInputException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Fuzz
     public void fuzzPngJ(@From(PngGenerator.class) ByteArrayWrapper bytes){
-        InputStream input = new ByteArrayInputStream(bytes.getByteArray());
-        PngReaderByte reader = new PngReaderByte(input);
-        reader.setCrcCheckDisabled();
-        reader.getMetadata();
-        reader.close();
+        try {
+            InputStream input = new ByteArrayInputStream(bytes.getByteArray());
+            PngReaderByte reader = new PngReaderByte(input);
+            reader.getMetadata();
+            reader.close();
+        } catch (PngjInputException e) {
+            Assume.assumeNoException(e);
+        }
     }
 
 }
