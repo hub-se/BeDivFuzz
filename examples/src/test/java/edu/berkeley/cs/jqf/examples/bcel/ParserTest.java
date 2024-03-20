@@ -86,11 +86,9 @@ public class ParserTest {
     }
 
     @Fuzz
-    public void testWithByteGenerator(@From(ByteArrayJavaClassGenerator.class) Byte[] javaClass) throws IOException {
+    public void testWithByteArrayGenerator(@From(ByteArrayJavaClassGenerator.class) ByteArrayWrapper javaClass) throws IOException {
         try {
-            byte[] byteArray = new byte[javaClass.length];
-            for(int i = 0; i < javaClass.length; i++) byteArray[i] = javaClass[i];
-            ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
+            ByteArrayInputStream in = new ByteArrayInputStream(javaClass.getByteArray());
             testWithInputStream(in);
         } catch (ClassFormatException e) {
             throw e;

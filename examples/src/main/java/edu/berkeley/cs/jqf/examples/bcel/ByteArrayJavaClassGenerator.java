@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * Java Virtual Machine Specification 4
  * </a>
  */
-public class ByteArrayJavaClassGenerator extends Generator<Byte[]> {
+public class ByteArrayJavaClassGenerator extends Generator<ByteArrayWrapper> {
     private static final int MIN_FIELDS = 0;
     private static final int MAX_FIELDS = 10;
     private static final int MIN_INTERFACES = 0;
@@ -71,10 +71,10 @@ public class ByteArrayJavaClassGenerator extends Generator<Byte[]> {
     private final Generator<String> classNameGenerator = new JavaClassNameGenerator(".");
 
     public ByteArrayJavaClassGenerator() {
-        super(Byte[].class);
+        super(ByteArrayWrapper.class);
     }
 
-    public Byte[] generate(SourceOfRandomness random, GenerationStatus status) {
+    public ByteArrayWrapper generate(SourceOfRandomness random, GenerationStatus status) {
         ConstantPoolGen pool = new ConstantPoolGen();
         String className = classNameGenerator.generate(random, status);
         String superClassName = classNameGenerator.generate(random, status);
@@ -92,11 +92,10 @@ public class ByteArrayJavaClassGenerator extends Generator<Byte[]> {
                 .limit(random.nextInt(MIN_METHODS, MAX_METHODS))
                 .forEach(clazz::addMethod);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             clazz.getJavaClass().dump(out);
-            byte[] bytes = out.toByteArray();
-            return ArrayUtils.toObject(bytes);
+            return new ByteArrayWrapper(out.toByteArray());
         } catch (IOException e) {
             return null;
         }
