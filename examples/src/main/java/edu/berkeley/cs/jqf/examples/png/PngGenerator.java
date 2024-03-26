@@ -11,7 +11,7 @@ public class PngGenerator extends Generator<ByteArrayWrapper> {
 
     public PngGenerator() {
         super(ByteArrayWrapper.class);
-        generator = new PngDataGenerator(false);
+        generator = new PngDataGenerator();
     }
 
     @Override

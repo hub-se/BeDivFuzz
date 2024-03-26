@@ -42,6 +42,7 @@ import com.pholser.junit.quickcheck.From;
 import com.pholser.junit.quickcheck.generator.Size;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.kaitai.SplitPngKaitaiGenerator;
+import de.hub.se.jqf.bedivfuzz.examples.png.SplitPngGenerator;
 import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 import edu.berkeley.cs.jqf.examples.kaitai.PngKaitaiByteArrayGenerator;
 import edu.berkeley.cs.jqf.examples.kaitai.PngKaitaiGenerator;
@@ -189,6 +190,18 @@ public class PngReaderTest {
 
     @Fuzz
     public void fuzzPngJ(@From(PngGenerator.class) ByteArrayWrapper bytes) {
+        try {
+            InputStream input = new ByteArrayInputStream(bytes.getByteArray());
+            PngReaderByte reader = new PngReaderByte(input);
+            reader.getMetadata();
+            reader.close();
+        } catch (PngjInputException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Fuzz
+    public void fuzzSplitPngJ(@From(SplitPngGenerator.class) ByteArrayWrapper bytes) {
         try {
             InputStream input = new ByteArrayInputStream(bytes.getByteArray());
             PngReaderByte reader = new PngReaderByte(input);

@@ -6,81 +6,81 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Random;
 
 public class PngDataGenerator{
-
     // IHDR values
     private byte[] imageWidth = new byte[4];
     private byte[] imageHeight = new byte[4];
-    private byte bitsPerChannel, colorType, interlace;
+    private byte bitsPerChannel;
+    private byte colorType;
+    private byte interlace;
 
-    // image data values
-    private int width, height, channels, scanline;
+    // Image data values
+    private int width;
+    private int  height;
+    private int channels;
+    private int scanline;
 
-    // chunks
-    private boolean PLTEUsed, tRNSUsed;
+    // Chunks
+    private boolean PLTEUsed;
+    private boolean tRNSUsed;
     private int transparencyMethod;
-    private boolean tEXtUsed, zTXtUsed, iTXtUsed;
-    private boolean gAMAUsed, cHRMUsed, sRGBUsed;
-    private boolean bGKDUsed, pHYsUsed, sBITUsed;
+    private boolean tEXtUsed;
+    private boolean zTXtUsed;
+    private boolean iTXtUsed;
+    private boolean gAMAUsed;
+    private boolean cHRMUsed;
+    private boolean sRGBUsed;
+    private boolean bGKDUsed;
+    private boolean pHYsUsed;
+    private boolean sBITUsed;
     private int backgroundMethod;
 
-    // debugging
-    private final boolean debugging;
+    public PngDataGenerator(){}
 
-    public PngDataGenerator(boolean debugging){
-        this.debugging = debugging;
-    }
-
-    public byte[] generate(SourceOfRandomness randomness) {
-
+    public byte[] generate(SourceOfRandomness random) {
         ByteArrayOutputStream png = new ByteArrayOutputStream();
-
         resetParameters();
 
         try {
-
-            initializeParameters(randomness);
+            initializeParameters(random);
 
             png.write(generateSignature());
-            png.write(generateIHDR(randomness));
+            png.write(generateIHDR(random));
             if(sBITUsed)
-                png.write(generateSBIT(randomness));
+                png.write(generateSBIT(random));
             if(sRGBUsed)
-                png.write(generateSRGB(randomness));
+                png.write(generateSRGB(random));
             if(gAMAUsed)
-                png.write(generateGAMA(randomness));
+                png.write(generateGAMA(random));
             if(cHRMUsed)
-                png.write(generateCHRM(randomness));
+                png.write(generateCHRM(random));
             if(PLTEUsed)
-                png.write(generatePLTE(randomness));
+                png.write(generatePLTE(random));
             if(tRNSUsed)
-                png.write(generateTRNS(randomness));
+                png.write(generateTRNS(random));
             if(bGKDUsed)
-                png.write(generateBKGD(randomness));
+                png.write(generateBKGD(random));
             if(pHYsUsed)
-                png.write(generatePHYS(randomness));
+                png.write(generatePHYS(random));
             if(tEXtUsed)
-                for(int i = 0; i < randomness.nextInt(1, 3); i++) {
-                    png.write(generateTEXT(randomness));
+                for(int i = 0; i < random.nextInt(1, 3); i++) {
+                    png.write(generateTEXT(random));
                 }
             if(zTXtUsed)
-                for(int i = 0; i < randomness.nextInt(1, 3); i++) {
-                    png.write(generateZTXT(randomness));
+                for(int i = 0; i < random.nextInt(1, 3); i++) {
+                    png.write(generateZTXT(random));
                 }
-            png.write(generateIDAT(randomness));
+            png.write(generateIDAT(random));
             if(iTXtUsed)
-                for(int i = 0; i < randomness.nextInt(1, 3); i++) {
-                    png.write(generateITXT(randomness));
+                for(int i = 0; i < random.nextInt(1, 3); i++) {
+                    png.write(generateITXT(random));
                 }
             png.write(generateIEND());
-
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-
         return png.toByteArray();
     }
 
@@ -112,125 +112,101 @@ public class PngDataGenerator{
     }
 
     private byte[] generateSignature(){
-
         return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
     }
 
-    private void initializeParameters(SourceOfRandomness randomness) {
-
-        this.imageWidth = intToByteArray(randomness.nextInt(1, 100));
-        this.imageHeight = intToByteArray(randomness.nextInt(1, 100));
-
+    private void initializeParameters(SourceOfRandomness random) {
+        this.imageWidth = intToByteArray(random.nextInt(1, 100));
+        this.imageHeight = intToByteArray(random.nextInt(1, 100));
         this.interlace = (byte) 0x00;
 
-        initializeRandomColoring(randomness);
+        initializeRandomColoring(random);
 
-        this.tEXtUsed = randomness.nextBoolean();
-        this.zTXtUsed = randomness.nextBoolean();
-        this.iTXtUsed = randomness.nextBoolean();
-        this.gAMAUsed = randomness.nextBoolean();
-        this.cHRMUsed = randomness.nextBoolean();
-        this.sRGBUsed = randomness.nextBoolean();
+        this.tEXtUsed = random.nextBoolean();
+        this.zTXtUsed = random.nextBoolean();
+        this.iTXtUsed = random.nextBoolean();
+        this.gAMAUsed = random.nextBoolean();
+        this.cHRMUsed = random.nextBoolean();
+        this.sRGBUsed = random.nextBoolean();
         if(sRGBUsed) {
             this.gAMAUsed = true;
             this.cHRMUsed = true;
         }
-        this.bGKDUsed = randomness.nextBoolean();
-        this.pHYsUsed = randomness.nextBoolean();
-        this.sBITUsed = randomness.nextBoolean();
-
-        // DEBUGGING AREA
-        /*
-        this.initializeRandomColoring(randomness, 4, 1);
-        this.tEXtUsed = false;
-        this.zTXtUsed = false;
-        this.iTXtUsed = false;
-        this.gAMAUsed = false;
-        this.cHRMUsed = false;
-        this.sRGBUsed = false;
-        this.PLTEUsed = true;
-        this.tRNSUsed = false;
-        this.imageHeight = intToByteArray(10);
-        this.imageWidth = intToByteArray(10);
-        */
-        // END OF DEBUGGING AREA
+        this.bGKDUsed = random.nextBoolean();
+        this.pHYsUsed = random.nextBoolean();
+        this.sBITUsed = random.nextBoolean();
 
         this.width = ByteBuffer.wrap(imageWidth).getInt();
         this.height = ByteBuffer.wrap(imageHeight).getInt();
-
     }
 
-    private void initializeRandomColoring(SourceOfRandomness randomness, int colorMethod, int bitDepth) {
-
-        if (colorMethod == -1)
-            colorMethod = randomness.nextInt(5);
-
+    private void initializeRandomColoring(SourceOfRandomness random, int colorMethod, int bitDepth) {
+        if (colorMethod == -1) {
+            colorMethod = random.nextInt(5);
+        }
 
         switch (colorMethod) {
             case 0: // grayscale
-                this.bitsPerChannel = (byte) ((int) Math.pow(2, randomness.nextInt(5)));
+                this.bitsPerChannel = (byte) ((int) Math.pow(2, random.nextInt(5)));
                 this.colorType = 0x00;
                 this.channels = 1;
-                if(randomness.nextBoolean()) {
+                if(random.nextBoolean()) {
                     tRNSUsed = true;
                     transparencyMethod = 1;
                 }
                 this.backgroundMethod = 1;
                 break;
             case 1: // grayscale with alpha
-                this.bitsPerChannel = (byte) ((int) Math.pow(2, randomness.nextInt(3,4)));
+                this.bitsPerChannel = (byte) ((int) Math.pow(2, random.nextInt(3,4)));
                 this.colorType = 0x04;
                 this.channels = 2;
                 this.backgroundMethod = 1;
                 break;
             case 2: // true color
-                this.bitsPerChannel = (byte) ((int) Math.pow(2, randomness.nextInt(3,4)));
+                this.bitsPerChannel = (byte) ((int) Math.pow(2, random.nextInt(3,4)));
                 this.colorType = 0x02;
                 this.channels = 3;
-                if(randomness.nextBoolean())
+                if(random.nextBoolean())
                     PLTEUsed = true;
-                if(randomness.nextBoolean()) {
+                if(random.nextBoolean()) {
                     tRNSUsed = true;
                     transparencyMethod = 2;
                 }
                 this.backgroundMethod = 2;
                 break;
             case 3: // true color with alpha
-                this.bitsPerChannel = (byte) ((int) Math.pow(2, randomness.nextInt(3,4)));
+                this.bitsPerChannel = (byte) ((int) Math.pow(2, random.nextInt(3,4)));
                 this.colorType = 0x06;
                 this.channels = 4;
-                if(randomness.nextBoolean())
+                if(random.nextBoolean())
                     PLTEUsed = true;
                 this.backgroundMethod = 2;
                 break;
             case 4: // indexed color, palette used
-                this.bitsPerChannel = (byte) ((int) Math.pow(2, randomness.nextInt(4)));
+                this.bitsPerChannel = (byte) ((int) Math.pow(2, random.nextInt(4)));
                 this.colorType = 0x03;
                 this.channels = 1;
                 this.PLTEUsed = true;
-                if(randomness.nextBoolean()) {
+                if(random.nextBoolean()) {
                     tRNSUsed = true;
                     transparencyMethod = 0;
                 }
                 this.backgroundMethod = 0;
                 break;
-
         }
 
-        if (bitDepth != -1)
+        if (bitDepth != -1) {
             this.bitsPerChannel = (byte) bitDepth;
+        }
     }
 
-    private void initializeRandomColoring (SourceOfRandomness randomness) {
-        initializeRandomColoring(randomness, -1, -1);
+    private void initializeRandomColoring (SourceOfRandomness random) {
+        initializeRandomColoring(random, -1, -1);
     }
 
-    private byte[] generateIHDR(SourceOfRandomness randomness){
-
+    private byte[] generateIHDR(SourceOfRandomness random){
         ByteArrayOutputStream ihdr = new ByteArrayOutputStream();
-
         try {
-
             // writes options into the IHDR chunk
             ihdr.write(imageWidth);
             ihdr.write(imageHeight);
@@ -241,69 +217,55 @@ public class PngDataGenerator{
             // filter methods are always 0 in the IHDR, the difference comes in the image data!
             ihdr.write(0x00);
             ihdr.write(interlace);
-
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-
-        byte[] ihdrBytes = ChunkBuilder.constructChunk("IHDR".getBytes(), ihdr);
-
-        debugHex("IHDR", ihdrBytes);
-
-        return ihdrBytes;
-
+        return ChunkBuilder.constructChunk("IHDR".getBytes(), ihdr);
     }
 
-    private byte[] generateSBIT(SourceOfRandomness randomness) {
-
+    private byte[] generateSBIT(SourceOfRandomness random) {
         ByteArrayOutputStream sBit = new ByteArrayOutputStream();
 
         switch (colorType) {
             case 0:
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
                 break;
             case 2:
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
                 break;
             case 3:
-                sBit.write(randomness.nextInt(1, 8));
-                sBit.write(randomness.nextInt(1, 8));
-                sBit.write(randomness.nextInt(1, 8));
+                sBit.write(random.nextInt(1, 8));
+                sBit.write(random.nextInt(1, 8));
+                sBit.write(random.nextInt(1, 8));
                 break;
             case 4:
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
                 break;
             case 6:
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
-                sBit.write(randomness.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
+                sBit.write(random.nextInt(1, bitsPerChannel));
                 break;
         }
-
         return ChunkBuilder.constructChunk("sBIT".getBytes(), sBit);
     }
 
-    private byte[] generateGAMA(SourceOfRandomness randomness) {
-
+    private byte[] generateGAMA(SourceOfRandomness random) {
         if(sRGBUsed) { // sRGB uses a fixed gAMA value
             return ChunkBuilder.constructChunk("gAMA".getBytes(), intToByteArray(45455));
         }
-
-        byte[] gAMA = intToByteArray(randomness.nextInt(100001));
+        byte[] gAMA = intToByteArray(random.nextInt(100001));
         return ChunkBuilder.constructChunk("gAMA".getBytes(), gAMA);
     }
 
-    private byte[] generateCHRM(SourceOfRandomness randomness) {
-
+    private byte[] generateCHRM(SourceOfRandomness random) {
         ByteArrayOutputStream cHRM = new ByteArrayOutputStream();
-
         try {
-
             if(sRGBUsed) { // sRGB uses fixed cHRM values
                 cHRM.write(intToByteArray(31270)); // white point x
                 cHRM.write(intToByteArray(32900)); // white point y
@@ -316,44 +278,32 @@ public class PngDataGenerator{
             }
             else {
                 for(int i = 0; i < 8; i++) {
-                    cHRM.write(intToByteArray(randomness.nextInt(100001))); // randomized values
+                    cHRM.write(intToByteArray(random.nextInt(100001))); // randomized values
                 }
             }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-
         return ChunkBuilder.constructChunk("cHRM".getBytes(), cHRM);
     }
 
-    private byte[] generateSRGB(SourceOfRandomness randomness) {
-
-        byte[] sRGB = new byte[]{(byte) randomness.nextInt(4)};
+    private byte[] generateSRGB(SourceOfRandomness random) {
+        byte[] sRGB = new byte[]{(byte) random.nextInt(4)};
         return ChunkBuilder.constructChunk("sRGB".getBytes(), sRGB);
-
     }
-    private byte[] generatePLTE(SourceOfRandomness randomness) {
 
+    private byte[] generatePLTE(SourceOfRandomness random) {
         ByteArrayOutputStream PLTE = new ByteArrayOutputStream();
-
         for(int i = 0; i < (int) Math.pow(2, bitsPerChannel); i++) {
-
-            PLTE.write((byte) (randomness.nextInt((int) Math.pow(2, 8)))); // red
-            PLTE.write((byte) (randomness.nextInt((int) Math.pow(2, 8)))); // green
-            PLTE.write((byte) (randomness.nextInt((int) Math.pow(2, 8)))); // blue
+            PLTE.write((byte) (random.nextInt((int) Math.pow(2, 8)))); // red
+            PLTE.write((byte) (random.nextInt((int) Math.pow(2, 8)))); // green
+            PLTE.write((byte) (random.nextInt((int) Math.pow(2, 8)))); // blue
         }
-
-        byte[] PLTEChunk = ChunkBuilder.constructChunk("PLTE".getBytes(), PLTE);
-
-        debugHex("PLTE", PLTEChunk);
-
-        return PLTEChunk;
-
+        return ChunkBuilder.constructChunk("PLTE".getBytes(), PLTE);
     }
 
-    private byte[] generateTRNS(SourceOfRandomness randomness) {
-
+    private byte[] generateTRNS(SourceOfRandomness random) {
         ByteArrayOutputStream tRNS = new ByteArrayOutputStream();
 
         // dependent on the bit-depth, all irrelevant zeros shall be 0
@@ -362,125 +312,115 @@ public class PngDataGenerator{
             switch (transparencyMethod) {
                 case 0: // for indexed colors, artificial alpha palette
                     for (int i = 0; i < 256; i++) {
-                        tRNS.write((byte) (randomness.nextInt((int) Math.pow(2, 8))));
+                        tRNS.write((byte) (random.nextInt((int) Math.pow(2, 8))));
                     }
                     break;
                 case 1: // for grayscale, single alpha value for specified bytes
-                    tRNS.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel))));
+                    tRNS.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel))));
                     break;
                 case 2: // for true color, single alpha value for specified bytes
-                    tRNS.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // red
-                    tRNS.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // green
-                    tRNS.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // blue
+                    tRNS.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // red
+                    tRNS.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // green
+                    tRNS.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // blue
                     break;
             }
         }
-        catch (IOException e) { e.printStackTrace(); }
-
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         return ChunkBuilder.constructChunk("tRNS".getBytes(), tRNS);
-
     }
 
-    private byte[] generateBKGD(SourceOfRandomness randomness) {
-
+    private byte[] generateBKGD(SourceOfRandomness random) {
         ByteArrayOutputStream bKGD = new ByteArrayOutputStream();
-
         try {
             switch (backgroundMethod) {
                 case 0: // for indexed colors
-                    bKGD.write((byte) (randomness.nextInt((int) Math.pow(2, 8))));
+                    bKGD.write((byte) (random.nextInt((int) Math.pow(2, 8))));
                     break;
                 case 1: // for grayscale
-                    bKGD.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel))));
+                    bKGD.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel))));
                     break;
                 case 2: // for true color
-                    bKGD.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // red
-                    bKGD.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // green
-                    bKGD.write(int2ToByteArray(randomness.nextInt((int) Math.pow(2, bitsPerChannel)))); // blue
+                    bKGD.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // red
+                    bKGD.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // green
+                    bKGD.write(int2ToByteArray(random.nextInt((int) Math.pow(2, bitsPerChannel)))); // blue
                     break;
             }
         }
-        catch (IOException e) { e.printStackTrace(); }
-
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         return ChunkBuilder.constructChunk("bKGD".getBytes(), bKGD);
-
     }
 
-    private byte[] generatePHYS(SourceOfRandomness randomness) {
-
+    private byte[] generatePHYS(SourceOfRandomness random) {
         ByteArrayOutputStream pHYs = new ByteArrayOutputStream();
-
         // specifies the aspect ratio between x and y in pixels
         try {
-            pHYs.write(intToByteArray(randomness.nextInt(100))); // x
-            pHYs.write(intToByteArray(randomness.nextInt(100))); // y
-            pHYs.write((byte) randomness.nextInt(0, 1)); // unknown unit or meter
+            pHYs.write(intToByteArray(random.nextInt(100))); // x
+            pHYs.write(intToByteArray(random.nextInt(100))); // y
+            pHYs.write((byte) random.nextInt(0, 1)); // unknown unit or meter
         }
-        catch (IOException e) { e.printStackTrace(); }
-
-        debugHex("pHYs", pHYs.toByteArray());
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return ChunkBuilder.constructChunk("pHYs".getBytes(), pHYs);
-
     }
 
-    private byte[] generateTEXT(SourceOfRandomness randomness) {
-
+    private byte[] generateTEXT(SourceOfRandomness random) {
         ByteArrayOutputStream tEXt = new ByteArrayOutputStream();
 
         // Keyword
-        for(int i = 0; i < randomness.nextInt(1, 79); i++) {
-            if(randomness.nextBoolean()) {
-                tEXt.write((byte) randomness.nextInt(32, 126));
+        for(int i = 0; i < random.nextInt(1, 79); i++) {
+            if(random.nextBoolean()) {
+                tEXt.write((byte) random.nextInt(32, 126));
             } else {
-                tEXt.write((byte) randomness.nextInt(161, 255));
+                tEXt.write((byte) random.nextInt(161, 255));
             }
         }
+
         // Null separator
         tEXt.write(0x00);
         // Text
-        for(int i = 0; i < randomness.nextInt(1, 256); i++) { // 256 (could be maximum chunk size - 80)
-            int j = randomness.nextInt(1, 100);
+        for(int i = 0; i < random.nextInt(1, 256); i++) { // 256 (could be maximum chunk size - 80)
+            int j = random.nextInt(1, 100);
             if(j < 50) {
-                tEXt.write((byte) randomness.nextInt(32, 126));
+                tEXt.write((byte) random.nextInt(32, 126));
             } else if(j < 99) {
-                tEXt.write((byte) randomness.nextInt(161, 255));
+                tEXt.write((byte) random.nextInt(161, 255));
             } else {
                 tEXt.write((byte) 0x0A); // newline (with a probability of 2%)
             }
         }
-
-        byte[] tEXtBytes = ChunkBuilder.constructChunk("tEXt".getBytes(), tEXt);
-
-        debugHex("tEXt", tEXtBytes);
-        
-        return tEXtBytes;
+        return ChunkBuilder.constructChunk("tEXt".getBytes(), tEXt);
     }
 
-    private byte[] generateZTXT(SourceOfRandomness randomness) {
-
+    private byte[] generateZTXT(SourceOfRandomness random) {
         ByteArrayOutputStream zTXt = new ByteArrayOutputStream();
         ByteArrayOutputStream zTXt_text = new ByteArrayOutputStream();
 
         // Keyword
-        for(int i = 0; i < randomness.nextInt(1, 79); i++) {
-            if(randomness.nextBoolean()) {
-                zTXt.write((byte) randomness.nextInt(32, 126));
+        for(int i = 0; i < random.nextInt(1, 79); i++) {
+            if(random.nextBoolean()) {
+                zTXt.write((byte) random.nextInt(32, 126));
             } else {
-                zTXt.write((byte) randomness.nextInt(161, 255));
+                zTXt.write((byte) random.nextInt(161, 255));
             }
         }
+
         // Null separator
         zTXt.write(0x00);
         // Compression method
         zTXt.write(0x00);
         // Text
-        for(int i = 0; i < randomness.nextInt(1, 256); i++) { // 256 (could be maximum chunk size - 80)
-            int j = randomness.nextInt(1, 100);
+        for(int i = 0; i < random.nextInt(1, 256); i++) { // 256 (could be maximum chunk size - 80)
+            int j = random.nextInt(1, 100);
             if(j < 50) {
-                zTXt_text.write((byte) randomness.nextInt(32, 126));
+                zTXt_text.write((byte) random.nextInt(32, 126));
             } else if(j < 99) {
-                zTXt_text.write((byte) randomness.nextInt(161, 255));
+                zTXt_text.write((byte) random.nextInt(161, 255));
             } else {
                 zTXt_text.write((byte) 0x0A); // newline (with a probability of 2%)
             }
@@ -490,31 +430,26 @@ public class PngDataGenerator{
 
         byte[] compressedData = ChunkBuilder.compressData(compressionMethod, zTXt_text.toByteArray());
         zTXt.write(compressedData, 0, compressedData.length);
-
-        byte[] zTXtBytes = ChunkBuilder.constructChunk("zTXt".getBytes(), zTXt);
-
-        debugHex("zTXt", zTXtBytes);
-        
-        return zTXtBytes;
+        return ChunkBuilder.constructChunk("zTXt".getBytes(), zTXt);
     }
 
-    private byte[] generateITXT(SourceOfRandomness randomness) {
-
+    private byte[] generateITXT(SourceOfRandomness random) {
         ByteArrayOutputStream iTXt = new ByteArrayOutputStream();
         ByteArrayOutputStream iTXt_text = new ByteArrayOutputStream();
 
         try {
             // Keyword
-            iTXt.write(create_utf8(randomness, randomness.nextInt(1, 79)));
+            iTXt.write(create_utf8(random, random.nextInt(1, 79)));
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+
         // Null separator
         iTXt.write(0x00);
 
         // Compression flag (0 for uncompressed, 1 for compressed)
-        boolean isCompressed = randomness.nextBoolean();
+        boolean isCompressed = random.nextBoolean();
         iTXt.write((byte) (isCompressed ? 1 : 0));
 
         // Compression method
@@ -524,26 +459,25 @@ public class PngDataGenerator{
         try{
             // Language tag
             String[] languages = {"cn", "en-uk", "no-bok", "x-klingon"}; // hardcoded
-            if(randomness.nextBoolean()) {
-                iTXt.write(languages[randomness.nextInt(0, 3)].getBytes());
+            if(random.nextBoolean()) {
+                iTXt.write(languages[random.nextInt(0, 3)].getBytes());
             }
             // Null separator
             iTXt.write(0x00);
 
             // Translated keyword
-            iTXt.write(create_utf8(randomness, randomness.nextInt(0, 100))); // this keyword can be longer than 79 bytes
+            iTXt.write(create_utf8(random, random.nextInt(0, 100))); // this keyword can be longer than 79 bytes
             // Null separator
             iTXt.write(0x00);
 
             // Text
-            iTXt_text.write(create_utf8(randomness, randomness.nextInt(0, 256))); // 256 (could be maximum chunk size - other data bytes of this chunk)
+            iTXt_text.write(create_utf8(random, random.nextInt(0, 256))); // 256 (could be maximum chunk size - other data bytes of this chunk)
         }
         catch (IOException e) {
             e.printStackTrace();
         }
         
         if(isCompressed) {
-
             byte[] compressedData = ChunkBuilder.compressData(compressionMethod, iTXt_text.toByteArray());
             iTXt.write(compressedData, 0, compressedData.length);
 
@@ -555,37 +489,21 @@ public class PngDataGenerator{
                 e.printStackTrace();
             }
         }
-
-        byte[] iTXtBytes = ChunkBuilder.constructChunk("iTXt".getBytes(), iTXt);
-
-        debugHex("iTXt", iTXtBytes);
-        
-        return iTXtBytes;
+        return ChunkBuilder.constructChunk("iTXt".getBytes(), iTXt);
     }
 
-    private byte[] generateIDAT(SourceOfRandomness randomness) {
-
-        byte[] filteredData = generateFilteredData(randomness);
-
-        debugHex("filtered data", filteredData);
-
+    private byte[] generateIDAT(SourceOfRandomness random) {
+        byte[] filteredData = generateFilteredData(random);
         ByteArrayOutputStream idat = new ByteArrayOutputStream();
 
-        int compressionMethod = randomness.nextInt(-1,9);
+        int compressionMethod = random.nextInt(-1,9);
         byte[] compressedData = ChunkBuilder.compressData(compressionMethod, filteredData);
         idat.write(compressedData, 0, compressedData.length);
-
-        byte[] idatChunk = ChunkBuilder.constructChunk("IDAT".getBytes(), idat);
-
-        debugHex("IDAT", idatChunk);
-
-        return idatChunk;
+        return ChunkBuilder.constructChunk("IDAT".getBytes(), idat);
     }
 
-    private byte[] generateFilteredData(SourceOfRandomness randomness){
-
+    private byte[] generateFilteredData(SourceOfRandomness random){
         // the scanline indicates the length of one horizontal line in the image (filter byte included)
-
         float channelSize = (float) bitsPerChannel / 8;
         scanline = (int) Math.ceil(width * channels * channelSize) + 1;
         byte[] imageData = new byte[height * scanline];
@@ -593,7 +511,7 @@ public class PngDataGenerator{
         for (int y = 0; y < height; y++) {
 
             // each line can opt for a different filter method
-            int filterMethod = (byte) randomness.nextInt(5);
+            int filterMethod = (byte) random.nextInt(5);
 
             //filterMethod = 0;
             // the first byte of each scanline defines the filter method
@@ -606,7 +524,7 @@ public class PngDataGenerator{
 
                 // each byte is randomized, based on the channelSize (bit-depth)
                 // ... multiple channels or pixel can be in one byte
-                byte imageByte = (byte) (randomness.nextInt((int) Math.pow(2, 8)));
+                byte imageByte = (byte) (random.nextInt((int) Math.pow(2, 8)));
                 imageData[position] = imageByte;
 
                 // the filter is added onto each byte based on the filter method
@@ -614,16 +532,12 @@ public class PngDataGenerator{
                 imageData[position] = filteredImageByte;
             }
         }
-
         return imageData;
-
     }
 
     private byte[] generateIEND(){
-
         return new byte[]{0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
                 0x4E, 0x44, (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
-
     }
 
     public static String byteArrayToHex(byte[] a) {
@@ -631,11 +545,6 @@ public class PngDataGenerator{
         for(byte b: a)
             sb.append(String.format("%02X ", b));
         return sb.toString();
-    }
-
-    public void debugHex(String name, byte[] bytes) {
-        if(debugging)
-            System.out.println(name + ": " + byteArrayToHex(bytes));
     }
 
     public static byte[] intToByteArray(int value) {
@@ -646,15 +555,15 @@ public class PngDataGenerator{
         return ByteBuffer.allocate(2).putShort((short) value).array();
     }
 
-    public byte[] create_utf8(SourceOfRandomness randomness, int max_byte_number) {
+    public byte[] create_utf8(SourceOfRandomness random, int max_byte_number) {
         String str = "";
         for(int i = 0; i < max_byte_number - 1; i++) {
-            str = str + randomness.nextChar((char) 0x0001, (char) 0x10FFFF); // uses maximum range of Unicode
+            str = str + random.nextChar((char) 0x0001, (char) 0x10FFFF); // uses maximum range of Unicode
         }
         byte[] bytes = Arrays.copyOfRange(str.getBytes(StandardCharsets.UTF_8), 0, str.length());
         if(bytes.length > 0 && bytes.length < 5) {
             for(int i = 0; i < bytes.length; i++) {
-                bytes[i] = (byte) randomness.nextInt(1, 127);
+                bytes[i] = (byte) random.nextInt(1, 127);
             }
             return bytes;
         }
@@ -672,25 +581,4 @@ public class PngDataGenerator{
         return utf8_correction(Arrays.copyOfRange(b, 0, b.length - 1));
     }
 
-    public static void main(String[] args) {
-
-        for(int i = 0; i < 1; i++) {
-
-            PngDataGenerator gen = new PngDataGenerator(true);
-            SourceOfRandomness randomness = new SourceOfRandomness(new Random());
-
-            byte[] png = gen.generate(randomness);
-            gen.debugHex("Png", png);
-
-            try {
-
-                FileOutputStream fos = new FileOutputStream("Debugging_Png.png");
-                fos.write(png);
-                fos.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }
