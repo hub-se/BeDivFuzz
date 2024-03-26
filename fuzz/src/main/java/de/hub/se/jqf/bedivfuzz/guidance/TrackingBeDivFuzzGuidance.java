@@ -28,7 +28,7 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
     protected final double EPSILON = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.epsilon", "0.2"));
 
     /** The havoc mutation probability. */
-    protected final double HAVOC_RATE = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.3"));;
+    protected final double HAVOC_RATE = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.3"));
 
     public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
