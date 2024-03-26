@@ -44,7 +44,7 @@ public class KaitaiStruct {
 
     protected byte[] writeCRC(int offset, int len) {
         CRC32 crc = new CRC32();
-        crc.update(_io.buf.array(), 12, 17);
+        crc.update(_io.buf.array(), offset, len);
         int crcValue = (int) crc.getValue();
         this._io.writeIntvalue(crcValue); // NOTE: Depends on endianness!
         return ByteBuffer.allocate(4).putInt(crcValue).array();
