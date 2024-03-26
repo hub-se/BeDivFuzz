@@ -34,8 +34,6 @@ import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
@@ -44,37 +42,39 @@ import java.nio.ByteBuffer;
  */
 public abstract class AbstractKaitaiByteArrayGenerator extends Generator<ByteArrayWrapper> {
 
-    public AbstractKaitaiByteArrayGenerator() {
+    private final AbstractKaitaiGenerator backingGenerator;
+    private int capacity = Integer.MAX_VALUE;
+
+    public AbstractKaitaiByteArrayGenerator(AbstractKaitaiGenerator backingGenerator) {
         super(ByteArrayWrapper.class);
+        this.backingGenerator = backingGenerator;
     }
 
-    private int capacity = Integer.MAX_VALUE;
-    protected ByteBuffer buf;
 
     @SuppressWarnings("unused") // invoked by junit-quickcheck for @Size annotation
     public void configure(Size size) {
         this.capacity = size.max();
+        backingGenerator.configure(size);
     }
 
     @Override
     public ByteArrayWrapper generate(SourceOfRandomness random, GenerationStatus status) {
-        buf = ByteBuffer.allocate(this.capacity);
+        backingGenerator.buf = ByteBuffer.allocate(this.capacity);
         try {
             // Populate byte buffer
-            populate(random);
+            backingGenerator.populate(random);
 
         } catch (BufferOverflowException e) {
             // throw new AssumptionViolatedException("Generated input is too large", e);
         }
 
         // Return the bytes as an inputstream
-        int len = buf.position();
-        buf.rewind();
+        ByteBuffer b = backingGenerator.buf;
+        int len = b.position();
+        b.rewind();
         byte[] bytes = new byte[len];
-        buf.get(bytes);
+        b.get(bytes);
         return new ByteArrayWrapper(bytes);
     }
 
-
-    abstract protected void populate(SourceOfRandomness random) throws BufferOverflowException;
 }
