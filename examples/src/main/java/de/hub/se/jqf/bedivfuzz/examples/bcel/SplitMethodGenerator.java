@@ -57,7 +57,7 @@ public class SplitMethodGenerator {
     private InstructionList generateInstructions(InstructionFactory factory, Type[] argumentTypes) {
         InstructionList instructionList = new InstructionList();
         int numberOfInstructions = random.nextStructureInt(MIN_INSTRUCTIONS, MAX_INSTRUCTIONS);
-        int maxLocals = random.nextStructureInt(argumentTypes.length + 1, 2 * argumentTypes.length + 1);
+        int maxLocals = random.nextValueInt(argumentTypes.length + 1, 2 * argumentTypes.length + 1);
         while (instructionList.size() < numberOfInstructions) {
             Instruction ins = generateInstruction(factory, maxLocals, instructionList);
             if (ins instanceof BranchInstruction) {
@@ -216,8 +216,8 @@ public class SplitMethodGenerator {
     private InvokeInstruction generateInvoke(InstructionFactory factory, short opcode) {
         String className = classNameSupplier.get();
         String name = identifierSupplier.get();
-        Type returnType = random.nextValueBoolean() ? Type.VOID : typeGenerator.generate();
-        int numberOfArguments = random.nextValueInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
+        Type returnType = random.nextStructureBoolean() ? Type.VOID : typeGenerator.generate();
+        int numberOfArguments = random.nextStructureInt(MIN_ARGUMENTS, MAX_ARGUMENTS);
         Type[] argumentTypes = Stream.generate(typeGenerator::generate).limit(numberOfArguments).toArray(Type[]::new);
         return factory.createInvoke(className, name, returnType, argumentTypes, opcode);
     }

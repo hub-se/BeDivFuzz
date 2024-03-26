@@ -89,31 +89,31 @@ public class SplitJavaClassGenerator extends SplitGenerator<JavaClass> {
     }
 
     static void setAccessFlags(SplitRandom random, ClassGen clazz) {
-        if (random.nextStructureBoolean()) {
+        if (random.nextValueBoolean()) {
             clazz.isPublic(true);
         }
-        if (random.nextStructureBoolean()) {
+        if (random.nextValueBoolean()) {
             clazz.isSynthetic(true);
         }
-        if (random.nextStructureBoolean()) {
+        if (random.nextValueBoolean()) {
             // Abstract
             clazz.isAbstract(true);
-            if (random.nextStructureBoolean()) {
+            if (random.nextValueBoolean()) {
                 clazz.isInterface(true);
-                if (random.nextStructureBoolean()) {
+                if (random.nextValueBoolean()) {
                     clazz.isAnnotation(true);
                 }
             } else {
-                if (random.nextStructureBoolean()) {
+                if (random.nextValueBoolean()) {
                     clazz.isEnum(true);
                 }
             }
         } else {
             // Concrete
-            if (random.nextStructureBoolean()) {
+            if (random.nextValueBoolean()) {
                 clazz.isEnum(true);
             }
-            if (random.nextStructureBoolean()) {
+            if (random.nextValueBoolean()) {
                 clazz.isFinal(true);
             }
         }
