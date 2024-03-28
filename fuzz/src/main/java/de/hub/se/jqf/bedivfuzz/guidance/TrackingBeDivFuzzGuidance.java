@@ -185,12 +185,12 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
 
         @Override
         public Input fuzz(Random random) {
-            if (!structureChoices.isEmpty() && !valueChoices.isEmpty() && (random.nextDouble() > HAVOC_RATE)) {
-                lastMutationType = chooseMutationType(random);
-                return fuzzTargeted(lastMutationType, random);
-            } else {
+            if (structureChoices.isEmpty() || valueChoices.isEmpty() || random.nextDouble() < HAVOC_RATE)  {
                 lastMutationType = Mutation.HAVOC;
                 return super.fuzz(random);
+            } else {
+                lastMutationType = chooseMutationType(random);
+                return fuzzTargeted(lastMutationType, random);
             }
         }
 

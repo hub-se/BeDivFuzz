@@ -42,11 +42,9 @@ import com.pholser.junit.quickcheck.From;
 import com.pholser.junit.quickcheck.generator.Size;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.kaitai.SplitPngKaitaiGenerator;
-import de.hub.se.jqf.bedivfuzz.examples.png.SplitPngGenerator;
 import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 import edu.berkeley.cs.jqf.examples.kaitai.PngKaitaiByteArrayGenerator;
 import edu.berkeley.cs.jqf.examples.kaitai.PngKaitaiGenerator;
-import edu.berkeley.cs.jqf.examples.png.PngGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import org.junit.After;
 import org.junit.Assume;
@@ -167,7 +165,7 @@ public class PngReaderTest {
     }
 
     @Fuzz
-    public void fuzzPngJKaitai(@From(PngKaitaiGenerator.class) @Size(max = 1024) InputStream input){
+    public void testWithGenerator(@From(PngKaitaiGenerator.class) @Size(max = 1024) InputStream input){
         try {
             PngReaderByte reader = new PngReaderByte(input);
             reader.getMetadata();
@@ -178,32 +176,8 @@ public class PngReaderTest {
     }
 
     @Fuzz
-    public void fuzzSplitPngJKaitai(@From(SplitPngKaitaiGenerator.class) @Size(max = 1024) InputStream input){
+    public void testWithSplitGenerator(@From(SplitPngKaitaiGenerator.class) @Size(max = 1024) InputStream input){
         try {
-            PngReaderByte reader = new PngReaderByte(input);
-            reader.getMetadata();
-            reader.close();
-        } catch (PngjInputException e) {
-            Assume.assumeNoException(e);
-        }
-    }
-
-    @Fuzz
-    public void fuzzPngJ(@From(PngGenerator.class) ByteArrayWrapper bytes) {
-        try {
-            InputStream input = new ByteArrayInputStream(bytes.getByteArray());
-            PngReaderByte reader = new PngReaderByte(input);
-            reader.getMetadata();
-            reader.close();
-        } catch (PngjInputException e) {
-            Assume.assumeNoException(e);
-        }
-    }
-
-    @Fuzz
-    public void fuzzSplitPngJ(@From(SplitPngGenerator.class) ByteArrayWrapper bytes) {
-        try {
-            InputStream input = new ByteArrayInputStream(bytes.getByteArray());
             PngReaderByte reader = new PngReaderByte(input);
             reader.getMetadata();
             reader.close();
