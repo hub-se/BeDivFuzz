@@ -23,10 +23,10 @@ def get_log_crash_stats(approach, benchmark, base_dir, num_trials=30):
             with open(log_data, 'r') as logfile:
                 lines = logfile.readlines()
                 for line in lines:
-                    if 'Found crash:' in line:
+                    if 'Found failure' in line:
                         crash_info = line.split(' ')
                         crash_time = int(crash_info[0])
-                        crash_id = crash_info[5]
+                        crash_id = crash_info[6]
                         
                         # We skip these errors since they have resulted from the technique itself
                         if 'OutOfMemoryError' in crash_id:
@@ -70,11 +70,11 @@ if not os.path.isdir(base_dir):
     
 num_trials = int(sys.argv[2]) if len(sys.argv) > 2 else 30
 
-approaches = ['zest', 'bedivfuzz', 'tracking']
-benchmarks = ['ant', 'maven', 'closure', 'rhino', 'bcel']
+approaches = ['zest', 'bedivfuzz']
+benchmarks = ['ant', 'maven', 'closure', 'rhino', 'bcel', 'chocopy', 'pngj']
 
 all_rows = []
-all_rows.append(['Crash-ID', 'zest', 'bedivfuzz', 'tracking'])
+all_rows.append(['Crash-ID', 'zest', 'bedivfuzz'])
 for bench in benchmarks:
     crashes = set()
     results = []

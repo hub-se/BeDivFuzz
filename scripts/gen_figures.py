@@ -22,23 +22,31 @@ import sys
 import os
 import os.path
 
-if len(sys.argv) != 2:
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    sys.exit()
-basedir = sys.argv[1]
-if not os.path.isdir(basedir):
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    print("ERROR: {} is not a directory".format(basedir))
-    sys.exit()
-else:
-    try:
-        os.mkdir(os.path.join(basedir, "figs"))
-    except FileExistsError:
-        # That's ok, we just wanted to create it in case it didn't exist.
-        pass
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        sys.exit()
+    basedir = sys.argv[1]
+    if not os.path.isdir(basedir):
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        print("ERROR: {} is not a directory".format(basedir))
+        sys.exit()
+    else:
+        try:
+            os.mkdir(os.path.join(basedir, "figs"))
+        except FileExistsError:
+            # That's ok, we just wanted to create it in case it didn't exist.
+            pass
 
-dl = DataLoader(os.path.join(basedir, 'java-data'))
-dl.load_data()
+    dl = DataLoader(os.path.join(basedir, 'java-data'))
+    dl.load_data()
+
+    # Generate all figures
+    for YTYPE in ["percent_upaths", "valid_paths", "h0_uniquePaths", "h1_uniquePaths", "h2_uniquePaths"]:
+        print(f"Generating %s" % YTYPE)
+        for v in dl.validity:
+            plot(v, YTYPE)
+
 
 ### MAIN PLOTTING ###
 def get_x(run):
@@ -141,9 +149,3 @@ def plot(valid_bench, ytype):
     # ax.get_legend().remove()
     plt.savefig(os.path.join(basedir, "figs/{}_{}.pdf".format(figname, valid_bench)), dpi=150)
     plt.close()
-
-# Generate all figures
-for YTYPE in ["percent_upaths", "valid_paths", "h0_uniquePaths", "h1_uniquePaths", "h2_uniquePaths"]:
-    print(f"Generating %s" % YTYPE)
-    for v in dl.validity:
-        plot(v, YTYPE)

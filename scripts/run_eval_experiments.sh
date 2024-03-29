@@ -3,15 +3,13 @@
 # This script allows to run multiple trials of the evaluation in parallel.
 
 print_usage() {
-    echo "Usage: $0 -o out_dir -t timeout -n repetitions -p parallel_workers [-r]"
+    echo "Usage: $0 -o out_dir -t timeout -n repetitions -p parallel_workers"
 }
 
 if [ "$#" -lt 8 ]; then
     print_usage >&1
     exit 1
 fi
-
-mkdir -p logs
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -38,6 +36,7 @@ while getopts ":o:t:n:p:" opt; do
 done
 shift $((OPTIND-1))
 
+mkdir -p $BASE_OUT_DIR/logs
 
 # Basic sanity check
 if [[ $(( $TOTAL_REPETITIONS % N_WORKERS )) == 0 ]]; then

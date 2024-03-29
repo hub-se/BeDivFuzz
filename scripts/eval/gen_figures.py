@@ -22,24 +22,6 @@ import sys
 import os
 import os.path
 
-if len(sys.argv) != 2:
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    sys.exit()
-basedir = sys.argv[1]
-if not os.path.isdir(basedir):
-    print("Usage: {} results-dir".format(sys.argv[0]))
-    print("ERROR: {} is not a directory".format(basedir))
-    sys.exit()
-else:
-    try:
-        os.mkdir(os.path.join(basedir, "figs"))
-    except FileExistsError:
-        # That's ok, we just wanted to create it in case it didn't exist.
-        pass
-
-dl = DataLoader(os.path.join(basedir, 'java-data'))
-dl.load_data()
-
 ### MAIN PLOTTING ###
 def get_x(run):
     x = run[dl.sm['unix_time']]
@@ -77,12 +59,12 @@ def plot(valid_bench, ytype):
     nicenames = {
                  "zest": "Zest", 
                  "bedivfuzz": "BeDivFuzz",
-                 "tracking": "BeDiv-Tracking"}
+                 }
 
     fig, ax = plt.subplots(figsize=((10,7)))
     lss = iter([':', '--', '-.', '-', '-'])
     i = 0
-    approaches = [('zest', False), ('bedivfuzz', False), ('tracking', False)]
+    approaches = [('zest', False), ('bedivfuzz', False)]
     for tech, replay in approaches:
         color = 'C%i' % (i)
         i += 1
@@ -141,8 +123,28 @@ def plot(valid_bench, ytype):
     plt.savefig(os.path.join(basedir, "figs/{}_{}.pdf".format(figname, valid_bench)), dpi=150)
     plt.close()
 
-# Generate all figures
-for YTYPE in ["percent_upaths", "valid_paths", "b0", "b1", "b2", "all_covered_probes", "valid_covered_probes", "unique_crashes"]:
-    print(f"Generating %s" % YTYPE)
-    for v in dl.validity:
-        plot(v, YTYPE)
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        sys.exit()
+    basedir = sys.argv[1]
+    if not os.path.isdir(basedir):
+        print("Usage: {} results-dir".format(sys.argv[0]))
+        print("ERROR: {} is not a directory".format(basedir))
+        sys.exit()
+    else:
+        try:
+            os.mkdir(os.path.join(basedir, "figs"))
+        except FileExistsError:
+            # That's ok, we just wanted to create it in case it didn't exist.
+            pass
+
+    dl = DataLoader(os.path.join(basedir, 'java-data'))
+    dl.load_data()
+
+    # Generate all figures
+    for YTYPE in ["b0", "b1", "b2", "all_covered_probes", "valid_covered_probes", "unique_crashes"]:
+        print(f"Generating %s" % YTYPE)
+        for v in dl.validity:
+            plot(v, YTYPE)

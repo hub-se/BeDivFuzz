@@ -46,7 +46,7 @@ LOWER_TRIAL_ID=$(( ($WORKER_ID - 1) * $N_TRIALS + 1 ))
 UPPER_TRIAL_ID=$(( $WORKER_ID * $N_TRIALS ))
 
 # Set name of the log file depending on whether coverage replay is enabled or not
-LOG_FILE="logs/eval-worker-$WORKER_ID.log"
+LOG_FILE="$BASE_OUT_DIR/logs/eval-worker-$WORKER_ID.log"
 
 echo "[$(date)] Log file: $LOG_FILE"
 

@@ -5,8 +5,9 @@ import numpy as np
 
 class DataLoader:
 
-	generators = ['zest', 'bedivfuzz', 'tracking']
-	validity = ['ant', 'rhino', 'closure', 'maven', 'bcel']
+	generators = ['zest', 'bedivfuzz']
+	#validity = ['ant', 'rhino', 'closure', 'maven', 'bcel', 'chocopy', 'pngj', 'imagio']
+	validity = ['ant', 'rhino', 'closure', 'maven', 'bcel', 'chocopy', 'pngj', 'imageio']
 
 	sm = {
 		0:	'unix_time',
@@ -17,20 +18,20 @@ class DataLoader:
 		5:	'pending_favs',
 		6:	'map_size',
 		7:	'unique_crashes',
-        9:	'unique_hangs',
-        10:	'max_depth',
-        11:	'execs_per_sec',
-		12:	'valid_inputs',
-		13:	'invalid_inputs',
-		14:	'valid_cov',
-		15:	'all_covered_probes',
-		16:	'valid_covered_probes',
-		17:	'num_coverage_probes',
-		18:	'covered_semantic_probes',
-		19:	'num_semantic_probes',
-		20:	'b0',
-		21:	'b1',
-		22:	'b2'
+        8:	'unique_hangs',
+        9:	'max_depth',
+        10:	'execs_per_sec',
+		11:	'valid_inputs',
+		12:	'invalid_inputs',
+		13:	'valid_cov',
+		14:	'all_covered_probes',
+		15:	'valid_covered_probes',
+		16:	'num_coverage_probes',
+		17:	'covered_semantic_probes',
+		18:	'num_semantic_probes',
+		19:	'b0',
+		20:	'b1',
+		21:	'b2'
 	}
 
 	reverse_entries = [(kv[1], kv[0]) for kv in sm.items()]
@@ -47,6 +48,7 @@ class DataLoader:
 
 		data_dict has dictionary entry for each experiment
 		'''
+		print(E)
 		self.E = E 
 		self.data_dict = {}
 		self.compute_plot_data_step()
@@ -76,6 +78,7 @@ class DataLoader:
 		except StopIteration as err:
 			print('No suitable step value for data found.')
 			print(err)
+
 		self.plot_data_step = pd_step
 
 	def load_data(self):
@@ -93,7 +96,7 @@ class DataLoader:
 		gen = one of quickcheck, zest, rl, bediv-simple, bediv-structure
 		validity = one of ant, maven, closure, rhino, nashorn, tomcat
 		'''
-		dirnames = [base_dirname + "-{}{}".format(i, "-replay" if replay else "") for i in range(1,16) ]
+		dirnames = [base_dirname + "-{}{}".format(i, "-replay" if replay else "") for i in range(1, 11)]
 		data = [v[0] for d,v in self.data_dict.items() if d in dirnames]
 		return data
 
