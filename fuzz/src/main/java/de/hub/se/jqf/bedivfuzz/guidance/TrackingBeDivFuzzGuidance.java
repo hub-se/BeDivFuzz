@@ -36,7 +36,7 @@ public class TrackingBeDivFuzzGuidance extends ZestGuidance implements BeDivGuid
     }
 
     public TrackingBeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File[] seedInputFiles, Random sourceOfRandomness) throws IOException {
-        this(testName, duration, null, outputDirectory, new Random());
+        this(testName, duration, trials, outputDirectory, sourceOfRandomness);
         if (seedInputFiles != null) {
             for (File seedInputFile : seedInputFiles) {
                 seedInputs.add(new SeedInput(seedInputFile));

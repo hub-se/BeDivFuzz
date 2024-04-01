@@ -55,8 +55,8 @@ echo "Start time: $(date)" > $LOG_FILE
 echo "Worker-ID: $WORKER_ID" >> $LOG_FILE
 echo "Experiment settings: writing to $OUT_DIR, doing $N_TRIALS repetitions (trials $LOWER_TRIAL_ID to $UPPER_TRIAL_ID) with $TIMEOUT seconds timeout per trial." >> $LOG_FILE
 
-BENCHMARKS=(ant maven closure rhino bcel chocopy pngj imageio)
-TEST_CLASSES=(ant.ProjectBuilderTest maven.ModelReaderTest closure.CompilerTest rhino.CompilerTest bcel.ParserTest chocopy.SemanticAnalysisTest pngj.PngReaderTest imageio.PngReaderTest)
+BENCHMARKS=(ant maven closure rhino bcel chocopy pngj)
+TEST_CLASSES=(ant.ProjectBuilderTest maven.ModelReaderTest closure.CompilerTest rhino.CompilerTest bcel.ParserTest chocopy.SemanticAnalysisTest pngj.PngReaderTest)
 
 dir_does_not_exist() {
   if [ -d $1 ]; then
@@ -70,7 +70,7 @@ dir_does_not_exist() {
 # Disabled since one worker finishing early should not interfere with the other processes
 # trap "trap - SIGTERM && killall java && echo 'Terminated' >> $LOG_FILE && exit " SIGINT SIGTERM EXIT
 
-for bench_index in {0..7}; do
+for bench_index in {0..6}; do
   BENCHMARK=${BENCHMARKS[$bench_index]}
   TEST_CLASS=edu.berkeley.cs.jqf.examples.${TEST_CLASSES[$bench_index]}
 
@@ -92,7 +92,7 @@ for bench_index in {0..7}; do
     DIRNAME=${OUT_DIR}/bedivfuzz-$BENCHMARK-$REP
     if dir_does_not_exist $DIRNAME ; then
       echo "[$(date)] Starting BeDivFuzz-tracking. Writing results to $DIRNAME." >> $LOG_FILE
-      timeout $TIMEOUT $JQF_DIR/bin/jqf-tracking -m "BEDIV:UPATHS" -f -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
+      timeout $TIMEOUT $JQF_DIR/bin/jqf-tracking -h 0.1 -m "BEDIV:UPATHS" -f -c $($JQF_DIR/scripts/examples_classpath.sh) $TEST_CLASS testWithSplitGenerator $DIRNAME &
       PID=$!
       wait $PID
       echo "[$(date)] Finished BeDivFuzz." >> $LOG_FILE

@@ -71,7 +71,7 @@ def plot(valid_bench, ytype):
         ls = next(lss)
         base_dirname = f"{tech}-{valid_bench}"
         runs = dl.get_data(base_dirname, replay)
-        x = np.linspace(0, 60, dl.plot_data_step)
+        x = np.linspace(0, 5, dl.plot_data_step)
         y, stderr = error_bars(runs, ytype)
         plt.plot(x, y, label=nicenames[tech], linestyle=ls, linewidth=2, color=color)
         plt.fill_between(x, y + stderr, y - stderr, alpha=0.3, color=color)
