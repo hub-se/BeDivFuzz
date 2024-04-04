@@ -4,9 +4,7 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
-import de.hub.se.jqf.bedivfuzz.guidance.BeDivGuidance;
-import de.hub.se.jqf.bedivfuzz.guidance.SplitParameterStream;
-import de.hub.se.jqf.bedivfuzz.guidance.TrackingBeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.*;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
@@ -63,8 +61,8 @@ public class BeDivFuzzStatement extends Statement {
             throw new GuidanceException("Parameter generators must extend the SplitGenerator<T> class.");
         }
 
-        if (fuzzGuidance instanceof TrackingBeDivFuzzGuidance) {
-            ((TrackingBeDivFuzzGuidance) fuzzGuidance).registerChoiceTracer(this::traceChoicesFromParameters);
+        if (fuzzGuidance instanceof BeDivFuzzGuidance) {
+            ((BeDivFuzzGuidance) fuzzGuidance).registerChoiceTracer(this::traceChoicesFromParameters);
         }
 
     }
@@ -94,17 +92,7 @@ public class BeDivFuzzStatement extends Statement {
                     Object[] args;
                     try {
                         // Generate input values
-                        SplitRandom random;
-
-                        if (guidance instanceof TrackingBeDivFuzzGuidance) {
-                            random = new SplitSourceOfRandomness(guidance.getInput());
-                        } else {
-                            SplitParameterStream input = ((BeDivGuidance) guidance).getSplitInput();
-                            StreamBackedRandom structuralDelegate = new StreamBackedRandom(input.createStructuralParameterStream(), Long.BYTES);
-                            StreamBackedRandom valueDelegate = new StreamBackedRandom(input.createValueParameterStream(), Long.BYTES);
-                            random = new SplitSourceOfRandomness(structuralDelegate, valueDelegate);
-                        }
-
+                        SplitRandom random = new SplitSourceOfRandomness(guidance.getInput());
                         GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructureDelegate());
                         args = generators.stream()
                                 .map(g -> ((SplitGenerator<?>) g).generate(random, genStatus))

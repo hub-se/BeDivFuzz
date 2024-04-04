@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsb" opt; do
+while getopts ":c:N:r:t:dflnsbm:e:h:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -49,6 +49,15 @@ while getopts ":c:N:r:t:dflnsb" opt; do
     b)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"
       ;;
+    m)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
+      ;;
+    e)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.bedivfuzz.epsilon=$OPTARG"
+      ;;
+    h)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.bedivfuzz.havoc_rate=$OPTARG"
+      ;;
   esac
 done
 shift $((OPTIND-1))
@@ -61,7 +70,7 @@ fi
 
 
 if [ "$debug" = true ] ; then
-  $ROOT_DIR/scripts/jqf-debug-driver.sh de.hub.se.jqf.bedivfuzz.guidance.BeDivDriver $@
+  $ROOT_DIR/scripts/jqf-debug-driver.sh de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzDriver $@
 else
-  $ROOT_DIR/scripts/jqf-driver.sh de.hub.se.jqf.bedivfuzz.guidance.BeDivDriver $@
+  $ROOT_DIR/scripts/jqf-driver.sh de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzDriver $@
 fi

@@ -12,11 +12,11 @@ import org.junit.runner.Result;
  * Entry point for fuzzing with BeDivGuidance. Adapted from {@link ZestGuidance}
  *
  */
-public class TrackingBeDivDriver {
+public class BeDivFuzzDriver {
 
     public static void main(String[] args) {
         if (args.length < 2){
-            System.err.println("Usage: java " + TrackingBeDivDriver.class + " TEST_CLASS TEST_METHOD [OUTPUT_DIR]");
+            System.err.println("Usage: java " + BeDivFuzzDriver.class + " TEST_CLASS TEST_METHOD [OUTPUT_DIR]");
             System.exit(1);
         }
 
@@ -33,7 +33,7 @@ public class TrackingBeDivDriver {
             // Load the guidance
             String title = testClassName+"#"+testMethodName;
             Random rnd = new Random(); // TODO: Support deterministic PRNG
-            TrackingBeDivFuzzGuidance guidance = new TrackingBeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
+            BeDivFuzzGuidance guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
 
             Locale.setDefault(Locale.US);
 

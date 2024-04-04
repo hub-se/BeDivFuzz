@@ -1,17 +1,17 @@
 package edu.berkeley.cs.jqf.examples.nashorn;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
-import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 
 import javax.script.*;
 
 
-@RunWith(JQF.class)
+@RunWith(BeDivFuzz.class)
 public class CompilerTest {
 
     // https://stackoverflow.com/questions/25332640/getenginebynamenashorn-returns-null
