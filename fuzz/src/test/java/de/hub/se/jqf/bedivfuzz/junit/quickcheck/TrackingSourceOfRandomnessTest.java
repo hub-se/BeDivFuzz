@@ -5,8 +5,6 @@ import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Random;
 
@@ -15,40 +13,15 @@ import static org.junit.Assert.assertEquals;
 public class TrackingSourceOfRandomnessTest {
 
     private static Random r;
-    private LinearInput input;
+    private RandomInput input;
     private TrackingSourceOfRandomness trackingRandom;
 
     @Before
     public void setupSourceOfRandomness() {
         r = new Random(24);
-        input = new LinearInput();
-        StreamBackedRandom random = new StreamBackedRandom(createParameterStream(), Long.BYTES);
+        input = new RandomInput();
+        StreamBackedRandom random = new StreamBackedRandom(input.toInputStream(r), Long.BYTES);
         trackingRandom = new TrackingSourceOfRandomness(random);
-    }
-
-    @Before
-    public void createInput() {
-        input = new LinearInput();
-    }
-
-    public static class LinearInput {
-        int requested = 0;
-
-        public int getOrGenerateFresh(Integer key, Random random) {
-            requested++;
-            return random.nextInt();
-        }
-    }
-
-    protected InputStream createParameterStream() {
-        return new InputStream() {
-            int bytesRead = 0;
-
-            @Override
-            public int read() throws IOException {
-                return input.getOrGenerateFresh(bytesRead++, r);
-            }
-        };
     }
 
     @Test
@@ -148,5 +121,4 @@ public class TrackingSourceOfRandomnessTest {
         trackingRandom.choose(List.of(1, 2, 3).toArray());
         assertEquals(trackingRandom.getCurrentChoiceOffset(), input.requested);
     }
-
 }
