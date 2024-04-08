@@ -188,32 +188,28 @@ public class ZestCLI implements Runnable{
             String title = this.testClassName+"#"+this.testMethodName;
             Random rnd = det ? new Random(0) : new Random(); // TODO: Make seed configurable
 
-            Guidance guidance;
+            ZestGuidance guidance;
             switch(engine) {
                 case "bedivfuzz":
                     guidance = seedFiles.length > 0 ?
                             new BeDivFuzzGuidance(title, duration, trials, this.outputDirectory, seedFiles, rnd) :
                             new BeDivFuzzGuidance(title, duration, trials, this.outputDirectory, inputDirectory, rnd);
-                    ((BeDivFuzzGuidance) guidance).setBlind(blindFuzzing);
                     break;
                 case "zest":
                     guidance = seedFiles.length > 0 ?
                             new ZestGuidance(title, duration, trials, this.outputDirectory, seedFiles, rnd) :
                             new ZestGuidance(title, duration, trials, this.outputDirectory, inputDirectory, rnd);
-                    ((ZestGuidance) guidance).setBlind(blindFuzzing);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown fuzzing engine: " + engine);
             }
+            guidance.setBlind(blindFuzzing);
 
             // Run the Junit test
             Result res = GuidedFuzzing.run(testClassName, testMethodName, loader, guidance, System.out);
             if (Boolean.getBoolean("jqf.logCoverage")) {
-                int totalCoverageCount = (guidance instanceof BeDivFuzzGuidance) ?
-                        ((BeDivFuzzGuidance)  guidance).getTotalCoverage().getNonZeroCount() :
-                        ((ZestGuidance)  guidance).getTotalCoverage().getNonZeroCount();
-
-                    System.out.println(String.format("Covered %d edges.", totalCoverageCount));
+                int totalCoverageCount = guidance.getTotalCoverage().getNonZeroCount();
+                System.out.println(String.format("Covered %d edges.", totalCoverageCount));
             }
             if (Boolean.getBoolean("jqf.ei.EXIT_ON_CRASH") && !res.wasSuccessful()) {
                 System.exit(3);

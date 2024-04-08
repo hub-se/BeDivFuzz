@@ -336,7 +336,7 @@ public class FuzzGoal extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         ClassLoader loader;
-        Guidance guidance;
+        ZestGuidance guidance;
         Log log = getLog();
         PrintStream out = log.isDebugEnabled() ? System.out : null;
         Result result;
@@ -440,17 +440,14 @@ public class FuzzGoal extends AbstractMojo {
             switch (engine) {
                 case "bedivfuzz":
                     guidance = new BeDivFuzzGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
-                    ((BeDivFuzzGuidance) guidance).setBlind(blind);
                     break;
                 case "zest":
                     guidance = new ZestGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
-                    ((ZestGuidance) guidance).setBlind(blind);
                     break;
                 case "zeal":
                     System.setProperty("jqf.tracing.TRACE_GENERATORS", "true");
                     System.setProperty("jqf.tracing.MATCH_CALLEE_NAMES", "true");
                     guidance = new ExecutionIndexingGuidance(targetName, duration, trials, resultsDir, seedsDir, rnd);
-                    ((ExecutionIndexingGuidance) guidance).setBlind(blind);
                     break;
                 default:
                     throw new MojoExecutionException("Unknown fuzzing engine: " + engine);
@@ -460,6 +457,7 @@ public class FuzzGoal extends AbstractMojo {
         } catch (IOException e) {
             throw new MojoExecutionException("I/O error", e);
         }
+        guidance.setBlind(blind);
 
         try {
             result = GuidedFuzzing.run(testClassName, testMethod, loader, guidance, out);
