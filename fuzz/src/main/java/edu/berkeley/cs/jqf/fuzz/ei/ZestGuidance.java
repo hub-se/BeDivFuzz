@@ -789,8 +789,7 @@ public class ZestGuidance implements Guidance {
         conditionallySynchronize(multiThreaded, () -> {
             // Clear coverage stats for this run
             runCoverage.clear();
-            semanticRunCoverage.clear();
-
+            if (TRACK_SEMANTIC_COVERAGE) semanticRunCoverage.clear();
 
             // Choose an input to execute based on state of queues
             if (!seedInputs.isEmpty()) {
@@ -999,7 +998,7 @@ public class ZestGuidance implements Guidance {
 
         // Update total coverage
         boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
-        semanticTotalCoverage.updateBits(semanticRunCoverage);
+        if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
         }
