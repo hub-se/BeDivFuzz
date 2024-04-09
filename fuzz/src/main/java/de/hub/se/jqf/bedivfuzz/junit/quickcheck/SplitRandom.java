@@ -11,6 +11,7 @@ public interface SplitRandom {
      */
 
     SourceOfRandomness getStructureDelegate();
+
     SourceOfRandomness getValueDelegate();
 
     /**

@@ -1,10 +1,11 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck.generator;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
+import com.pholser.junit.quickcheck.generator.Generator;
+import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 
-public class SplitBinaryTreeGenerator extends SplitGenerator<Node> {
+public class SplitBinaryTreeGenerator extends Generator<Node> {
     private final int MAX_DEPTH = 5;
 
     public SplitBinaryTreeGenerator() {
@@ -12,8 +13,9 @@ public class SplitBinaryTreeGenerator extends SplitGenerator<Node> {
     }
 
     @Override
-    public Node generate(SplitRandom random, GenerationStatus status) {
-        return generate(random, 0);
+    public Node generate(SourceOfRandomness random, GenerationStatus status) {
+        SplitRandom r = (SplitRandom) random;
+        return generate(r, 0);
     }
 
     public Node generate(SplitRandom random, int currentDepth) {

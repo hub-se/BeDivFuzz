@@ -1,7 +1,7 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck;
 
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitChoicePublishingSourceOfRandomness;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,13 +13,14 @@ import static org.junit.Assert.assertEquals;
 public class SplitTrackingSourceOfRandomnessTest {
 
     private RandomInput input;
-    private SplitTrackingSourceOfRandomness trackingRandom;
+    private SplitChoicePublishingSourceOfRandomness trackingRandom;
 
     @Before
     public void setupSourceOfRandomness() {
         Random r = new Random(24);
         input = new RandomInput();
-        trackingRandom = new SplitTrackingSourceOfRandomness(input.toInputStream(r));
+        SeedingStreamBackedRandom fileRandom = new SeedingStreamBackedRandom(input.toInputStream(r));
+        trackingRandom = new SplitChoicePublishingSourceOfRandomness(fileRandom);
     }
 
     @Test

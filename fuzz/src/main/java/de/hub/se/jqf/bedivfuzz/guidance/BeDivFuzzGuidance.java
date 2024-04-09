@@ -1,7 +1,9 @@
 package de.hub.se.jqf.bedivfuzz.guidance;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
+import com.pholser.junit.quickcheck.random.SourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SeedingStreamBackedRandom;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitChoicePublishingSourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.Choice;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
@@ -21,7 +23,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
     private enum Mutation {HAVOC, STRUCTURE, VALUE};
 
     /** The callback responsible for tracing the choice types for each saved input. */
-    private BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> choiceTracer;
+    private BiConsumer<SourceOfRandomness, GenerationStatus> choiceTracer;
 
     /** The epsilon-greedy tradeoff between exploration and exploitation. */
     protected final double EPSILON = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.epsilon", "0.2"));
@@ -47,7 +49,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
         this(testName, duration, trials, outputDirectory, IOUtils.resolveInputFileOrDirectory(seedInputDir), sourceOfRandomness);
     }
 
-    public void registerChoiceTracer(BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> tracer) {
+    public void registerChoiceTracer(BiConsumer<SourceOfRandomness, GenerationStatus> tracer) {
         this.choiceTracer = tracer;
     }
 
@@ -116,8 +118,9 @@ public class BeDivFuzzGuidance extends ZestGuidance {
         TrackingInput trackingInput = new TrackingInput((LinearInput) currentInput);
         currentInput = trackingInput;
 
-        SplitTrackingSourceOfRandomness random = new SplitTrackingSourceOfRandomness(
-                createParameterStream(),
+        SeedingStreamBackedRandom fileRandom = new SeedingStreamBackedRandom(createParameterStream());
+        SplitChoicePublishingSourceOfRandomness random = new SplitChoicePublishingSourceOfRandomness(
+                fileRandom,
                 trackingInput.structureChoices,
                 trackingInput.valueChoices
         );

@@ -4,7 +4,9 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
+import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitChoicePublishingSourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.*;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
@@ -67,7 +69,7 @@ public class BeDivFuzzStatement extends Statement {
 
     }
 
-    public void traceChoicesFromParameters(SplitTrackingSourceOfRandomness random, GenerationStatus genStatus) {
+    public void traceChoicesFromParameters(SourceOfRandomness random, GenerationStatus genStatus) {
         //Let generator consume parameters, while source of randomness traces choice boundaries
         generators.forEach(g -> ((SplitGenerator<?>) g).generate(random, genStatus));
     }
@@ -92,7 +94,8 @@ public class BeDivFuzzStatement extends Statement {
                     Object[] args;
                     try {
                         // Generate input values
-                        SplitRandom random = new SplitSourceOfRandomness(guidance.getInput());
+                        SeedingStreamBackedRandom randomFile = new SeedingStreamBackedRandom(guidance.getInput());
+                        SplitRandom random = new DelegatingSplitSourceOfRandomness(randomFile);
                         GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructureDelegate());
                         args = generators.stream()
                                 .map(g -> ((SplitGenerator<?>) g).generate(random, genStatus))

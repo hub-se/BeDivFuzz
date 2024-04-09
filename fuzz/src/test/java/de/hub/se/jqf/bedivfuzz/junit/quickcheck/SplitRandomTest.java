@@ -1,7 +1,7 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck;
 
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.generator.SplitBinaryTreeGenerator;
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitChoicePublishingSourceOfRandomness;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,22 +9,24 @@ import java.util.Random;
 
 public class SplitRandomTest {
     private RandomInput randomInput;
-    private SplitSourceOfRandomness random;
+    private DelegatingSplitSourceOfRandomness random;
 
     private RandomInput trackingInput;
-    private SplitTrackingSourceOfRandomness trackingRandom;
+    private SplitChoicePublishingSourceOfRandomness trackingRandom;
 
     private SplitBinaryTreeGenerator generator = new SplitBinaryTreeGenerator();
 
     @Before
     public void setupSourceOfRandomness() {
-        Random r = new Random(24);
+        Random r = new Random(0);
         randomInput = new RandomInput();
-        random = new SplitSourceOfRandomness(randomInput.toInputStream(r));
+        SeedingStreamBackedRandom fileRandom = new SeedingStreamBackedRandom(randomInput.toInputStream(r));
+        random = new DelegatingSplitSourceOfRandomness(fileRandom);
 
-        Random r2 = new Random(24);
+        Random r2 = new Random(0);
         trackingInput = new RandomInput();
-        trackingRandom = new SplitTrackingSourceOfRandomness(trackingInput.toInputStream(r2));
+        SeedingStreamBackedRandom fileRandom2 = new SeedingStreamBackedRandom(trackingInput.toInputStream(r2));
+        trackingRandom = new SplitChoicePublishingSourceOfRandomness(fileRandom2);
     }
 
     @Test
@@ -32,7 +34,6 @@ public class SplitRandomTest {
     public void testInputValues() {
         generator.generate(random, null);
         generator.generate(trackingRandom, null);
-
         assert(randomInput.values.equals(trackingInput.values));
     }
 }

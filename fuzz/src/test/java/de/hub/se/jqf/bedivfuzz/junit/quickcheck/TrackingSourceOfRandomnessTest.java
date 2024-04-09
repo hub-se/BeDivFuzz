@@ -1,7 +1,6 @@
 package de.hub.se.jqf.bedivfuzz.junit.quickcheck;
 
-import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.TrackingSourceOfRandomness;
-import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
+import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.ChoicePublishingSourceOfRandomness;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,14 +13,14 @@ public class TrackingSourceOfRandomnessTest {
 
     private static Random r;
     private RandomInput input;
-    private TrackingSourceOfRandomness trackingRandom;
+    private ChoicePublishingSourceOfRandomness trackingRandom;
 
     @Before
     public void setupSourceOfRandomness() {
         r = new Random(24);
         input = new RandomInput();
-        StreamBackedRandom random = new StreamBackedRandom(input.toInputStream(r), Long.BYTES);
-        trackingRandom = new TrackingSourceOfRandomness(random);
+        SeedingStreamBackedRandom random = new SeedingStreamBackedRandom(input.toInputStream(r));
+        trackingRandom = new ChoicePublishingSourceOfRandomness(random);
     }
 
     @Test
