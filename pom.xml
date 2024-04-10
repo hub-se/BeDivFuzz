@@ -93,6 +93,7 @@
         <module>instrument</module>
         <module>examples</module>
         <module>maven-plugin</module>
+        <module>bedivfuzz-parametric</module>
     </modules>
 
     <dependencyManagement>
