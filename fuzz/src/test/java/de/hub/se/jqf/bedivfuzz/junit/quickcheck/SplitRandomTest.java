@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class SplitRandomTest {
     private RandomInput randomInput;
-    private DelegatingSplitSourceOfRandomness random;
+    private SplitSourceOfRandomness random;
 
     private RandomInput trackingInput;
     private SplitChoicePublishingSourceOfRandomness trackingRandom;
@@ -21,7 +21,7 @@ public class SplitRandomTest {
         Random r = new Random(0);
         randomInput = new RandomInput();
         SeedingStreamBackedRandom fileRandom = new SeedingStreamBackedRandom(randomInput.toInputStream(r));
-        random = new DelegatingSplitSourceOfRandomness(fileRandom);
+        random = new SplitSourceOfRandomness(fileRandom);
 
         Random r2 = new Random(0);
         trackingInput = new RandomInput();
