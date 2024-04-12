@@ -6,8 +6,10 @@
         <artifactId>jqf</artifactId>
         <version>2.1-bedivfuzz</version>
     </parent>
+
     <artifactId>bedivfuzz-parametric</artifactId>
     <name>bedivfuzz-parametric</name>
+
     <dependencies>
         <dependency>
             <groupId>com.pholser</groupId>
