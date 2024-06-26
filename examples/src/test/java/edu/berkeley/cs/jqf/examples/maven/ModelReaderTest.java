@@ -31,7 +31,12 @@ package edu.berkeley.cs.jqf.examples.maven;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext;
 import com.pholser.junit.quickcheck.From;
 import com.pholser.junit.quickcheck.generator.Size;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
@@ -40,9 +45,13 @@ import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import org.apache.maven.model.InputLocation;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.building.*;
 import org.apache.maven.model.io.DefaultModelReader;
 import org.apache.maven.model.io.ModelReader;
+import org.apache.maven.model.validation.DefaultModelValidator;
+import org.apache.maven.model.validation.ModelValidator;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -63,11 +72,52 @@ public class ModelReaderTest {
         }
     }
 
+    class BasicModelProblemCollector implements ModelProblemCollector {
+        List<ModelProblem.Severity> severities = new ArrayList<>();
+        List<ModelProblem.Version> versions = new ArrayList<>();
+        List<String> messages = new ArrayList<>();
+        List<InputLocation> locations = new ArrayList<>();
+        List<Exception> causes = new ArrayList<>();
+
+        @Override
+        public void add(ModelProblemCollectorRequest request) {
+            severities.add(request.getSeverity());
+            versions.add(request.getVersion());
+            messages.add(request.getMessage());
+            locations.add(request.getLocation());
+            causes.add(request.getException());
+        }
+    }
+
+
+    @Fuzz
+    public void validateWithInputStream(InputStream in) {
+        ModelReader reader = new DefaultModelReader();
+        ModelValidator validator = new DefaultModelValidator();
+        ModelBuildingRequest request = new DefaultModelBuildingRequest();
+        ModelProblemCollector collector = new BasicModelProblemCollector();
+
+        try {
+            Model model = reader.read(in, null);
+            Assert.assertNotNull(model);
+            validator.validateRawModel(model, request, collector);
+        } catch (IOException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
     @Fuzz
     public void testWithGenerator(@From(XmlDocumentGenerator.class)
                                       @Size(min = 0, max = 10)
                                       @Dictionary("dictionaries/maven-model.dict") Document dom) {
         testWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
+    }
+
+    @Fuzz
+    public void validateWithGenerator(@From(XmlDocumentGenerator.class)
+                                  @Size(min = 0, max = 10)
+                                  @Dictionary("dictionaries/maven-model.dict") Document dom) {
+        validateWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
     }
 
     @Fuzz

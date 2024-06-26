@@ -38,6 +38,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 
+import edu.berkeley.cs.jqf.examples.common.ByteArrayWrapper;
 import org.w3c.dom.Document;
 
 /**
@@ -64,6 +65,17 @@ public class XMLDocumentUtils {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             transformer.transform(new DOMSource(document), new StreamResult(stream));
             return new ByteArrayInputStream(stream.toByteArray());
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ByteArrayWrapper documentToByteArray(Document document) {
+        try {
+            Transformer transformer = transformerFactory.newTransformer();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            transformer.transform(new DOMSource(document), new StreamResult(stream));
+            return new ByteArrayWrapper(stream.toByteArray());
         } catch (TransformerException e) {
             throw new RuntimeException(e);
         }
