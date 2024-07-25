@@ -32,12 +32,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import com.pholser.junit.quickcheck.From;
+import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
 import edu.berkeley.cs.jqf.examples.xml.XmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.common.Dictionary;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
-import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.apache.tomcat.util.descriptor.web.WebXml;
 import org.apache.tomcat.util.descriptor.web.WebXmlParser;
 import org.junit.Assume;
@@ -46,7 +46,7 @@ import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-@RunWith(JQF.class)
+@RunWith(BeDivFuzz.class)
 public class WebXmlTest {
 
     @Fuzz
