@@ -42,6 +42,7 @@ trial=${parameters[2]}
 IFS='.' read -r project class <<< "$subject"
 
 output_dir=eval-results/$SLURM_ARRAY_JOB_ID/$fuzzer/$project/trial-$trial
+echo "Job name: $SLURM_JOB_NAME"
 echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running $fuzzer on $project (trial $trial), writing results to $output_dir."
 
 
@@ -56,7 +57,8 @@ elif [[ "$fuzzer" == "bedivfuzz" ]]; then
 else
   echo "Unknown fuzzer: $fuzzer"
 fi
-  
+
+echo ""
 echo "[$(date)] Finished task. Copying files to $HOME/BeDivFuzz/$output_dir."
 mkdir -p "$HOME/BeDivFuzz/$output_dir"
 cp -r "/vol/tmp/nguyehoa/$output_dir/." "$HOME/BeDivFuzz/$output_dir/"
