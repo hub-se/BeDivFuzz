@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=eval
-#SBATCH --output=eval-results/%A/logs/task-%a.out
+#SBATCH --job-name=eval-fast
+#SBATCH --output=eval-results/%x-%A/logs/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:15:00
@@ -41,8 +41,7 @@ trial=${parameters[2]}
 # Split subject into project and class
 IFS='.' read -r project class <<< "$subject"
 
-output_dir=eval-results/$SLURM_ARRAY_JOB_ID/$fuzzer/$project/trial-$trial
-echo "Job name: $SLURM_JOB_NAME"
+output_dir=eval-results/$SLURM_JOB_NAME-$SLURM_ARRAY_JOB_ID/$fuzzer/$project/trial-$trial
 echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running $fuzzer on $project (trial $trial), writing results to $output_dir."
 
 
