@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-v] TEST_CLASS TEST_METHOD [OUT_DIR [SEED_FILES...]]"
 }
 
-while getopts ":c:vt:dfsbm:" opt; do
+while getopts ":c:r:vt:dfsbm:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -20,6 +20,9 @@ while getopts ":c:vt:dfsbm:" opt; do
       ;;
     c)
       export CLASSPATH="$OPTARG"
+      ;;
+    r)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.STATS_REFRESH_TIME_PERIOD=$OPTARG"
       ;;
     v)
       export JVM_OPTS="$JVM_OPTS -Djqf.logCoverage=true"
