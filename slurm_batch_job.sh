@@ -3,8 +3,8 @@
 #SBATCH --output=eval-results/%x-%A/logs/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=00:15:00
-#SBATCH --array=1-40%10
+#SBATCH --time=03:15:00
+#SBATCH --array=1-400%40
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
@@ -16,7 +16,7 @@
 # Exclusively allocate node for task (use sparingly!)
 ##SBATCH --exclusive
 
-timeout=15
+timeout=181m
 
 declare -a config
 index=1
@@ -24,7 +24,7 @@ for fuzzer in 'zest' 'bedivfuzz'
 do
   for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'imageio.PngReaderTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
   do
-      for trial in `seq 1 2`
+      for trial in `seq 1 20`
       do
         combinations[$index]="$fuzzer $subject $trial"
         index=$((index + 1))
