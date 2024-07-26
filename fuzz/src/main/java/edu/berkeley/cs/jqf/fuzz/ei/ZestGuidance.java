@@ -655,16 +655,35 @@ public class ZestGuidance implements Guidance {
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
                     console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
-                    console.printf("Behavioral diversity (alt):    | b1: %.0f | b2: %.0f\n", divMetrics.b1_alt(), divMetrics.b2_alt());
                 }
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f, %.2f, %.2f",
-                TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
-                numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
-                numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
-                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2(), divMetrics.b1_alt(), divMetrics.b2_alt());
+        String plotData = String.format(
+                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+                TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
+                cyclesCompleted,
+                currentParentInputIdx,
+                numSavedInputs,
+                0,
+                0,
+                nonZeroFraction,
+                uniqueFailures.size(),
+                0,
+                0,
+                intervalExecsPerSecDouble,
+                numValid,
+                numTrials-numValid,
+                nonZeroValidFraction,
+                nonZeroCount,
+                nonZeroValidCount,
+                numTotalProbes,
+                semanticNonZeroCount,
+                numSemanticProbes,
+                divMetrics.b0(),
+                divMetrics.b1(),
+                divMetrics.b2()
+        );
 
         appendLineToFile(statsFile, plotData);
 
