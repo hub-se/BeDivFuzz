@@ -265,6 +265,17 @@ public class FuzzGoal extends AbstractMojo {
     private boolean saveAll;
 
     /**
+     * Whether to save all inputs generated during fuzzing that
+     * covered unique paths.
+     *
+     * <p>This setting leads to a larger number of files being
+     * created in the output directory, and could potentially
+     * reduce the overall performance of fuzzing.</p>
+     */
+    @Parameter(property="saveUniquePathInputs")
+    private boolean saveUniquePathInputs;
+
+    /**
      * Whether to save the latest branch hit count map as part of the output.
      *
      * <p>This writes the branch hit count map to a 'branch_hit_counts' file that
@@ -364,6 +375,9 @@ public class FuzzGoal extends AbstractMojo {
         // Configure Zest Guidance
         if (saveAll) {
             System.setProperty("jqf.ei.SAVE_ALL_INPUTS", "true");
+        }
+        if (saveUniquePathInputs) {
+            System.setProperty("jqf.ei.LOG_UNIQUE_PATH_INPUTS", "true");
         }
         if (saveBranchHitCounts) {
             System.setProperty("jqf.guidance.SERIALIZE_BRANCH_HIT_COUNTS", "true");

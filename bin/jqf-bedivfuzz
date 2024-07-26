@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsbm:e:h:" opt; do
+while getopts ":c:N:r:t:dflnsbm:e:h:u" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -57,6 +57,9 @@ while getopts ":c:N:r:t:dflnsbm:e:h:" opt; do
       ;;
     h)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.bedivfuzz.havoc_rate=$OPTARG"
+      ;;
+    u)
+      export JVM_OPTS="$JVM_OPTS -Djqf.ei.LOG_UNIQUE_PATH_INPUTS=true"
       ;;
   esac
 done

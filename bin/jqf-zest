@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-v] TEST_CLASS TEST_METHOD [OUT_DIR [SEED_FILES...]]"
 }
 
-while getopts ":c:r:vt:dfsbm:" opt; do
+while getopts ":c:r:vt:dfsbm:u" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -44,6 +44,9 @@ while getopts ":c:r:vt:dfsbm:" opt; do
       ;;
     m)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
+      ;;
+    u)
+      export JVM_OPTS="$JVM_OPTS -Djqf.ei.LOG_UNIQUE_PATH_INPUTS=true"
       ;;
   esac
 done

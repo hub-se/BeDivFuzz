@@ -124,6 +124,9 @@ public class ZestGuidance implements Guidance {
     /** The directory where all generated inputs are logged in sub-directories (if enabled). */
     protected File allInputsDirectory;
 
+    /** The directory where all inputs triggering unique paths are logged in sub-directories (if enabled). */
+    protected File uniquePathInputsDirectory;
+
     /** The directory where all branch hit count distributions are logged (if enabled). */
     protected File branchHitCountsDirectory;
 
@@ -246,6 +249,9 @@ public class ZestGuidance implements Guidance {
 
     /** Whether to store all generated inputs to disk (can get slowww!) */
     protected final boolean LOG_ALL_INPUTS = Boolean.getBoolean("jqf.ei.LOG_ALL_INPUTS");
+
+    /** Whether to store all generated inputs that produce unique paths */
+    protected final boolean LOG_UNIQUE_PATH_INPUTS = Boolean.getBoolean("jqf.ei.LOG_UNIQUE_PATH_INPUTS");
 
     /** The current number of probes inserted through instrumentation. */
     protected final ProbeCounter probeCounter = ProbeCounter.instance;
@@ -463,6 +469,11 @@ public class ZestGuidance implements Guidance {
             IOUtils.createDirectory(allInputsDirectory, "invalid");
             IOUtils.createDirectory(allInputsDirectory, "failure");
         }
+
+        if (LOG_UNIQUE_PATH_INPUTS) {
+            this.uniquePathInputsDirectory = IOUtils.createDirectory(outputDirectory, "unique_paths");
+        }
+
         this.statsFile = new File(outputDirectory, "plot_data");
         this.logFile = new File(outputDirectory, "fuzz.log");
         this.failureStatsFile = new File(outputDirectory, "failure_info.csv");
@@ -638,21 +649,22 @@ public class ZestGuidance implements Guidance {
                     double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
                     console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
-                if (COUNT_UNIQUE_PATHS) {
+                if (COUNT_UNIQUE_PATHS || LOG_UNIQUE_PATH_INPUTS) {
                     int numUniquePaths = uniquePaths.size();
                     console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
                     console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                    console.printf("Behavioral diversity (alt):    | b1: %.0f | b2: %.0f\n", divMetrics.b1_alt(), divMetrics.b2_alt());
                 }
             }
         }
 
-        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+        String plotData = String.format("%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()), cyclesCompleted, currentParentInputIdx,
                 numSavedInputs, 0, 0, nonZeroFraction, uniqueFailures.size(), 0, 0, intervalExecsPerSecDouble,
                 numValid, numTrials-numValid, nonZeroValidFraction, nonZeroCount, nonZeroValidCount, numTotalProbes,
-                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                semanticNonZeroCount, numSemanticProbes, divMetrics.b0(), divMetrics.b1(), divMetrics.b2(), divMetrics.b1_alt(), divMetrics.b2_alt());
 
         appendLineToFile(statsFile, plotData);
 
@@ -1004,12 +1016,20 @@ public class ZestGuidance implements Guidance {
         }
 
         // Update hit counts
-        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY;
-        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode()) && MEASURE_BEHAVIORAL_DIVERSITY) {
-            if (TRACK_SEMANTIC_COVERAGE) {
-                branchHitCounter.incrementBranchCounts(semanticRunCoverage);
-            } else {
-                branchHitCounter.incrementBranchCounts(runCoverage);
+        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
+        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+            if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                if (TRACK_SEMANTIC_COVERAGE) {
+                    branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                } else {
+                    branchHitCounter.incrementBranchCounts(runCoverage);
+                }
+            }
+
+            if (LOG_UNIQUE_PATH_INPUTS) {
+                String saveFileName = String.format("id_%09d", uniquePaths.size());
+                File saveFile = new File(uniquePathInputsDirectory, saveFileName);
+                GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
             }
         }
 
