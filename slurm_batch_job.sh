@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=eval-fast
+#SBATCH --job-name=hill-consistency
 #SBATCH --output=eval-results/%x-%A/logs/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=03:15:00
-#SBATCH --array=1-400%40
+#SBATCH --time=15:00:00
+#SBATCH --array=1-20%20
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
@@ -16,7 +16,7 @@
 # Exclusively allocate node for task (use sparingly!)
 ##SBATCH --exclusive
 
-timeout=181m
+timeout=12h
 
 declare -a config
 index=1
@@ -24,11 +24,8 @@ for fuzzer in 'zest' 'bedivfuzz'
 do
   for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'imageio.PngReaderTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
   do
-      for trial in `seq 1 20`
-      do
-        combinations[$index]="$fuzzer $subject $trial"
-        index=$((index + 1))
-      done
+    combinations[$index]="$fuzzer $subject 1"
+    index=$((index + 1))
   done
 done
 
@@ -46,11 +43,11 @@ echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running $fuzzer on $project (trial $t
 
 
 if [[ "$fuzzer" == "zest" ]]; then
-  timeout $timeout bin/jqf-zest -r 3000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithGenerator /vol/tmp/nguyehoa/$output_dir
+  timeout $timeout bin/jqf-zest -r 60000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithGenerator /vol/tmp/nguyehoa/$output_dir
   PID=$!
   wait $PID
 elif [[ "$fuzzer" == "bedivfuzz" ]]; then
-  timeout $timeout bin/jqf-bedivfuzz -r 3000 -h 0.1 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithSplitGenerator /vol/tmp/nguyehoa/$output_dir
+  timeout $timeout bin/jqf-bedivfuzz -r 60000 -h 0.1 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithSplitGenerator /vol/tmp/nguyehoa/$output_dir
   PID=$!
   wait $PID
 else
