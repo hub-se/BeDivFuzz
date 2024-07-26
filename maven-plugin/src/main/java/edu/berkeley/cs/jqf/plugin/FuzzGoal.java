@@ -254,6 +254,14 @@ public class FuzzGoal extends AbstractMojo {
     private String outputDirectory;
 
     /**
+     * Whether to NOT save the input queue to disk.
+     *
+     * <p>If not provided, defaults to {@code false}.</p>
+     */
+    @Parameter(property="disableSaveQueue")
+    private boolean disableSaveQueue;
+
+    /**
      * Whether to save ALL inputs generated during fuzzing, even
      * the ones that do not have any unique code coverage.
      *
@@ -373,6 +381,9 @@ public class FuzzGoal extends AbstractMojo {
         }
 
         // Configure Zest Guidance
+        if (disableSaveQueue) {
+            System.setProperty("jqf.ei.DISABLE_LOG_QUEUE", "true");
+        }
         if (saveAll) {
             System.setProperty("jqf.ei.SAVE_ALL_INPUTS", "true");
         }
