@@ -44,11 +44,11 @@ echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running $fuzzer on $project (trial $t
 
 
 if [[ "$fuzzer" == "zest" ]]; then
-  timeout $timeout bin/jqf-zest -r 60000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithGenerator /vol/tmp/nguyehoa/$output_dir
+  timeout $timeout bin/jqf-zest -q -r 60000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithGenerator /vol/tmp/nguyehoa/$output_dir
   PID=$!
   wait $PID
 elif [[ "$fuzzer" == "bedivfuzz" ]]; then
-  timeout $timeout bin/jqf-bedivfuzz -r 60000 -h 0.1 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithSplitGenerator /vol/tmp/nguyehoa/$output_dir
+  timeout $timeout bin/jqf-bedivfuzz -q -r 60000 -h 0.1 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithSplitGenerator /vol/tmp/nguyehoa/$output_dir
   PID=$!
   wait $PID
 else
