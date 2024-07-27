@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsbm:e:h:u" opt; do
+while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -60,6 +60,9 @@ while getopts ":c:N:r:t:dflnsbm:e:h:u" opt; do
       ;;
     u)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.LOG_UNIQUE_PATH_INPUTS=true"
+      ;;
+    q)
+      export JVM_OPTS="$JVM_OPTS -Djqf.ei.DISABLE_LOG_QUEUE=true"
       ;;
   esac
 done

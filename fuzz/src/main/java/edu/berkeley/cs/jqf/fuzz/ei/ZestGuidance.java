@@ -247,10 +247,13 @@ public class ZestGuidance implements Guidance {
     /** Whether to hide fuzzing statistics **/
     protected final boolean QUIET_MODE = Boolean.getBoolean("jqf.ei.QUIET_MODE");
 
+    /** Whether to store all inputs saved to the queue. */
+    protected final boolean LOG_SAVED_INPUTS = !Boolean.getBoolean("jqf.ei.DISABLE_LOG_QUEUE");
+
     /** Whether to store all generated inputs to disk (can get slowww!) */
     protected final boolean LOG_ALL_INPUTS = Boolean.getBoolean("jqf.ei.LOG_ALL_INPUTS");
 
-    /** Whether to store all generated inputs that produce unique paths */
+    /** Whether to store all generated inputs that produce unique paths. */
     protected final boolean LOG_UNIQUE_PATH_INPUTS = Boolean.getBoolean("jqf.ei.LOG_UNIQUE_PATH_INPUTS");
 
     /** The current number of probes inserted through instrumentation. */
@@ -652,7 +655,6 @@ public class ZestGuidance implements Guidance {
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
                     console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
-                    console.printf("Behavioral diversity (alt):    | b1: %.0f | b2: %.0f\n", divMetrics.b1_alt(), divMetrics.b2_alt());
                 }
             }
         }
@@ -1144,9 +1146,15 @@ public class ZestGuidance implements Guidance {
         int newInputIdx = numSavedInputs++;
         String saveFileName = String.format("id_%06d", newInputIdx);
         String how = currentInput.desc;
-        File saveFile = new File(savedCorpusDirectory, saveFileName);
-        writeCurrentInputToFile(saveFile);
-        infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
+
+        File saveFile = null;
+        if (LOG_SAVED_INPUTS) {
+            saveFile = new File(savedCorpusDirectory, saveFileName);
+            writeCurrentInputToFile(saveFile);
+            infoLog("Saved - %s %s %s", saveFile.getPath(), how, why);
+        } else {
+            infoLog("Saved - %s %s %s", saveFileName, how, why);
+        }
 
         // If not using guidance, do nothing else
         if (blind) {

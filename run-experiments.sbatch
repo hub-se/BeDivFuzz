@@ -5,6 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=15:00:00
 #SBATCH --array=1-20%20
+#SBATCH --mem-per-cpu=8G
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
