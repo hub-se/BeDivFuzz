@@ -39,7 +39,7 @@ else
     java="java"
 fi
 
-export JVM_OPTS="$JVM_OPTS -Dnashorn.args=--no-deprecation-warning -Xms4g -Xmx32g -XX:-UseGCOverheadLimit"
+export JVM_OPTS="$JVM_OPTS -Dnashorn.args=--no-deprecation-warning -XX:-UseGCOverheadLimit"
 
 "$java" -ea \
   -Xbootclasspath/a:"$INST_CLASSPATH" \

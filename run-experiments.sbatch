@@ -3,6 +3,7 @@
 #SBATCH --output=eval-results/%x-%A/logs/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=16G
 #SBATCH --time=03:15:00
 #SBATCH --array=1-400%40
 
