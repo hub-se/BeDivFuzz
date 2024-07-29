@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=eval-fast
-#SBATCH --output=eval-results/%x-%A/logs/task-%a.out
+#SBATCH --output=slurm-logs/%x-%A/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
@@ -59,9 +59,9 @@ else
 fi
 
 echo ""
-echo "[$(date)] Finished task. Copying files to $HOME/BeDivFuzz/$output_dir."
-mkdir -p "$HOME/BeDivFuzz/$output_dir"
-cp -r "/vol/tmp/nguyehoa/$output_dir/." "$HOME/BeDivFuzz/$output_dir/"
+echo "[$(date)] Finished task. Files have been written to /vol/tmp/nguyehoa/$output_dir."
+#mkdir -p "$HOME/BeDivFuzz/$output_dir"
+#cp -r "/vol/tmp/nguyehoa/$output_dir/." "$HOME/BeDivFuzz/$output_dir/"
 
-echo "[$(date)] Done."
+#echo "[$(date)] Done."
 
