@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --time=03:15:00
-#SBATCH --array=1-400%40
+#SBATCH --array=1-600%40
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
@@ -21,7 +21,7 @@ timeout=181m
 
 declare -a config
 index=1
-for fuzzer in 'zest' 'bedivfuzz'
+for fuzzer in 'zest' 'bedivfuzz' 'blind'
 do
   for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'imageio.PngReaderTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
   do
@@ -52,6 +52,10 @@ if [[ "$fuzzer" == "zest" ]]; then
   wait $PID
 elif [[ "$fuzzer" == "bedivfuzz" ]]; then
   timeout $timeout bin/jqf-bedivfuzz -r 3000 -h 0.1 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithSplitGenerator /vol/tmp/nguyehoa/$output_dir
+  PID=$!
+  wait $PID
+elif [[ "$fuzzer" == "blind" ]]; then
+  timeout $timeout bin/jqf-blind -r 3000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithGenerator /vol/tmp/nguyehoa/$output_dir
   PID=$!
   wait $PID
 else
