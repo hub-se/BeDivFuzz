@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
+import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitGenerator;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.SplitRandom;
 import edu.berkeley.cs.jqf.examples.common.AsciiStringGenerator;
@@ -63,17 +64,21 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
     private int statementDepth;
     private int expressionDepth;
 
-
     private static final String[] UNARY_TOKENS = {
             "!", "++", "--", "~",
             "delete", "new", "typeof"
     };
 
     private static final String[] BINARY_TOKENS = {
-            "!=", "!==", "%", "%=", "&", "&&", "&=", "*", "*=", "+", "+=", ",",
-            "-", "-=", "/", "/=", "<", "<<", ">>=", "<=", "=", "==", "===",
-            ">", ">=", ">>", ">>=", ">>>", ">>>=", "^", "^=", "|", "|=", "||",
+            "!=", "!==", "%", "&", "&&", "*", "+", ",",
+            "-", "/", "<", "<<", "<=", "=", "==", "===",
+            ">", ">=", ">>", ">>>", "^", "|", "||",
             "in", "instanceof"
+    };
+
+    private static final String[] ASSIGNMENT_TOKENS = {
+            "=", "+=", "-=", "*=", "/=", "%=", "**=", "<<=", ">>=", ">>>=", "&=", "^=", "|=", "&&=",
+            "||=", "??=",
     };
 
     @Override
@@ -119,7 +124,8 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
                     this::generateFunctionNode,
                     this::generatePropertyNode,
                     this::generateIndexNode,
-                    this::generateArrowFunctionNode
+                    this::generateArrowFunctionNode,
+                    this::generateAssignmentNode
             )).apply(random);
         }
         expressionDepth--;
@@ -331,5 +337,16 @@ public class SplitJavaScriptCodeGenerator extends SplitGenerator<String> {
 
     private String generateWhileNode(SplitRandom random) {
         return "while (" + generateExpression(random) + ")" + generateBlock(random);
+    }
+
+    private String generateAssignmentNode(SplitRandom random) {
+        String token = random.chooseValue(ASSIGNMENT_TOKENS);
+        String lhs = random.chooseStructure(Arrays.<Function<SplitRandom, String>>asList(
+                this::generateIdentNode,
+                this::generateIndexNode,
+                this::generatePropertyNode
+        )).apply(random);
+        String rhs = generateExpression(random);
+        return lhs + " " + token + " " + rhs + ";";
     }
 }
