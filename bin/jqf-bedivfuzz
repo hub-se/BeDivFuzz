@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
+while getopts ":c:N:r:t:dflnsbm:e:h:uqal" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -63,6 +63,12 @@ while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
       ;;
     q)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.DISABLE_LOG_QUEUE=true"
+      ;;
+    a)
+      export JVM_OPTS="$JVM_OPTS -Djqf.hitcounts.ABUNDANCE_COUNTS=true"
+      ;;
+    l)
+      export JVM_OPTS="$JVM_OPTS -Djqf.hitcounts.LOG_HITCOUNTS=true"
       ;;
   esac
 done

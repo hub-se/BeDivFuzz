@@ -25,6 +25,11 @@ public class BranchHitCounter {
     /** The most recently computed behavioral diversity metrics. */
     private final BehavioralDiversityMetrics bedivMetrics = new BehavioralDiversityMetrics();
 
+    private final boolean ABUNDANCE_COUNTS = Boolean.getBoolean("jqf.hitcounts.ABUNDANCE_COUNTS");
+    private final boolean LOG_HITCOUNTS = Boolean.getBoolean("jqf.hitcounts.LOG_HITCOUNTS");
+
+
+
     /**
      * Creates a new BeDivMetricsCounter instance.
      */
@@ -42,8 +47,19 @@ public class BranchHitCounter {
      * @param runCoverage the coverage of the current input
      */
     public void incrementBranchCounts(ICoverage runCoverage) {
-        runCoverage.getCovered().primitiveStream()
-                .forEach(counter::increment);
+        if (ABUNDANCE_COUNTS) {
+            Counter coverageCounter = runCoverage.getCounter();
+            runCoverage.getCovered().primitiveStream()
+                    .forEach(idx -> {
+                        // getCovered() returns the non-zero indices of the backing counter, which should
+                        // not be hashed again when using janala instrumentation, hence getAtIndex()
+                        counter.increment(idx, coverageCounter.getAtIndex(idx));
+                    });
+
+        } else {
+            runCoverage.getCovered().primitiveStream()
+                    .forEach(counter::increment);
+        }
     }
 
     /**
@@ -55,7 +71,11 @@ public class BranchHitCounter {
         // Update cached values once every while
         Date now = new Date();
         if (force || (now.getTime() - lastRefreshTime.getTime() >= STATS_REFRESH_TIME_PERIOD)) {
-            updateMetrics();
+            if (LOG_HITCOUNTS) {
+                updateLogMetrics();
+            } else {
+                updateMetrics();
+            }
             lastRefreshTime = now;
         }
         return bedivMetrics;
@@ -66,22 +86,50 @@ public class BranchHitCounter {
      */
     public void updateMetrics() {
         long totalBranchHitCount = counter.getNonZeroValues().sum();
+        double logN = Math.log(totalBranchHitCount);
 
-        double h1 = 0; // = shannon entropy
-        double h2 = 0;
+        double b1_basicSum = 0;
+        double b2_basicSum = 0;
 
         IntIterator it = counter.getNonZeroValues().intIterator();
         while (it.hasNext()) {
             int hitcount = it.next();
 
-            double p = ((double) hitcount) / totalBranchHitCount;
-            h1 += p * Math.log(p);
-            h2 += Math.pow(p, 2);
+            b1_basicSum += hitcount * Math.log(hitcount);
+            b2_basicSum += Math.exp(2.0 * (Math.log(hitcount) - logN));
 
         }
         bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
-        bedivMetrics.b1 = Math.exp(-h1); // Hill-number of order 1 (= exp(shannon index))
-        bedivMetrics.b2 = 1 / h2; // Hill-number of order 2 (= 1/(simpson index))
+
+        double entropy = Math.log(totalBranchHitCount) - 1.0/totalBranchHitCount * b1_basicSum;
+        bedivMetrics.b1 = Math.exp(entropy); // Hill-number of order 1 (= exp(shannon index))
+
+        double logSumExp = Math.log(b2_basicSum);
+        bedivMetrics.b2 = Math.exp(-logSumExp);
+    }
+
+    public void updateLogMetrics() {
+        double totalBranchHitCount = counter.getNonZeroValues().primitiveStream().mapToDouble(c -> Math.log(c+1)).sum();
+        double logN = Math.log(totalBranchHitCount);
+
+        double b1_basicSum = 0;
+        double b2_basicSum = 0;
+
+        IntIterator it = counter.getNonZeroValues().intIterator();
+        while (it.hasNext()) {
+            double hitcount = Math.log(it.next() + 1); // we perform additive smoothing since log(0) = NaN
+
+            b1_basicSum += hitcount * Math.log(hitcount);
+            b2_basicSum += Math.exp(2.0 * (Math.log(hitcount) - logN));
+
+        }
+        bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
+
+        double entropy = Math.log(totalBranchHitCount) - 1.0/totalBranchHitCount * b1_basicSum;
+        bedivMetrics.b1 = Math.exp(entropy); // Hill-number of order 1 (= exp(shannon index))
+
+        double logSumExp = Math.log(b2_basicSum);
+        bedivMetrics.b2 = Math.exp(-logSumExp);
     }
 
     /**
