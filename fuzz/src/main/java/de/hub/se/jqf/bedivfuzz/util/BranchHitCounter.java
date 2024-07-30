@@ -66,52 +66,26 @@ public class BranchHitCounter {
      */
     public void updateMetrics() {
         long totalBranchHitCount = counter.getNonZeroValues().sum();
+        double logN = Math.log(totalBranchHitCount);
 
-        double h1 = 0; // = shannon entropy
-        double h2 = 0;
+        double b1_basicSum = 0;
+        double b2_basicSum = 0;
 
         IntIterator it = counter.getNonZeroValues().intIterator();
         while (it.hasNext()) {
             int hitcount = it.next();
 
-            double p = ((double) hitcount) / totalBranchHitCount;
-            h1 += p * Math.log(p);
-            h2 += Math.pow(p, 2);
+            b1_basicSum += hitcount * Math.log(hitcount);
+            b2_basicSum += Math.exp(2.0 * (Math.log(hitcount) - logN));
 
         }
         bedivMetrics.b0 = counter.getNonZeroSize(); //Math.pow(h_0, 1): Hill-Number of order 0
-        bedivMetrics.b1 = Math.exp(-h1); // Hill-number of order 1 (= exp(shannon index))
-        bedivMetrics.b2 = 1 / h2; // Hill-number of order 2 (= 1/(simpson index))
 
-        bedivMetrics.b1_alt = computeHill1(totalBranchHitCount);
-        bedivMetrics.b2_alt = computeHill2(totalBranchHitCount);
-    }
+        double entropy = Math.log(totalBranchHitCount) - 1.0/totalBranchHitCount * b1_basicSum;
+        bedivMetrics.b1 = Math.exp(entropy); // Hill-number of order 1 (= exp(shannon index))
 
-    private double computeHill1(long totalBranchHitCount) {
-        IntIterator it = counter.getNonZeroValues().intIterator();
-        double basicSum = 0;
-
-        while (it.hasNext()) {
-            int hitcount = it.next();
-            basicSum += hitcount * Math.log(hitcount);
-        }
-
-        double entropy = Math.log(totalBranchHitCount) - 1.0/totalBranchHitCount * basicSum;
-        return Math.exp(entropy);
-    }
-
-    private double computeHill2(long totalBranchHitCount) {
-        double logN = Math.log(totalBranchHitCount);
-        IntIterator it = counter.getNonZeroValues().intIterator();
-        double basicSum = 0;
-
-        while (it.hasNext()) {
-            int hitcount = it.next();
-            basicSum += Math.exp(2.0 * (Math.log(hitcount) - logN));
-        }
-
-        double logSumExp = Math.log(basicSum);
-        return Math.exp(-logSumExp);
+        double logSumExp = Math.log(b2_basicSum);
+        bedivMetrics.b2 = Math.exp(-logSumExp);
     }
 
     /**
