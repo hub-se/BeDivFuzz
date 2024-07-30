@@ -523,7 +523,7 @@ public class ZestGuidance implements Guidance {
     }
 
     protected String getStatNames() {
-        return "# unix_time, b0, b1, b2, b1_alt, b2_alt, d_b1, d_b2";
+        return "# unix_time, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -659,16 +659,8 @@ public class ZestGuidance implements Guidance {
             }
         }
 
-        String plotData = String.format("%d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f",
-                TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
-                divMetrics.b0(),
-                divMetrics.b1(),
-                divMetrics.b2(),
-                divMetrics.b1_alt(),
-                divMetrics.b2_alt(),
-                Math.abs(divMetrics.b1() - divMetrics.b1_alt()),
-                Math.abs(divMetrics.b2() - divMetrics.b2_alt())
-        );
+        String plotData = String.format("%d, %.2f, %.2f, %.2f",
+                TimeUnit.MILLISECONDS.toSeconds(now.getTime()), divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
 
         appendLineToFile(statsFile, plotData);
 
