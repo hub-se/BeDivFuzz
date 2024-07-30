@@ -15,3 +15,5 @@ experiments/*-results-*
 *-results/
 .java-version
 .venv/
+*.pdf
+*.tar.gz
