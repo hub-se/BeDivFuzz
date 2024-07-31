@@ -19,7 +19,7 @@
 
 timeout=181m
 
-declare -a config
+declare -a combinations
 index=1
 for fuzzer in 'zest' 'bedivfuzz' 'blind'
 do
