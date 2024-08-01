@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=eval-fast
-#SBATCH --output=slurm-logs/%x-%A/task-%a.out
+#SBATCH --output=/vol/tmp/nguyehoa/slurm-logs/%x-%A/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
