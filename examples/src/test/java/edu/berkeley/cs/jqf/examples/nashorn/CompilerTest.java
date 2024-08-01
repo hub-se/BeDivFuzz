@@ -9,34 +9,37 @@ import org.junit.Assume;
 import org.junit.runner.RunWith;
 
 import javax.script.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 
 
 @RunWith(BeDivFuzz.class)
 public class CompilerTest {
 
-    // https://stackoverflow.com/questions/25332640/getenginebynamenashorn-returns-null
-    private ScriptEngineManager engineManager = new ScriptEngineManager(null);
-    private ScriptEngine engine = engineManager.getEngineByName("nashorn");
+    private static final ScriptEngineManager factory = new ScriptEngineManager();
+    private static final ScriptEngine engine = factory.getEngineByName("nashorn");
 
-    @Fuzz
-    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
+    public void testWithReader(Reader reader) {
         try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
+            ((Compilable) engine).compile(reader);
+        } catch (ScriptException e) {
             Assume.assumeNoException(e);
         }
     }
 
+    public void testWithInputStream(InputStream in) {
+        testWithReader(new InputStreamReader(in));
+    }
+
+    @Fuzz
+    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
+        testWithReader(new StringReader(code));
+    }
+
     @Fuzz
     public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
-        try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
-            Assume.assumeNoException(e);
-        }
+        testWithReader(new StringReader(code));
     }
 }

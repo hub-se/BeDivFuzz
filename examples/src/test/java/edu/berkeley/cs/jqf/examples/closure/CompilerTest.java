@@ -28,18 +28,8 @@
  */
 package edu.berkeley.cs.jqf.examples.closure;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.util.logging.LogManager;
-
-import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
-import com.google.javascript.jscomp.CompilerOptions;
-import com.google.javascript.jscomp.Result;
-import com.google.javascript.jscomp.SourceFile;
+import com.google.javascript.jscomp.*;
 import com.pholser.junit.quickcheck.From;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.js.SplitJavaScriptCodeGenerator;
@@ -48,61 +38,67 @@ import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.LogManager;
+
 @RunWith(BeDivFuzz.class)
 public class CompilerTest {
-
     static {
         // Disable all logging by Closure passes
         LogManager.getLogManager().reset();
     }
 
-    private Compiler compiler = new Compiler(new PrintStream(new ByteArrayOutputStream(), false));
-    private CompilerOptions options = new CompilerOptions();
-    private SourceFile externs = SourceFile.fromCode("externs", "");
-
-    @Before
-    public void initCompiler() {
-        // Don't use threads
+    @Fuzz
+    public void testWithInputStream(InputStream in) throws IOException {
+        Compiler compiler = new Compiler(new PrintStream(new ByteArrayOutputStream(), false));
+        CompilerOptions options = new CompilerOptions();
         compiler.disableThreads();
-        // Don't print things
         options.setPrintConfig(false);
-        // Enable all safe optimizations
         CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
-    }
-
-    private void doCompile(SourceFile input) {
-        Result result = compiler.compile(externs, input, options);
+        SourceFile input = SourceFile.fromCode("input", readStream(in));
+        Result result = compiler.compile(SourceFile.fromCode("externs", ""), input, options);
         Assume.assumeTrue(result.success);
     }
 
+    static String readStream(InputStream in) throws IOException {
+        in = new BufferedInputStream(in);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        for (int result = in.read(); result != -1; result = in.read()) {
+            buffer.write((byte) result);
+        }
+        return buffer.toString(StandardCharsets.UTF_8.name());
+    }
+
+    public static PrintStream suppressStandardErr() {
+        PrintStream result = System.err;
+        System.setErr(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {
+            }
+        }));
+        return result;
+    }
+
+
     @Fuzz
-    public void testWithString(@From(AsciiStringGenerator.class) String code) {
-        SourceFile input = SourceFile.fromCode("input", code);
-        doCompile(input);
+    public void testWithString(@From(AsciiStringGenerator.class) String code) throws IOException {
+        testWithInputStream(new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Fuzz
-    public void debugWithString(@From(AsciiStringGenerator.class) String code) {
+    public void debugWithString(@From(AsciiStringGenerator.class) String code) throws IOException {
         System.out.println("\nInput:  " + code);
-        testWithString(code);
-        System.out.println("Output: " + compiler.toSource());
+        testWithInputStream(new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
-    public void smallTest() {
+    public void smallTest() throws IOException {
         debugWithString("x <<= Infinity");
     }
-
-    /*
-    @Fuzz
-    public void testWithInputStream(InputStream in) throws IOException {
-        SourceFile input = SourceFile.fromInputStream("input", in, StandardCharsets.UTF_8);
-        doCompile(input);
-    }*/
 
     @Fuzz
     public void debugWithInputStream(InputStream in) throws IOException {
@@ -111,17 +107,16 @@ public class CompilerTest {
     }
 
     @Fuzz
-    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        testWithString(code);
+    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) throws IOException{
+        testWithInputStream(new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8)));    }
+
+    @Fuzz
+    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) throws IOException {
+        testWithInputStream(new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
-        testWithString(code);
-    }
-
-    @Fuzz
-    public void debugWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        debugWithString(code);
+    public void debugWithGenerator(@From(JavaScriptCodeGenerator.class) String code) throws IOException {
+        testWithInputStream(new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8)));
     }
 }
