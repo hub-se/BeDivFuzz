@@ -28,10 +28,7 @@
  */
 package edu.berkeley.cs.jqf.examples.bcel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import com.pholser.junit.quickcheck.From;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
@@ -42,18 +39,22 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.verifier.StatelessVerifierFactory;
 import org.apache.bcel.verifier.VerificationResult;
 import org.apache.bcel.verifier.Verifier;
 import org.apache.bcel.verifier.VerifierFactory;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assume.assumeThat;
 
 @RunWith(BeDivFuzz.class)
 public class ParserTest {
+
+    static {
+        System.setErr(new PrintStream(new OutputStream() {
+            public void write(int b) {
+            }
+        }));
+    }
 
     @Fuzz
     public void testWithInputStream(InputStream in) throws IOException {
