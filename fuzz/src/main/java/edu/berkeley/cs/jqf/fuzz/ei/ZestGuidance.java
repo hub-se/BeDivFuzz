@@ -526,7 +526,7 @@ public class ZestGuidance implements Guidance {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
                 "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
-                "covered_semantic_probes, num_semantic_probes, b0, b1, b2";
+                "covered_semantic_probes, num_semantic_probes, unique_paths, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -663,7 +663,7 @@ public class ZestGuidance implements Guidance {
         }
 
         String plotData = String.format(
-                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
                 cyclesCompleted,
                 currentParentInputIdx,
@@ -683,6 +683,7 @@ public class ZestGuidance implements Guidance {
                 numTotalProbes,
                 semanticNonZeroCount,
                 numSemanticProbes,
+                uniquePaths.size(),
                 divMetrics.b0(),
                 divMetrics.b1(),
                 divMetrics.b2()
