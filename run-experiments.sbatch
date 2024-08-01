@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --time=03:15:00
-#SBATCH --array=1-600%40
+#SBATCH --array=1-540%60
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
@@ -23,7 +23,7 @@ declare -a combinations
 index=1
 for fuzzer in 'zest' 'bedivfuzz' 'blind'
 do
-  for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'imageio.PngReaderTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
+  for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
   do
       for trial in `seq 1 20`
       do
