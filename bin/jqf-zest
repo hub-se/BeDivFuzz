@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-v] TEST_CLASS TEST_METHOD [OUT_DIR [SEED_FILES...]]"
 }
 
-while getopts ":c:r:vt:dfsbm:uq" opt; do
+while getopts ":c:r:vt:dfbm:uq" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -35,9 +35,6 @@ while getopts ":c:r:vt:dfsbm:uq" opt; do
       ;;
     f)
       export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
-      ;;
-    s)
-      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
       ;;
     b)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"

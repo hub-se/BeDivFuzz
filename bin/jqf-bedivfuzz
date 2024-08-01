@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
+while getopts ":c:N:r:t:dflnbm:e:h:uq" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -42,9 +42,6 @@ while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
       ;;
     n) 
       export JQF_DISABLE_INSTRUMENTATION=1
-      ;;
-    s)
-      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
       ;;
     b)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"

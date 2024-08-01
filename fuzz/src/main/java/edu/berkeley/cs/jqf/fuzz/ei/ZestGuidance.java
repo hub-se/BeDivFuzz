@@ -260,9 +260,9 @@ public class ZestGuidance implements Guidance {
     protected final ProbeCounter probeCounter = ProbeCounter.instance;
 
     /** Metrics to collect. */
-    protected boolean COUNT_UNIQUE_PATHS;
-    protected boolean MEASURE_BEHAVIORAL_DIVERSITY;
-    protected boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
+    protected boolean COUNT_UNIQUE_PATHS = false;
+    protected boolean MEASURE_BEHAVIORAL_DIVERSITY = false;
+    protected boolean TRACK_SEMANTIC_COVERAGE = false;
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -338,16 +338,7 @@ public class ZestGuidance implements Guidance {
         this.validityFuzzing = !Boolean.getBoolean("jqf.ei.DISABLE_VALIDITY_FUZZING");
         prepareOutputDirectory();
 
-        if(this.runCoverage instanceof FastCoverageListener){
-            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
-        }
-
-        if(TRACK_SEMANTIC_COVERAGE) {
-            FastSemanticCoverageSnoop.setCoverageListeners(
-                    (FastCoverageListener) this.runCoverage,
-                    (FastCoverageListener) this.semanticRunCoverage);
-        }
-
+        // Parse metrics to collect
         String metrics = System.getProperty("jqf.guidance.METRICS");
         if (metrics != null && !metrics.isEmpty()) {
             for (String metric : metrics.split(":")) {
@@ -361,6 +352,16 @@ public class ZestGuidance implements Guidance {
                    throw new GuidanceException("Unknown metric: " + metric);
                }
             }
+        }
+
+        if(this.runCoverage instanceof FastCoverageListener){
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
+        }
+
+        if(TRACK_SEMANTIC_COVERAGE) {
+            FastSemanticCoverageSnoop.setCoverageListeners(
+                    (FastCoverageListener) this.runCoverage,
+                    (FastCoverageListener) this.semanticRunCoverage);
         }
 
         // Try to parse the single-run timeout
