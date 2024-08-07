@@ -260,9 +260,9 @@ public class ZestGuidance implements Guidance {
     protected final ProbeCounter probeCounter = ProbeCounter.instance;
 
     /** Metrics to collect. */
-    protected boolean COUNT_UNIQUE_PATHS;
-    protected boolean MEASURE_BEHAVIORAL_DIVERSITY;
-    protected boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
+    protected boolean COUNT_UNIQUE_PATHS = false;
+    protected boolean MEASURE_BEHAVIORAL_DIVERSITY = false;
+    protected boolean TRACK_SEMANTIC_COVERAGE = false;
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -338,16 +338,7 @@ public class ZestGuidance implements Guidance {
         this.validityFuzzing = !Boolean.getBoolean("jqf.ei.DISABLE_VALIDITY_FUZZING");
         prepareOutputDirectory();
 
-        if(this.runCoverage instanceof FastCoverageListener){
-            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
-        }
-
-        if(TRACK_SEMANTIC_COVERAGE) {
-            FastSemanticCoverageSnoop.setCoverageListeners(
-                    (FastCoverageListener) this.runCoverage,
-                    (FastCoverageListener) this.semanticRunCoverage);
-        }
-
+        // Parse metrics to collect
         String metrics = System.getProperty("jqf.guidance.METRICS");
         if (metrics != null && !metrics.isEmpty()) {
             for (String metric : metrics.split(":")) {
@@ -361,6 +352,16 @@ public class ZestGuidance implements Guidance {
                    throw new GuidanceException("Unknown metric: " + metric);
                }
             }
+        }
+
+        if(this.runCoverage instanceof FastCoverageListener){
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
+        }
+
+        if(TRACK_SEMANTIC_COVERAGE) {
+            FastSemanticCoverageSnoop.setCoverageListeners(
+                    (FastCoverageListener) this.runCoverage,
+                    (FastCoverageListener) this.semanticRunCoverage);
         }
 
         // Try to parse the single-run timeout
@@ -526,7 +527,7 @@ public class ZestGuidance implements Guidance {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
                 "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
-                "covered_semantic_probes, num_semantic_probes, b0, b1, b2";
+                "covered_semantic_probes, num_semantic_probes, unique_paths, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -663,7 +664,7 @@ public class ZestGuidance implements Guidance {
         }
 
         String plotData = String.format(
-                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
                 cyclesCompleted,
                 currentParentInputIdx,
@@ -683,6 +684,7 @@ public class ZestGuidance implements Guidance {
                 numTotalProbes,
                 semanticNonZeroCount,
                 numSemanticProbes,
+                uniquePaths.size(),
                 divMetrics.b0(),
                 divMetrics.b1(),
                 divMetrics.b2()

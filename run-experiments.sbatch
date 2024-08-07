@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=eval-metrics
-#SBATCH --output=slurm-logs/%x-%A/task-%a.out
+#SBATCH --job-name=eval-log-abundance
+#SBATCH --output=/vol/tmp/nguyehoa/slurm-logs/%x-%A/task-%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=10G
 #SBATCH --time=03:15:00
-#SBATCH --array=1-900%60
+#SBATCH --array=1-810%45
 
 # Ensure tasks are only run on gruenau[3-6]
 #SBATCH --constraint=ivybridge
@@ -25,7 +25,7 @@ for fuzzer in 'zest' 'bedivfuzz' 'blind'
 do
   for metric in 'log' 'abundance' 'log-abundance'
   do
-    for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'imageio.PngReaderTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
+    for subject in 'ant.ProjectBuilderTest' 'bcel.ParserTest' 'chocopy.SemanticAnalysisTest' 'closure.CompilerTest' 'maven.ModelReaderTest' 'nashorn.CompilerTest' 'pngj.PngReaderTest' 'rhino.CompilerTest' 'tomcat.WebXmlTest'
     do
       for trial in `seq 1 10`
       do
