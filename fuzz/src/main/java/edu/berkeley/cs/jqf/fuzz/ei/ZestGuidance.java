@@ -1050,7 +1050,7 @@ public class ZestGuidance implements Guidance {
                 }
             }
 
-            if (LOG_UNIQUE_PATH_INPUTS) {
+            if (LOG_UNIQUE_PATH_INPUTS && result == Result.SUCCESS) {
                 String saveFileName = String.format("id_%09d", uniquePaths.size());
                 File saveFile = new File(uniquePathInputsDirectory, saveFileName);
                 GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
