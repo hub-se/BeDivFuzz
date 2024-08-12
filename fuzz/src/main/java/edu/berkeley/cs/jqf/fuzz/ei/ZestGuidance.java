@@ -1037,25 +1037,26 @@ public class ZestGuidance implements Guidance {
         if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
-        }
 
-        // Update hit counts
-        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
-        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
-            if(MEASURE_BEHAVIORAL_DIVERSITY) {
-                if (TRACK_SEMANTIC_COVERAGE) {
-                    branchHitCounter.incrementBranchCounts(semanticRunCoverage);
-                } else {
-                    branchHitCounter.incrementBranchCounts(runCoverage);
+            // Update hit counts
+            boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
+            if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+                if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                    if (TRACK_SEMANTIC_COVERAGE) {
+                        branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                    } else {
+                        branchHitCounter.incrementBranchCounts(runCoverage);
+                    }
+                }
+
+                if (LOG_UNIQUE_PATH_INPUTS) {
+                    String saveFileName = String.format("id_%09d", uniquePaths.size());
+                    File saveFile = new File(uniquePathInputsDirectory, saveFileName);
+                    GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
                 }
             }
-
-            if (LOG_UNIQUE_PATH_INPUTS && result == Result.SUCCESS) {
-                String saveFileName = String.format("id_%09d", uniquePaths.size());
-                File saveFile = new File(uniquePathInputsDirectory, saveFileName);
-                GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
-            }
         }
+
 
         // Coverage after
         int nonZeroAfter = totalCoverage.getNonZeroCount();
