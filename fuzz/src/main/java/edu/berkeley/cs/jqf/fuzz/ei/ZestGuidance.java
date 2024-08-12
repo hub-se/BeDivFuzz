@@ -1187,7 +1187,7 @@ public class ZestGuidance implements Guidance {
         // Third, store basic book-keeping data
         currentInput.id = newInputIdx;
         currentInput.saveFile = saveFile;
-        currentInput.coverage = runCoverage.copy();
+        //currentInput.coverage = runCoverage.copy();
         currentInput.nonZeroCoverage = runCoverage.getNonZeroCount();
         currentInput.offspring = 0;
         savedInputs.get(currentParentInputIdx).offspring += 1;
@@ -1327,7 +1327,7 @@ public class ZestGuidance implements Guidance {
          *
          * <p>This field is null for inputs that are not saved.</p>
          */
-        public ICoverage coverage = null;
+        //public ICoverage coverage = null;
 
         /**
          * The number of non-zero elements in `coverage`.
