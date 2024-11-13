@@ -24,9 +24,12 @@ public class BeDivFuzzDriver {
         String testMethodName = args[1];
         String outputDirectoryName = args.length > 2 ? args[2] : "fuzz-results";
         File outputDirectory = new File(outputDirectoryName);
+        File[] seedFiles = null;
         if (args.length > 3) {
-            System.err.println("Seed files are not supported.");
-            System.exit(1);
+            seedFiles = new File[args.length-3];
+            for (int i = 3; i < args.length; i++) {
+                seedFiles[i-3] = new File(args[i]);
+            }
         }
 
         try {
@@ -34,6 +37,14 @@ public class BeDivFuzzDriver {
             String title = testClassName+"#"+testMethodName;
             Random rnd = new Random(); // TODO: Support deterministic PRNG
             BeDivFuzzGuidance guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
+
+            if (seedFiles == null) {
+                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
+            } else if (seedFiles.length == 1 && seedFiles[0].isDirectory()) {
+                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, seedFiles[0], rnd);
+            } else {
+                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, seedFiles, rnd);
+            }
 
             Locale.setDefault(Locale.US);
 
