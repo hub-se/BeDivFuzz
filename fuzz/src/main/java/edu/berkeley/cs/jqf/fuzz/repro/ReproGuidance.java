@@ -208,6 +208,11 @@ public class ReproGuidance implements Guidance {
         }
     }
 
+    @Override
+    public String observeGuidance() {
+        return "Repro";
+    }
+
     /**
      * Writes an object to a file
      *
