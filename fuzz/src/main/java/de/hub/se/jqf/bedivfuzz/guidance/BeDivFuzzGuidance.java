@@ -68,7 +68,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
         if (console != null && !QUIET_MODE) {
             if (!savedInputs.isEmpty()) {
                 TrackingInput parent = (TrackingInput) savedInputs.get(currentParentInputIdx);
-                console.printf("Explore/Exploit:      %.2f/%.2f\n", parent.getStructureScore(), parent.getValueScore());
+                console.printf("  Explore/Exploit:    %.2f/%.2f\n", parent.getStructureScore(), parent.getValueScore());
             }
         }
     }

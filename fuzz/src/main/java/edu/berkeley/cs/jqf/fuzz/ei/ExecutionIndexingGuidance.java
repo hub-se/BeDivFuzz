@@ -292,7 +292,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
                         // Third, store basic book-keeping data
                         currentInput.id = otherIdx;
                         currentInput.saveFile = otherInput.saveFile;
-                        currentInput.coverage = runCoverage.copy();
+                        //currentInput.coverage = runCoverage.copy();
                         currentInput.nonZeroCoverage = runCoverage.getNonZeroCount();
                         currentInput.offspring = 0;
                         savedInputs.get(currentParentInputIdx).offspring += 1;

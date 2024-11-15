@@ -1,6 +1,8 @@
 .DS_Store
 build/
 target/
+scripts/slurm/results/
+.ipynb_checkpoints/
 *.iml
 *.pyc
 .cache/

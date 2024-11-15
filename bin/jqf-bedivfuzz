@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
+while getopts ":c:N:r:t:dflnbm:e:h:uqT:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -43,14 +43,14 @@ while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
     n) 
       export JQF_DISABLE_INSTRUMENTATION=1
       ;;
-    s)
-      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
-      ;;
     b)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"
       ;;
     m)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
+      if [[ "$OPTARG" == *"$SEMCOV"* ]]; then
+        export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
+      fi
       ;;
     e)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.bedivfuzz.epsilon=$OPTARG"
@@ -63,6 +63,9 @@ while getopts ":c:N:r:t:dflnsbm:e:h:uq" opt; do
       ;;
     q)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.DISABLE_LOG_QUEUE=true"
+      ;;
+    T)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.campaign_timeout=$OPTARG"
       ;;
   esac
 done

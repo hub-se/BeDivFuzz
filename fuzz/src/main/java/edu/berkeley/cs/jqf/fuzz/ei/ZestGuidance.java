@@ -260,9 +260,9 @@ public class ZestGuidance implements Guidance {
     protected final ProbeCounter probeCounter = ProbeCounter.instance;
 
     /** Metrics to collect. */
-    protected boolean COUNT_UNIQUE_PATHS;
-    protected boolean MEASURE_BEHAVIORAL_DIVERSITY;
-    protected boolean TRACK_SEMANTIC_COVERAGE = Boolean.getBoolean("jqf.guidance.TRACK_SEMANTIC_COVERAGE");
+    protected boolean COUNT_UNIQUE_PATHS = false;
+    protected boolean MEASURE_BEHAVIORAL_DIVERSITY = false;
+    protected boolean TRACK_SEMANTIC_COVERAGE = false;
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -338,16 +338,7 @@ public class ZestGuidance implements Guidance {
         this.validityFuzzing = !Boolean.getBoolean("jqf.ei.DISABLE_VALIDITY_FUZZING");
         prepareOutputDirectory();
 
-        if(this.runCoverage instanceof FastCoverageListener){
-            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
-        }
-
-        if(TRACK_SEMANTIC_COVERAGE) {
-            FastSemanticCoverageSnoop.setCoverageListeners(
-                    (FastCoverageListener) this.runCoverage,
-                    (FastCoverageListener) this.semanticRunCoverage);
-        }
-
+        // Parse metrics to collect
         String metrics = System.getProperty("jqf.guidance.METRICS");
         if (metrics != null && !metrics.isEmpty()) {
             for (String metric : metrics.split(":")) {
@@ -361,6 +352,16 @@ public class ZestGuidance implements Guidance {
                    throw new GuidanceException("Unknown metric: " + metric);
                }
             }
+        }
+
+        if(this.runCoverage instanceof FastCoverageListener){
+            FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
+        }
+
+        if(TRACK_SEMANTIC_COVERAGE) {
+            FastSemanticCoverageSnoop.setCoverageListeners(
+                    (FastCoverageListener) this.runCoverage,
+                    (FastCoverageListener) this.semanticRunCoverage);
         }
 
         // Try to parse the single-run timeout
@@ -639,25 +640,29 @@ public class ZestGuidance implements Guidance {
                 console.printf("Elapsed time:         %s (%s)\n", millisToDuration(elapsedMilliseconds),
                         maxDurationMillis == Long.MAX_VALUE ? "no time limit" : ("max " + millisToDuration(maxDurationMillis)));
                 console.printf("Number of executions: %,d (%s)\n", numTrials,
-                               maxTrials == Long.MAX_VALUE ? "no trial limit" : ("max " + maxTrials));
+                        maxTrials == Long.MAX_VALUE ? "no trial limit" : ("max " + maxTrials));
                 console.printf("Valid inputs:         %,d (%.2f%%)\n", numValid, numValid * 100.0 / numTrials);
                 console.printf("Cycles completed:     %d\n", cyclesCompleted);
                 console.printf("Unique failures:      %,d\n", uniqueFailures.size());
                 console.printf("Queue size:           %,d (%,d favored last cycle)\n", savedInputs.size(), numFavoredLastCycle);
                 console.printf("Current parent input: %s\n", currentParentInputDesc);
                 console.printf("Execution speed:      %,d/sec now | %,d/sec overall\n", intervalExecsPerSec, execsPerSec);
-                console.printf("Total coverage:       %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
-                console.printf("Valid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
+                console.printf("\nCoverage:\n");
+                console.printf("  Total coverage:     %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
+                console.printf("  Valid coverage:     %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
                 if (TRACK_SEMANTIC_COVERAGE) {
                     double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
-                    console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
+                    console.printf("  Semantic coverage:  %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 if (COUNT_UNIQUE_PATHS || LOG_UNIQUE_PATH_INPUTS) {
                     int numUniquePaths = uniquePaths.size();
-                    console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
+                    console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
-                    console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                    console.printf("\nBehavioral Diversity:\n");
+                    console.printf("  q = 0:              %.0f\n", divMetrics.b0());
+                    console.printf("  q = 1:              %.0f\n", divMetrics.b1());
+                    console.printf("  q = 2:              %.0f\n", divMetrics.b2());
                 }
             }
         }
@@ -1036,25 +1041,26 @@ public class ZestGuidance implements Guidance {
         if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
-        }
 
-        // Update hit counts
-        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
-        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
-            if(MEASURE_BEHAVIORAL_DIVERSITY) {
-                if (TRACK_SEMANTIC_COVERAGE) {
-                    branchHitCounter.incrementBranchCounts(semanticRunCoverage);
-                } else {
-                    branchHitCounter.incrementBranchCounts(runCoverage);
+            // Update hit counts
+            boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
+            if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+                if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                    if (TRACK_SEMANTIC_COVERAGE) {
+                        branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                    } else {
+                        branchHitCounter.incrementBranchCounts(runCoverage);
+                    }
+                }
+
+                if (LOG_UNIQUE_PATH_INPUTS) {
+                    String saveFileName = String.format("id_%09d", uniquePaths.size());
+                    File saveFile = new File(uniquePathInputsDirectory, saveFileName);
+                    GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
                 }
             }
-
-            if (LOG_UNIQUE_PATH_INPUTS) {
-                String saveFileName = String.format("id_%09d", uniquePaths.size());
-                File saveFile = new File(uniquePathInputsDirectory, saveFileName);
-                GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
-            }
         }
+
 
         // Coverage after
         int nonZeroAfter = totalCoverage.getNonZeroCount();
@@ -1186,7 +1192,7 @@ public class ZestGuidance implements Guidance {
         // Third, store basic book-keeping data
         currentInput.id = newInputIdx;
         currentInput.saveFile = saveFile;
-        currentInput.coverage = runCoverage.copy();
+        //currentInput.coverage = runCoverage.copy();
         currentInput.nonZeroCoverage = runCoverage.getNonZeroCount();
         currentInput.offspring = 0;
         savedInputs.get(currentParentInputIdx).offspring += 1;
@@ -1326,7 +1332,7 @@ public class ZestGuidance implements Guidance {
          *
          * <p>This field is null for inputs that are not saved.</p>
          */
-        public ICoverage coverage = null;
+        //public ICoverage coverage = null;
 
         /**
          * The number of non-zero elements in `coverage`.
