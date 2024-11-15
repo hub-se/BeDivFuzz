@@ -105,6 +105,9 @@ public class BeDivFuzzGuidance extends ZestGuidance {
         if ((uniquePathsAfter > uniquePathsBefore) && !savedInputs.isEmpty()) {
             TrackingInput currentParent = (TrackingInput) savedInputs.get(currentParentInputIdx);
             currentParent.incrementScore();
+            if (result == Result.SUCCESS) {
+                currentParent.incrementScore();
+            }
         }
         return reasonstoSave;
     }

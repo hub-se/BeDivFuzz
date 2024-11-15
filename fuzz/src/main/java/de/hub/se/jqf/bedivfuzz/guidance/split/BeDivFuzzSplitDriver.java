@@ -57,6 +57,7 @@ public class BeDivFuzzSplitDriver {
             Result zestResult = GuidedFuzzing.run(testClassName, testMethodName, zestGuidance, System.out);
 
             File zestCorpus = new File(zestOutputDirectory, "corpus");
+            System.setProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.0");
             BeDivFuzzSplitGuidance bedivFuzzGuidance = new BeDivFuzzSplitGuidance(
                     testClassName+"#testWithSplitGenerator", halfDuration, null, outputDirectory, zestCorpus, rnd, zestGuidance.exportState()
             );
