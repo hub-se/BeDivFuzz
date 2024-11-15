@@ -44,6 +44,9 @@ while getopts ":c:r:vt:dfsbm:uqT:" opt; do
       ;;
     m)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
+      if [[ "$OPTARG" == *"$SEMCOV"* ]]; then
+        export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
+      fi
       ;;
     u)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.LOG_UNIQUE_PATH_INPUTS=true"

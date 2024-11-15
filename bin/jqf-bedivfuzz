@@ -48,6 +48,9 @@ while getopts ":c:N:r:t:dflnbm:e:h:uqT:" opt; do
       ;;
     m)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
+      if [[ "$OPTARG" == *"$SEMCOV"* ]]; then
+        export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
+      fi
       ;;
     e)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.bedivfuzz.epsilon=$OPTARG"
