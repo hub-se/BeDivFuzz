@@ -640,25 +640,29 @@ public class ZestGuidance implements Guidance {
                 console.printf("Elapsed time:         %s (%s)\n", millisToDuration(elapsedMilliseconds),
                         maxDurationMillis == Long.MAX_VALUE ? "no time limit" : ("max " + millisToDuration(maxDurationMillis)));
                 console.printf("Number of executions: %,d (%s)\n", numTrials,
-                               maxTrials == Long.MAX_VALUE ? "no trial limit" : ("max " + maxTrials));
+                        maxTrials == Long.MAX_VALUE ? "no trial limit" : ("max " + maxTrials));
                 console.printf("Valid inputs:         %,d (%.2f%%)\n", numValid, numValid * 100.0 / numTrials);
                 console.printf("Cycles completed:     %d\n", cyclesCompleted);
                 console.printf("Unique failures:      %,d\n", uniqueFailures.size());
                 console.printf("Queue size:           %,d (%,d favored last cycle)\n", savedInputs.size(), numFavoredLastCycle);
                 console.printf("Current parent input: %s\n", currentParentInputDesc);
                 console.printf("Execution speed:      %,d/sec now | %,d/sec overall\n", intervalExecsPerSec, execsPerSec);
-                console.printf("Total coverage:       %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
-                console.printf("Valid coverage:       %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
+                console.printf("\nCoverage:\n");
+                console.printf("  Total coverage:     %,d branches (%.2f%% of map)\n", nonZeroCount, nonZeroFraction);
+                console.printf("  Valid coverage:     %,d branches (%.2f%% of map)\n", nonZeroValidCount, nonZeroValidFraction);
                 if (TRACK_SEMANTIC_COVERAGE) {
                     double semanticFraction = numSemanticProbes > 0 ? semanticNonZeroCount * 100.0 / numSemanticProbes : 0;
-                    console.printf("Semantic coverage:    %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
+                    console.printf("  Semantic coverage:  %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 if (COUNT_UNIQUE_PATHS || LOG_UNIQUE_PATH_INPUTS) {
                     int numUniquePaths = uniquePaths.size();
-                    console.printf("Unique paths:         %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
+                    console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
-                    console.printf("Behavioral diversity: b0: %.0f | b1: %.0f | b2: %.0f\n", divMetrics.b0(), divMetrics.b1(), divMetrics.b2());
+                    console.printf("\nBehavioral Diversity:\n");
+                    console.printf("  q = 0:              %.0f\n", divMetrics.b0());
+                    console.printf("  q = 1:              %.0f\n", divMetrics.b1());
+                    console.printf("  q = 2:              %.0f\n", divMetrics.b2());
                 }
             }
         }
