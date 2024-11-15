@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnbm:e:h:uq" opt; do
+while getopts ":c:N:r:t:dflnbm:e:h:uqT:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -60,6 +60,9 @@ while getopts ":c:N:r:t:dflnbm:e:h:uq" opt; do
       ;;
     q)
       export JVM_OPTS="$JVM_OPTS -Djqf.ei.DISABLE_LOG_QUEUE=true"
+      ;;
+    T)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.campaign_timeout=$OPTARG"
       ;;
   esac
 done

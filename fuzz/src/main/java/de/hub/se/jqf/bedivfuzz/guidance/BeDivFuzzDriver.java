@@ -1,10 +1,13 @@
 package de.hub.se.jqf.bedivfuzz.guidance;
 
 import java.io.File;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.Random;
 
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
+import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.junit.GuidedFuzzing;
 import org.junit.runner.Result;
 
@@ -36,14 +39,25 @@ public class BeDivFuzzDriver {
             // Load the guidance
             String title = testClassName+"#"+testMethodName;
             Random rnd = new Random(); // TODO: Support deterministic PRNG
-            BeDivFuzzGuidance guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
+            BeDivFuzzGuidance guidance;
+
+            // Try to parse campaign timeout
+            String campaignTimeout = System.getProperty("jqf.guidance.campaign_timeout");
+            Duration duration = null;
+            if (campaignTimeout != null && !campaignTimeout.isEmpty()) {
+                try {
+                    duration = Duration.parse("PT"+campaignTimeout);
+                } catch (DateTimeParseException e) {
+                    throw new GuidanceException("Invalid time duration: " + campaignTimeout);
+                }
+            }
 
             if (seedFiles == null) {
-                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, rnd);
             } else if (seedFiles.length == 1 && seedFiles[0].isDirectory()) {
-                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, seedFiles[0], rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, seedFiles[0], rnd);
             } else {
-                guidance = new BeDivFuzzGuidance(title, null, null, outputDirectory, seedFiles, rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, seedFiles, rnd);
             }
 
             Locale.setDefault(Locale.US);
