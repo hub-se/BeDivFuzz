@@ -7,16 +7,17 @@ import edu.berkeley.cs.jqf.examples.js.JavaScriptCodeGenerator;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
-import javax.script.*;
-
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 @RunWith(BeDivFuzz.class)
 public class CompilerTest {
-
-    // https://stackoverflow.com/questions/25332640/getenginebynamenashorn-returns-null
-    private ScriptEngineManager engineManager = new ScriptEngineManager(null);
-    private ScriptEngine engine = engineManager.getEngineByName("nashorn");
+    private NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+    private ScriptEngine engine = factory.getScriptEngine("-strict", "--language=es6");
 
     @Fuzz
     public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
