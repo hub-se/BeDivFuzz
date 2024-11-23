@@ -39,8 +39,6 @@ else
     java="java"
 fi
 
-export JVM_OPTS="$JVM_OPTS -Dnashorn.args=--no-deprecation-warning"
-
 "$java" -ea \
   -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005 \
   -Xbootclasspath/a:"$INST_CLASSPATH" \
