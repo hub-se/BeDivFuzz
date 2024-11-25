@@ -336,7 +336,6 @@ public class ZestGuidance implements Guidance {
         this.outputDirectory = outputDirectory;
         this.blind = Boolean.getBoolean("jqf.ei.TOTALLY_RANDOM");
         this.validityFuzzing = !Boolean.getBoolean("jqf.ei.DISABLE_VALIDITY_FUZZING");
-        prepareOutputDirectory();
 
         // Parse metrics to collect
         String metrics = System.getProperty("jqf.guidance.METRICS");
@@ -353,6 +352,8 @@ public class ZestGuidance implements Guidance {
                }
             }
         }
+        
+        prepareOutputDirectory();
 
         if(this.runCoverage instanceof FastCoverageListener){
             FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.runCoverage);
@@ -484,7 +485,8 @@ public class ZestGuidance implements Guidance {
         this.currentInputFile = new File(outputDirectory, ".cur_input");
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
-        if (LOG_BRANCH_HIT_COUNTS) {
+        // Perioridically serialize hit-counts (or after predefined timeout when assessing behavioral diversity)
+        if (LOG_BRANCH_HIT_COUNTS || (MEASURE_BEHAVIORAL_DIVERSITY && this.maxDurationMillis != Long.MAX_VALUE)) {
             this.MEASURE_BEHAVIORAL_DIVERSITY = true; // Make sure we are counting hit counts
             this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
             this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
@@ -696,7 +698,7 @@ public class ZestGuidance implements Guidance {
 
         appendLineToFile(statsFile, plotData);
 
-        if (LOG_BRANCH_HIT_COUNTS) {
+        if (LOG_BRANCH_HIT_COUNTS || (MEASURE_BEHAVIORAL_DIVERSITY && force)) {
             String branchHitCountsFileName = String.format("id_%06d", branchHitCountsFileIdx++);
             File saveFile = new File(branchHitCountsDirectory, branchHitCountsFileName);
             writeBranchHitCountFile(saveFile);
