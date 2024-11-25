@@ -23,7 +23,7 @@ public class BeDivFuzzSplitGuidance extends BeDivFuzzGuidance {
         this.cyclesCompleted = state.cyclesCompleted;
         this.totalCoverage = state.totalCoverage;
         this.validCoverage = state.validCoverage;
-        this.semanticRunCoverage = state.semanticTotalCoverage;
+        this.semanticTotalCoverage = state.semanticTotalCoverage;
         this.uniquePaths = state.uniquePaths;
         this.branchHitCounter = state.branchHitCounter;
         this.maxCoverage = state.maxCoverage;
