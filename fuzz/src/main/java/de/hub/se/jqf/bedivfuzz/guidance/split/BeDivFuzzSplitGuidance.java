@@ -25,6 +25,7 @@ public class BeDivFuzzSplitGuidance extends BeDivFuzzGuidance {
         this.validCoverage = state.validCoverage;
         this.semanticTotalCoverage = state.semanticTotalCoverage;
         this.uniquePaths = state.uniquePaths;
+        this.uniqueValidPaths = state.uniqueValidPaths;
         this.branchHitCounter = state.branchHitCounter;
         this.maxCoverage = state.maxCoverage;
         this.uniqueFailures = state.uniqueFailures;

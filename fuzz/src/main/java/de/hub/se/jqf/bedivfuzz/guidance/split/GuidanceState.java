@@ -15,6 +15,7 @@ public class GuidanceState {
     public ICoverage validCoverage;
     public ICoverage semanticTotalCoverage;
     public IntHashSet uniquePaths;
+    public IntHashSet uniqueValidPaths;
     public BranchHitCounter branchHitCounter;
     public int maxCoverage;
     public Set<String> uniqueFailures;

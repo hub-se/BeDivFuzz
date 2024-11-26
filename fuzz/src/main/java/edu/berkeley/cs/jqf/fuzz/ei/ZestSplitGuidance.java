@@ -33,6 +33,7 @@ public class ZestSplitGuidance extends ZestGuidance {
         state.validCoverage = validCoverage;
         state.semanticTotalCoverage = semanticTotalCoverage;
         state.uniquePaths = uniquePaths;
+        state.uniqueValidPaths = uniqueValidPaths;
         state.branchHitCounter = branchHitCounter;
         state.maxCoverage = maxCoverage;
         state.uniqueFailures = uniqueFailures;
