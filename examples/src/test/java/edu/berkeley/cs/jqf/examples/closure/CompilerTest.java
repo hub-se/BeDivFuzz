@@ -97,12 +97,11 @@ public class CompilerTest {
         debugWithString("x <<= Infinity");
     }
 
-    /*
     @Fuzz
     public void testWithInputStream(InputStream in) throws IOException {
         SourceFile input = SourceFile.fromInputStream("input", in, StandardCharsets.UTF_8);
         doCompile(input);
-    }*/
+    }
 
     @Fuzz
     public void debugWithInputStream(InputStream in) throws IOException {
