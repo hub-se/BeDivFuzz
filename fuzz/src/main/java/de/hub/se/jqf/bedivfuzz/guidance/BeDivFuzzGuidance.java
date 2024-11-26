@@ -53,7 +53,8 @@ public class BeDivFuzzGuidance extends ZestGuidance {
 
     @Override
     protected String getTitle() {
-        return "BeDivFuzzGuidance";
+        return "BeDivFuzz: Behavioral Diversity Fuzzing\n" +
+                "--------------------------\n";
     }
 
     @Override
