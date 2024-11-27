@@ -18,7 +18,7 @@ docker run -it --rm -v ${PWD}:/workspace bedivfuzz
 
 ## Step 1: Build BeDivFuzz, Zest, and RLCheck
 
-To build BeDivFuzz and Zest, run:
+To build BeDivFuzz and Zest run:
 ```
 mvn package
 ```
