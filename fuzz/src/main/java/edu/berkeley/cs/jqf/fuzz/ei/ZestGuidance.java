@@ -486,7 +486,7 @@ public class ZestGuidance implements Guidance {
         this.coverageFile = new File(outputDirectory, "coverage_hash");
 
         // Perioridically serialize hit-counts (or after predefined timeout when assessing behavioral diversity)
-        if (LOG_BRANCH_HIT_COUNTS || (MEASURE_BEHAVIORAL_DIVERSITY && this.maxDurationMillis != Long.MAX_VALUE)) {
+        if (LOG_BRANCH_HIT_COUNTS || (MEASURE_BEHAVIORAL_DIVERSITY && (this.maxDurationMillis != Long.MAX_VALUE || this.maxTrials != Long.MAX_VALUE))) {
             this.MEASURE_BEHAVIORAL_DIVERSITY = true; // Make sure we are counting hit counts
             this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
             this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
