@@ -180,6 +180,9 @@ public class ZestGuidance implements Guidance {
     protected ICoverage semanticTotalCoverage = CoverageFactory.newInstance();
 
     /** Set of hashes of all paths generated so far. */
+    protected IntHashSet uniquePaths = new IntHashSet();
+
+    /** Set of hashes of all valid paths generated so far. */
     protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Coverage diversity metrics for all unique paths. */
@@ -529,7 +532,7 @@ public class ZestGuidance implements Guidance {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
                 "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
-                "covered_semantic_probes, num_semantic_probes, unique_valid_paths, b0, b1, b2";
+                "covered_semantic_probes, num_semantic_probes, unique_paths, unique_valid_paths, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -665,7 +668,9 @@ public class ZestGuidance implements Guidance {
                     console.printf("  Semantic coverage:  %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 if (COUNT_UNIQUE_PATHS || LOG_UNIQUE_PATH_INPUTS) {
+                    int numUniquePaths = uniquePaths.size();
                     int numUniqueValidPaths = uniqueValidPaths.size();
+                    console.printf("  Unique paths:       %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                     console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniqueValidPaths, numUniqueValidPaths * 100.0 / numTrials);
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
@@ -678,7 +683,7 @@ public class ZestGuidance implements Guidance {
         }
 
         String plotData = String.format(
-                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
                 cyclesCompleted,
                 currentParentInputIdx,
@@ -698,6 +703,7 @@ public class ZestGuidance implements Guidance {
                 numTotalProbes,
                 semanticNonZeroCount,
                 numSemanticProbes,
+                uniquePaths.size(),
                 uniqueValidPaths.size(),
                 divMetrics.b0(),
                 divMetrics.b1(),
@@ -1051,26 +1057,29 @@ public class ZestGuidance implements Guidance {
         if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
         if (result == Result.SUCCESS) {
             validCoverage.updateBits(runCoverage);
-
-            // Update hit counts
-            boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
-            if (checkUniquePath && uniqueValidPaths.add(runCoverage.hashCode())) {
-                if(MEASURE_BEHAVIORAL_DIVERSITY) {
-                    if (TRACK_SEMANTIC_COVERAGE) {
-                        branchHitCounter.incrementBranchCounts(semanticRunCoverage);
-                    } else {
-                        branchHitCounter.incrementBranchCounts(runCoverage);
-                    }
-                }
-
-                if (LOG_UNIQUE_PATH_INPUTS) {
-                    String saveFileName = String.format("id_%09d", uniqueValidPaths.size());
-                    File saveFile = new File(uniquePathInputsDirectory, saveFileName);
-                    GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
-                }
-            }
         }
 
+        // Update hit counts
+        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
+        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+            if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                if (TRACK_SEMANTIC_COVERAGE) {
+                    branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                } else {
+                    branchHitCounter.incrementBranchCounts(runCoverage);
+                }
+            }
+
+            if (LOG_UNIQUE_PATH_INPUTS) {
+                String saveFileName = String.format("id_%09d", uniquePaths.size());
+                File saveFile = new File(uniquePathInputsDirectory, saveFileName);
+                GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
+            }
+
+            if (result == Result.SUCCESS) {
+                uniqueValidPaths.add(runCoverage.hashCode());
+            }
+        }
 
         // Coverage after
         int nonZeroAfter = totalCoverage.getNonZeroCount();
