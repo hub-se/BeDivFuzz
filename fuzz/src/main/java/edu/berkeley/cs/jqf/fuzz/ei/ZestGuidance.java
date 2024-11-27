@@ -592,12 +592,12 @@ public class ZestGuidance implements Guidance {
         if (intervalMilliseconds < STATS_REFRESH_TIME_PERIOD && !force) {
             return;
         }
-        long interlvalTrials = numTrials - lastNumTrials;
-        long intervalExecsPerSec = interlvalTrials * 1000L;
-        double intervalExecsPerSecDouble = interlvalTrials * 1000.0;
+        long intervalTrials = numTrials - lastNumTrials;
+        long intervalExecsPerSec = intervalTrials * 1000L;
+        double intervalExecsPerSecDouble = intervalTrials * 1000.0;
         if(intervalMilliseconds != 0) {
-            intervalExecsPerSec = interlvalTrials * 1000L / intervalMilliseconds;
-            intervalExecsPerSecDouble = interlvalTrials * 1000.0 / intervalMilliseconds;
+            intervalExecsPerSec = intervalTrials * 1000L / intervalMilliseconds;
+            intervalExecsPerSecDouble = intervalTrials * 1000.0 / intervalMilliseconds;
         }
         lastRefreshTime = now;
         lastNumTrials = numTrials;
