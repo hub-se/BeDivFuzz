@@ -103,7 +103,7 @@ public class RLGuidance implements Guidance {
     protected Set<Integer> uniqueValidInputs = new HashSet<>();
 
     /** Set of hashes of all paths generated so far. */
-    protected IntHashSet uniquePaths = new IntHashSet();
+    protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Coverage diversity metrics for all unique paths. */
     protected BranchHitCounter branchHitCounter = new BranchHitCounter();
@@ -289,7 +289,7 @@ public class RLGuidance implements Guidance {
                 if (!uniqueValidInputs.contains(currentInput.hashCode())){
                     uniqueValidInputs.add(currentInput.hashCode());
 
-                    if(uniquePaths.add(runCoverage.hashCode())) {
+                    if(uniqueValidPaths.add(runCoverage.hashCode())) {
                         if(MEASURE_BEHAVIORAL_DIVERSITY) {
                             if (TRACK_SEMANTIC_COVERAGE) {
                                 branchHitCounter.incrementBranchCounts(semanticRunCoverage);
@@ -395,7 +395,7 @@ public class RLGuidance implements Guidance {
         this.failureStatsFile = new File(outputDirectory, "failure_info.csv");
 
         // Perioridically serialize hit-counts (or after predefined timeout when assessing behavioral diversity)
-        if (LOG_BRANCH_HIT_COUNTS || (MEASURE_BEHAVIORAL_DIVERSITY && this.maxDurationMillis != Long.MAX_VALUE)) {
+        if (LOG_BRANCH_HIT_COUNTS || MEASURE_BEHAVIORAL_DIVERSITY) {
             this.MEASURE_BEHAVIORAL_DIVERSITY = true; // Make sure we are counting hit counts
             this.mapper = new ObjectMapper().registerModule(new EclipseCollectionsModule());
             this.branchHitCountsDirectory = IOUtils.createDirectory(outputDirectory, "hitcounts");
@@ -437,7 +437,7 @@ public class RLGuidance implements Guidance {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
                 "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
-                "covered_semantic_probes, num_semantic_probes, unique_paths, b0, b1, b2";
+                "covered_semantic_probes, num_semantic_probes, unique_valid_paths, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -550,8 +550,8 @@ public class RLGuidance implements Guidance {
                     console.printf("  Semantic coverage:  %,d branches (%.2f%% of map)\n", semanticNonZeroCount, semanticFraction);
                 }
                 if (COUNT_UNIQUE_PATHS) {
-                    int numUniquePaths = uniquePaths.size();
-                    console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
+                    int numUniqueValidPaths = uniqueValidPaths.size();
+                    console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniqueValidPaths, numUniqueValidPaths * 100.0 / numTrials);
                 }
                 if (MEASURE_BEHAVIORAL_DIVERSITY) {
                     console.printf("\nBehavioral Diversity:\n");
@@ -583,7 +583,7 @@ public class RLGuidance implements Guidance {
                 numTotalProbes,
                 semanticNonZeroCount,
                 numSemanticProbes,
-                uniquePaths.size(),
+                uniqueValidPaths.size(),
                 divMetrics.b0(),
                 divMetrics.b1(),
                 divMetrics.b2()

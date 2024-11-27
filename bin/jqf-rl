@@ -8,7 +8,7 @@ popd > /dev/null
 ROOT_DIR=`dirname $BIN_DIR`
 
 print_usage() {
-  echo "Usage: $0 [-c CLASSPATH] [-N MAX_TRIALS] [-v] [-n] TEST_CLASS TEST_METHOD GENERATOR_CLASS"
+  echo "Usage: $0 [-c CLASSPATH] [-N MAX_TRIALS] [-v] [-n] TEST_CLASS TEST_METHOD GENERATOR_CLASS CONFIG_FILE [OUTPUT_DIR]"
 }
 
 while getopts ":c:r:dfbm:uT:N:vn" opt; do
@@ -64,5 +64,5 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-# Run the Zest input driver
+# Run the RLCheck input driver
 $ROOT_DIR/scripts/jqf-driver.sh edu.berkeley.cs.jqf.fuzz.rl.RLDriver $@
