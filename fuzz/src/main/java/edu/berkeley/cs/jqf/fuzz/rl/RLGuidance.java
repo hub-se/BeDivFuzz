@@ -48,9 +48,6 @@ public class RLGuidance implements Guidance {
     // This field is used to ensure that
     protected Thread appThread;
 
-    /** A pseudo-random number generator for generating fresh values. */
-    protected Random random = new Random();
-
     /** The name of the test for display purposes. */
     protected final String testName;
 
@@ -58,6 +55,9 @@ public class RLGuidance implements Guidance {
 
     /** The max amount of time to run for, in milli-seconds */
     protected final long maxDurationMillis;
+
+    /** Maximum number of trials to run */
+    protected Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");
 
     /** The number of trials completed. */
     protected long numTrials = 0;
@@ -132,7 +132,7 @@ public class RLGuidance implements Guidance {
     protected long lastNumTrials = 0;
 
     /** Minimum amount of time (in millis) between two stats refreshes. */
-    protected static final long STATS_REFRESH_TIME_PERIOD = 300;
+    protected final long STATS_REFRESH_TIME_PERIOD = Integer.getInteger("jqf.guidance.STATS_REFRESH_TIME_PERIOD", 1000);
 
     /** The file where log data is written. */
     protected File logFile;
@@ -158,6 +158,13 @@ public class RLGuidance implements Guidance {
     /** Whether to hide fuzzing statistics **/
     protected final boolean QUIET_MODE = Boolean.getBoolean("jqf.ei.QUIET_MODE");
 
+    /** The current number of probes inserted through instrumentation. */
+    protected final ProbeCounter probeCounter = ProbeCounter.instance;
+
+    /** Metrics to collect. */
+    protected boolean COUNT_UNIQUE_PATHS = false;
+    protected boolean MEASURE_BEHAVIORAL_DIVERSITY = false;
+    protected boolean TRACK_SEMANTIC_COVERAGE = false;
 
     // ------------- TIMEOUT HANDLING ------------
 
@@ -169,17 +176,6 @@ public class RLGuidance implements Guidance {
 
     /** Number of conditional jumps since last run was started. */
     protected long branchCount;
-
-    /** Maximum number of trials to run */
-    protected Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");;
-
-    /** The current number of probes inserted through instrumentation. */
-    protected final ProbeCounter probeCounter = ProbeCounter.instance;
-
-    /** Metrics to collect. */
-    protected boolean COUNT_UNIQUE_PATHS = false;
-    protected boolean MEASURE_BEHAVIORAL_DIVERSITY = false;
-    protected boolean TRACK_SEMANTIC_COVERAGE = false;
 
     // ----------- FUZZING HEURISTICS ------------
 
@@ -194,7 +190,6 @@ public class RLGuidance implements Guidance {
         if (this.maxTrials == null) {
             this.maxTrials = Long.MAX_VALUE;
         }
-
 
         // Parse metrics to collect
         String metrics = System.getProperty("jqf.guidance.METRICS");
@@ -223,12 +218,28 @@ public class RLGuidance implements Guidance {
                     (FastCoverageListener) this.runCoverage,
                     (FastCoverageListener) this.semanticRunCoverage);
         }
+
+        // Try to parse the single-run timeout
+        String timeout = System.getProperty("jqf.ei.TIMEOUT");
+        if (timeout != null && !timeout.isEmpty()) {
+            try {
+                // Interpret the timeout as milliseconds (just like `afl-fuzz -t`)
+                this.singleRunTimeoutMillis = Long.parseLong(timeout);
+            } catch (NumberFormatException e1) {
+                throw new IllegalArgumentException("Invalid timeout duration: " + timeout);
+            }
+        }
     }
 
     @Override
     public InputStream getInput() throws IllegalStateException, GuidanceException {
         runCoverage.clear();
         currentInput = generator.generate();
+
+        // Start time-counting for timeout handling
+        this.runStart = new Date();
+        this.branchCount = 0;
+
         return new ByteArrayInputStream(currentInput.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -269,6 +280,7 @@ public class RLGuidance implements Guidance {
 
             // Update total coverage
             boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
+            if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
 
             int nonZeroAfter = totalCoverage.getNonZeroCount();
 
@@ -432,32 +444,41 @@ public class RLGuidance implements Guidance {
         return "# ttd, exception_class, stack_hash, coverage_hash, top5_stack_trace";
     }
 
-    /** Returns the banner to be displayed on the status screen */
-    protected String getTitle() {
-            return  "RL Fuzzing\n" +
-                    "--------------------\n";
+    /* Writes a line of text to a given log file. */
+    protected void appendLineToFile(File file, String line) throws GuidanceException {
+        try (PrintWriter out = new PrintWriter(new FileWriter(file, true))) {
+            out.println(line);
+        } catch (IOException e) {
+            throw new GuidanceException(e);
+        }
     }
 
-    /* Saves an interesting input to the queue. */
-    protected void saveCurrentInput(Boolean is_valid) throws IOException {
-        String valid_str = is_valid ? "_v" : "";
-        // First, save to disk (note: we issue IDs to everyone, but only write to disk  if valid)
-        int newInputIdx = numSavedInputs++;
-        String saveFileName = String.format("id_%06d%s", newInputIdx, valid_str);
-        File saveFile = new File(savedCorpusDirectory, saveFileName);
-        PrintWriter writer = new PrintWriter(saveFile);
-        writer.print(currentInput);
-        writer.flush();
+    /* Writes a line of text to the log file. */
+    protected void infoLog(String str, Object... args) {
+        if (verbose) {
+            String line = String.format(str, args);
+            if (logFile != null) {
+                appendLineToFile(logFile, line);
+
+            } else {
+                System.err.println(line);
+            }
+        }
     }
 
-    /* Saves an interesting input to the queue. */
-    protected void saveCurrentFailure() throws IOException {
-        int newInputIdx = uniqueFailures.size();
-        String saveFileName = String.format("id_%06d", newInputIdx);
-        File saveFile = new File(savedFailuresDirectory, saveFileName);
-        PrintWriter writer = new PrintWriter(saveFile);
-        writer.print(currentInput);
-        writer.flush();
+    private String millisToDuration(long millis) {
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis % TimeUnit.MINUTES.toMillis(1));
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis % TimeUnit.HOURS.toMillis(1));
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        String result = "";
+        if (hours > 0) {
+            result = hours + "h ";
+        }
+        if (hours > 0 || minutes > 0) {
+            result += minutes + "m ";
+        }
+        result += seconds + "s";
+        return result;
     }
 
     // Call only if console exists
@@ -468,12 +489,12 @@ public class RLGuidance implements Guidance {
         if (intervalMilliseconds < STATS_REFRESH_TIME_PERIOD && !force) {
             return;
         }
-        long interlvalTrials = numTrials - lastNumTrials;
-        long intervalExecsPerSec = interlvalTrials * 1000L;
-        double intervalExecsPerSecDouble = interlvalTrials * 1000.0;
+        long intervalTrials = numTrials - lastNumTrials;
+        long intervalExecsPerSec = intervalTrials * 1000L;
+        double intervalExecsPerSecDouble = intervalTrials * 1000.0;
         if(intervalMilliseconds != 0) {
-            intervalExecsPerSec = interlvalTrials * 1000L / intervalMilliseconds;
-            intervalExecsPerSecDouble = interlvalTrials * 1000.0 / intervalMilliseconds;
+            intervalExecsPerSec = intervalTrials * 1000L / intervalMilliseconds;
+            intervalExecsPerSecDouble = intervalTrials * 1000.0 / intervalMilliseconds;
         }
         lastRefreshTime = now;
         lastNumTrials = numTrials;
@@ -577,7 +598,6 @@ public class RLGuidance implements Guidance {
         }
     }
 
-
     /** Updates the branch hit count file. */
     protected void writeBranchHitCountFile(File saveFile) throws GuidanceException{
         try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(saveFile.toPath()))) {
@@ -587,27 +607,10 @@ public class RLGuidance implements Guidance {
         }
     }
 
-
-    /* Writes a line of text to a given log file. */
-    protected void appendLineToFile(File file, String line) throws GuidanceException {
-        try (PrintWriter out = new PrintWriter(new FileWriter(file, true))) {
-            out.println(line);
-        } catch (IOException e) {
-            throw new GuidanceException(e);
-        }
-    }
-
-    /* Writes a line of text to the log file. */
-    protected void infoLog(String str, Object... args) {
-        if (verbose) {
-            String line = String.format(str, args);
-            if (logFile != null) {
-                appendLineToFile(logFile, line);
-
-            } else {
-                System.err.println(line);
-            }
-        }
+    /* Returns the banner to be displayed on the status screen */
+    protected String getTitle() {
+        return  "RLCheck: Reinforcement-Learning-Guided Fuzzing\n" +
+                "--------------------------------------------\n";
     }
 
     @Override
@@ -635,19 +638,27 @@ public class RLGuidance implements Guidance {
         }
     }
 
-    private String millisToDuration(long millis) {
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis % TimeUnit.MINUTES.toMillis(1));
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis % TimeUnit.HOURS.toMillis(1));
-        long hours = TimeUnit.MILLISECONDS.toHours(millis);
-        String result = "";
-        if (hours > 0) {
-            result = hours + "h ";
-        }
-        if (hours > 0 || minutes > 0) {
-            result += minutes + "m ";
-        }
-        result += seconds + "s";
-        return result;
+    /* Saves an interesting input to the queue. */
+    protected void saveCurrentInput(Boolean is_valid) throws IOException {
+        String valid_str = is_valid ? "_v" : "";
+        // First, save to disk (note: we issue IDs to everyone, but only write to disk  if valid)
+        int newInputIdx = numSavedInputs++;
+        String saveFileName = String.format("id_%06d%s", newInputIdx, valid_str);
+        File saveFile = new File(savedCorpusDirectory, saveFileName);
+        PrintWriter writer = new PrintWriter(saveFile);
+        writer.print(currentInput);
+        writer.flush();
+        infoLog("Saved - %s", saveFileName);
+    }
+
+    /* Saves an interesting input to the queue. */
+    protected void saveCurrentFailure() throws IOException {
+        int newInputIdx = uniqueFailures.size();
+        String saveFileName = String.format("id_%06d", newInputIdx);
+        File saveFile = new File(savedFailuresDirectory, saveFileName);
+        PrintWriter writer = new PrintWriter(saveFile);
+        writer.print(currentInput);
+        writer.flush();
     }
 
     private static MessageDigest sha1;

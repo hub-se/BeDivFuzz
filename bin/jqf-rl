@@ -11,7 +11,7 @@ print_usage() {
   echo "Usage: $0 [-c CLASSPATH] [-N MAX_TRIALS] [-v] [-n] TEST_CLASS TEST_METHOD GENERATOR_CLASS"
 }
 
-while getopts ":c:r:dfm:uT:N:vn" opt; do
+while getopts ":c:r:dfbm:uT:N:vn" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -33,6 +33,9 @@ while getopts ":c:r:dfm:uT:N:vn" opt; do
     f)
       export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
       ;;
+    b)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.LOG_BRANCH_HIT_COUNTS=true"
+      ;;
     m)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.METRICS=$OPTARG"
       if [[ "$OPTARG" == *"$SEMCOV"* ]]; then
@@ -50,6 +53,7 @@ while getopts ":c:r:dfm:uT:N:vn" opt; do
       ;;
     N) 
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.MAX_TRIALS=$OPTARG"
+      ;;
   esac
 done
 shift $((OPTIND-1))
