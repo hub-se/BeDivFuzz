@@ -180,7 +180,7 @@ public class ZestGuidance implements Guidance {
     protected ICoverage semanticTotalCoverage = CoverageFactory.newInstance();
 
     /** Set of hashes of all paths generated so far. */
-    protected IntHashSet uniquePaths = new IntHashSet();
+    protected IntHashSet uniqueValidPaths = new IntHashSet();
 
     /** Set of hashes of all valid paths generated so far. */
     protected IntHashSet uniqueValidPaths = new IntHashSet();
