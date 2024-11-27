@@ -83,15 +83,15 @@ public class BeDivFuzzGuidance extends ZestGuidance {
             Input currentParentInput = savedInputs.get(currentParentInputIdx);
             int targetNumChildren = getTargetChildrenForParent(currentParentInput);
             if (numChildrenGeneratedForCurrentParentInput >= targetNumChildren) {
-                int numUniquePathsAfter = uniqueValidPaths.size();
+                int numUniquePathsAfter = uniquePaths.size();
 
                 // Unfavor inputs that do not produce new paths
-                if (currentParentInput.isFavored() && numUniqueValidPathsAfter <= numUniqueValidPathsBefore) {
+                if (currentParentInput.isFavored() && numUniquePathsAfter <= numUniquePathsBefore) {
                     currentParentInput.setFavored(false);
                     numInputsUnfavored++;
                 }
 
-                numUniqueValidPathsBefore = numUniqueValidPathsAfter;
+                numUniquePathsBefore = numUniquePathsAfter;
             }
         }
         return super.getInput();
@@ -100,10 +100,10 @@ public class BeDivFuzzGuidance extends ZestGuidance {
 
     @Override
     protected List<String> checkSavingCriteriaSatisfied(Result result) {
-        int uniqueValidPathsBefore = uniqueValidPaths.size();
+        int uniquePathsBefore = uniquePaths.size();
         List<String> reasonstoSave = super.checkSavingCriteriaSatisfied(result);
-        int uniqueValidPathsAfter = uniqueValidPaths.size();
-        if ((uniqueValidPathsAfter > uniqueValidPathsBefore) && !savedInputs.isEmpty()) {
+        int uniquePathsAfter = uniquePaths.size();
+        if ((uniquePathsAfter > uniquePathsBefore) && !savedInputs.isEmpty()) {
             TrackingInput currentParent = (TrackingInput) savedInputs.get(currentParentInputIdx);
             currentParent.incrementScore();
         }
