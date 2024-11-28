@@ -18,10 +18,10 @@ import java.util.function.BiConsumer;
 public class BeDivFuzzGuidance extends ZestGuidance {
 
     /** The mutation types that can be performed on the choice sequence. */
-    private enum Mutation {HAVOC, STRUCTURE, VALUE};
+    protected enum Mutation {HAVOC, STRUCTURE, VALUE};
 
     /** The callback responsible for tracing the choice types for each saved input. */
-    private BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> choiceTracer;
+    protected BiConsumer<SplitTrackingSourceOfRandomness, GenerationStatus> choiceTracer;
 
     /** The epsilon-greedy tradeoff between exploration and exploitation. */
     protected final double EPSILON = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.epsilon", "0.2"));
@@ -115,7 +115,6 @@ public class BeDivFuzzGuidance extends ZestGuidance {
 
     @Override
     protected void saveCurrentInput(IntHashSet responsibilities, String why) throws IOException {
-
         // Trace choices of input to save
         TrackingInput trackingInput = new TrackingInput((LinearInput) currentInput);
         currentInput = trackingInput;
@@ -135,8 +134,8 @@ public class BeDivFuzzGuidance extends ZestGuidance {
 
 
     public class TrackingInput extends LinearInput {
-        private final List<Choice> structureChoices = new ArrayList<>();
-        private final List<Choice> valueChoices = new ArrayList<>();
+        protected final List<Choice> structureChoices = new ArrayList<>();
+        protected final List<Choice> valueChoices = new ArrayList<>();
 
         /** Whether the last performed mutation was on the structural or value parameters (exploration or exploitation)*/
         protected Mutation lastMutationType = Mutation.HAVOC;
@@ -153,7 +152,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
             this.values = baseInput.values;
         }
 
-        public void incrementScore() {
+        protected void incrementScore() {
             if (lastMutationType == Mutation.STRUCTURE) {
                 structureScore++;
             } else if (lastMutationType == Mutation.VALUE) {
@@ -161,11 +160,11 @@ public class BeDivFuzzGuidance extends ZestGuidance {
             }
         }
 
-        public double getStructureScore() {
+        protected double getStructureScore() {
             return (structureCount == 0) ? 0 : ((double) structureScore) / structureCount;
         }
 
-        public double getValueScore() {
+        protected double getValueScore() {
             return (valueCount == 0) ? 0 : ((double)valueScore) / valueCount;
         }
 
@@ -183,7 +182,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
         }
 
         @Override
-        public Input fuzz(Random random) {
+         public Input fuzz(Random random) {
             if (structureChoices.isEmpty() || valueChoices.isEmpty() || random.nextDouble() < HAVOC_RATE)  {
                 lastMutationType = Mutation.HAVOC;
                 return super.fuzz(random);
@@ -193,7 +192,7 @@ public class BeDivFuzzGuidance extends ZestGuidance {
             }
         }
 
-        public Input fuzzTargeted(Mutation mutationType, Random random) {
+        protected Input fuzzTargeted(Mutation mutationType, Random random) {
             // Clone this input to create initial version of new child
             LinearInput newInput = new LinearInput(this);
 
@@ -240,7 +239,11 @@ public class BeDivFuzzGuidance extends ZestGuidance {
             return newInput;
         }
 
-        public void validateChoiceSequence() {
+        protected int structuralHashCode() {
+            return structureChoices.hashCode();
+        }
+
+        protected void validateChoiceSequence() {
             int structureOffset = 0;
             if (!structureChoices.isEmpty()) {
                 Choice lastChoice = structureChoices.get(structureChoices.size() - 1);
