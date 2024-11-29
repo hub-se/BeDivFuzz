@@ -15,35 +15,40 @@ import org.junit.runner.RunWith;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Compilable;
-import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+
 
 @RunWith(BeDivFuzz.class)
 public class CompilerTest {
-    private NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-    private ScriptEngine engine = factory.getScriptEngine("-strict", "--language=es6");
 
-    @Fuzz
-    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
+    private static final NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+    private static final ScriptEngine engine = factory.getScriptEngine("-strict", "--language=es6");
+
+    public void testWithReader(Reader reader) {
         try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
+            ((Compilable) engine).compile(reader);
+        } catch (ScriptException e) {
             Assume.assumeNoException(e);
         }
     }
 
+    public void testWithInputStream(InputStream in) {
+        testWithReader(new InputStreamReader(in));
+    }
+
+    @Fuzz
+    public void testWithGenerator(@From(JavaScriptCodeGenerator.class) String code) {
+        testWithReader(new StringReader(code));
+    }
+
     @Fuzz
     public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
-        try {
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
-            Assume.assumeNoException(e);
-        }
+        testWithReader(new StringReader(code));
     }
 
     @Fuzz

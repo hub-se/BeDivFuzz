@@ -30,8 +30,11 @@ package edu.berkeley.cs.jqf.examples.tomcat;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 import com.pholser.junit.quickcheck.From;
+import com.pholser.junit.quickcheck.generator.Size;
 import de.hub.se.jqf.bedivfuzz.BeDivFuzz;
 import de.hub.se.jqf.bedivfuzz.examples.xml.SplitXmlDocumentGenerator;
 import edu.berkeley.cs.jqf.examples.xml.XMLDocumentUtils;
@@ -51,20 +54,37 @@ public class WebXmlTest {
 
     @Fuzz
     public void testWithInputStream(InputStream in) {
-        InputSource inputSource = new InputSource(in);
-        WebXml webXml = new WebXml();
-        WebXmlParser parser = new WebXmlParser(false, false, true);
-        boolean success = parser.parseWebXml(inputSource, webXml, false);
-        Assume.assumeTrue(success);
+        PrintStream err = suppressStandardErr();
+        try {
+            WebXml webXml = new WebXml();
+            WebXmlParser parser = new WebXmlParser(false, false, true);
+            Assume.assumeTrue(parser.parseWebXml(new InputSource(in), webXml, false));
+        } finally {
+            System.setErr(err);
+        }
+    }
+
+    public static PrintStream suppressStandardErr() {
+        PrintStream result = System.err;
+        System.setErr(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {
+            }
+        }));
+        return result;
     }
 
     @Fuzz
-    public void testWithGenerator(@From(XmlDocumentGenerator.class) @Dictionary("dictionaries/tomcat-webxml.dict") Document dom) {
+    public void testWithGenerator(@From(XmlDocumentGenerator.class)
+                                      @Size(max = 10)
+                                      @Dictionary("dictionaries/tomcat-webxml.dict") Document dom) {
         testWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
     }
 
     @Fuzz
-    public void testWithSplitGenerator(@From(SplitXmlDocumentGenerator.class) @Dictionary("dictionaries/tomcat-webxml.dict") Document dom) {
+    public void testWithSplitGenerator(@From(SplitXmlDocumentGenerator.class)
+                                           @Size(max = 10)
+                                           @Dictionary("dictionaries/tomcat-webxml.dict") Document dom) {
         testWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
     }
 

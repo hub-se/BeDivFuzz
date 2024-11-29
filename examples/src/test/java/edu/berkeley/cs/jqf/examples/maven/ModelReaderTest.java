@@ -65,22 +65,25 @@ public class ModelReaderTest {
 
     @Fuzz
     public void testWithGenerator(@From(XmlDocumentGenerator.class)
-                                      @Size(min = 0, max = 10)
-                                      @Dictionary("dictionaries/maven-model.dict") Document dom) {
+                                      @Size(max = 10)
+                                      @Dictionary("dictionaries/maven-model.dict")
+                                      Document dom) {
         testWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
     }
 
     @Fuzz
     public void testWithSplitGenerator(@From(SplitXmlDocumentGenerator.class)
-								  @Size(min = 0, max = 10)
-                                  @Dictionary("dictionaries/maven-model.dict") Document dom) {
+								            @Size(max = 10)
+                                            @Dictionary("dictionaries/maven-model.dict")
+                                            Document dom) {
         testWithInputStream(XMLDocumentUtils.documentToInputStream(dom));
     }
 
     @Fuzz
     public void debugWithGenerator(@From(XmlDocumentGenerator.class)
-									   @Size(min = 0, max = 10)
-                                       @Dictionary("dictionaries/maven-model.dict") Document dom) {
+									   @Size(max = 10)
+                                       @Dictionary("dictionaries/maven-model.dict")
+                                       Document dom) {
         System.out.println(XMLDocumentUtils.documentToString(dom));
         testWithGenerator(dom);
     }

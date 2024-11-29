@@ -670,6 +670,7 @@ public class ZestGuidance implements Guidance {
                 if (COUNT_UNIQUE_PATHS || LOG_UNIQUE_PATH_INPUTS) {
                     int numUniquePaths = uniquePaths.size();
                     int numUniqueValidPaths = uniqueValidPaths.size();
+
                     console.printf("  Unique paths:       %,d (%.2f%% of execs)\n", numUniquePaths, numUniquePaths * 100.0 / numTrials);
                     console.printf("  Unique valid paths: %,d (%.2f%% of execs)\n", numUniqueValidPaths, numUniqueValidPaths * 100.0 / numTrials);
                 }

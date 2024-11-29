@@ -8,7 +8,9 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 
@@ -20,6 +22,9 @@ import org.objectweb.asm.ClassWriter;
 public class SnoopInstructionTransformer implements ClassFileTransformer {
   private static final String instDir = Config.instance.instrumentationCacheDir;
   private static final boolean verbose = Config.instance.verbose;
+  private static final boolean instrumentGenerators = Boolean.parseBoolean(System.getProperty("jqf.instrument.INSTRUMENT_GENERATORS", "false"));
+  private static final boolean instrumentSplitGenerators = Boolean.parseBoolean(System.getProperty("jqf.instrument.INSTRUMENT_SPLIT_GENERATORS", "false"));
+
   private static String[] banned = {"[", "java/lang", "org/eclipse/collections", "edu/berkeley/cs/jqf/fuzz/util", "janala", "org/objectweb/asm", "sun", "jdk", "java/util/function"};
   private static String[] excludes = Config.instance.excludeInst;
   private static String[] includes = Config.instance.includeInst;
@@ -29,6 +34,17 @@ public class SnoopInstructionTransformer implements ClassFileTransformer {
     for (int i = 0; i < patterns.length; i++) {
       semantic[i] = Pattern.compile(patterns[i] + ".*");
     }
+
+    // We don't instrument the generators and test drivers by default, but some guidances (like EI) may require it.
+    // On the other hand BeDivFuzz-split only wants to instrument one type of generator.
+    List<String> allIncludes = new ArrayList<>(Arrays.asList(includes));
+    if (instrumentGenerators) {
+      allIncludes.add("edu/berkeley/cs/jqf/examples");
+    }
+    if (instrumentSplitGenerators) {
+      allIncludes.add("de/hub/se/jqf/bedivfuzz/examples");
+    }
+    includes = allIncludes.toArray(new String[0]);
   }
 
   public static void premain(String agentArgs, Instrumentation inst) throws ClassNotFoundException {

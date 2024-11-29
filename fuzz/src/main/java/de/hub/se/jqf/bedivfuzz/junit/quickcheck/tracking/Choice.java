@@ -21,4 +21,19 @@ public class Choice {
         return this.offset + ":" + this.size;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Choice choice = (Choice) o;
+        return offset == choice.offset && size == choice.size;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = offset;
+        result = 31 * result + size;
+        return result;
+    }
 }
