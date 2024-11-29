@@ -50,16 +50,4 @@ public class CompilerTest {
     public void testWithSplitGenerator(@From(SplitJavaScriptCodeGenerator.class) String code) {
         testWithReader(new StringReader(code));
     }
-
-    @Fuzz
-    public void testWithInputStream(InputStream in) throws IOException {
-        //System.setProperty("nashorn.args", "--no-deprecation-warning");
-        try {
-            String code = IOUtils.toString(in, StandardCharsets.UTF_8);
-            CompiledScript compiled = ((Compilable) engine).compile(code);
-        }
-        catch (ScriptException e) {
-            Assume.assumeNoException(e);
-        }
-    }
 }
