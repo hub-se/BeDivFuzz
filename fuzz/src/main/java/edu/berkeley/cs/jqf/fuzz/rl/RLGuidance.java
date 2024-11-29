@@ -234,6 +234,7 @@ public class RLGuidance implements Guidance {
     @Override
     public InputStream getInput() throws IllegalStateException, GuidanceException {
         runCoverage.clear();
+        if (TRACK_SEMANTIC_COVERAGE) semanticRunCoverage.clear();
         currentInput = generator.generate();
 
         // Start time-counting for timeout handling
