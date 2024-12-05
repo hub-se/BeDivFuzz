@@ -52,9 +52,8 @@ public class BeDivFuzzBaselineDriver {
                 }
             }
 
-            // Disable havoc mutations and enable validity fuzzing
+            // Disable havoc mutations
             System.setProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.0");
-            //System.setProperty("jqf.ei.SAVE_ONLY_VALID", "true");
 
             if (seedFiles == null) {
                 guidance = new BeDivFuzzBaselineGuidance(title, duration, null, outputDirectory, rnd);
