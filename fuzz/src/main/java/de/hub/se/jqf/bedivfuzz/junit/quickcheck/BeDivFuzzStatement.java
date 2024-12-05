@@ -5,6 +5,7 @@ import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
 import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.SplitGeneratorGuidance;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
 import edu.berkeley.cs.jqf.fuzz.guidance.*;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.FuzzStatement;
@@ -61,8 +62,8 @@ public class BeDivFuzzStatement extends Statement {
             throw new GuidanceException("Parameter generators must extend the SplitGenerator<T> class.");
         }
 
-        if (fuzzGuidance instanceof BeDivFuzzGuidance) {
-            ((BeDivFuzzGuidance) fuzzGuidance).registerChoiceTracer(this::traceChoicesFromParameters);
+        if (fuzzGuidance instanceof SplitGeneratorGuidance) {
+            ((SplitGeneratorGuidance) fuzzGuidance).registerChoiceTracer(this::traceChoicesFromParameters);
         }
 
     }

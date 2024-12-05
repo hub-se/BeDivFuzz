@@ -1,9 +1,12 @@
-package de.hub.se.jqf.bedivfuzz.guidance;
+package de.hub.se.jqf.bedivfuzz.guidance.baseline;
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
+import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.SplitGeneratorGuidance;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.SplitTrackingSourceOfRandomness;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.tracking.Choice;
 import edu.berkeley.cs.jqf.fuzz.ei.ZestGuidance;
+import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
 import edu.berkeley.cs.jqf.fuzz.guidance.Result;
 import edu.berkeley.cs.jqf.fuzz.junit.quickcheck.NonTrackingGenerationStatus;
 import edu.berkeley.cs.jqf.fuzz.util.IOUtils;
@@ -15,7 +18,10 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGuidance {
+public class BeDivFuzzBaselineGuidance extends ZestGuidance implements SplitGeneratorGuidance {
+
+    /** The set of all saved input structure hashes. */
+    protected IntHashSet savedInputStructures = new IntHashSet();
 
     /** The mutation types that can be performed on the choice sequence. */
     protected enum Mutation {HAVOC, STRUCTURE, VALUE};
@@ -26,15 +32,15 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
     /** The epsilon-greedy tradeoff between exploration and exploitation. */
     protected final double EPSILON = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.epsilon", "0.2"));
 
-    /** The havoc mutation probability. */
-    protected final double HAVOC_RATE = Double.parseDouble(System.getProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.1"));
+    /** Save only inputs that increase coverage and have a novel input structure. */
+    protected final boolean STUCTURAL_FUZZING = Boolean.getBoolean("jqf.guidance.bedivfuzz.STRUCTUAL_FUZZING");
 
-    public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
+    public BeDivFuzzBaselineGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
         this.COUNT_UNIQUE_PATHS = true;
     }
 
-    public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File[] seedInputFiles, Random sourceOfRandomness) throws IOException {
+    public BeDivFuzzBaselineGuidance(String testName, Duration duration, Long trials, File outputDirectory, File[] seedInputFiles, Random sourceOfRandomness) throws IOException {
         this(testName, duration, trials, outputDirectory, sourceOfRandomness);
         if (seedInputFiles != null) {
             for (File seedInputFile : seedInputFiles) {
@@ -43,7 +49,7 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
         }
     }
 
-    public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File seedInputDir, Random sourceOfRandomness) throws IOException {
+    public BeDivFuzzBaselineGuidance(String testName, Duration duration, Long trials, File outputDirectory, File seedInputDir, Random sourceOfRandomness) throws IOException {
         this(testName, duration, trials, outputDirectory, IOUtils.resolveInputFileOrDirectory(seedInputDir), sourceOfRandomness);
     }
 
@@ -54,8 +60,14 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
 
     @Override
     protected String getTitle() {
-        return "BeDivFuzz: Behavioral Diversity Fuzzing\n" +
+        if (STUCTURAL_FUZZING)
+            return "BeDivFuzz-Structure: Behavioral Diversity Fuzzing with Input Structure Feedback\n" +
                 "--------------------------\n";
+        else {
+
+            return "BeDivFuzz-Simple: Behavioral Diversity Fuzzing\n" +
+                    "--------------------------\n";
+        }
     }
 
     @Override
@@ -72,65 +84,129 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
                 TrackingInput parent = (TrackingInput) savedInputs.get(currentParentInputIdx);
                 console.printf("  Explore/Exploit:    %.2f/%.2f\n", parent.getStructureScore(), parent.getValueScore());
             }
-        }
-    }
-
-    /*
-    @Override
-    public InputStream getInput() throws GuidanceException {
-        if (!savedInputs.isEmpty()) {
-            // The number of children to produce is determined by how much of the coverage
-            // pool this parent input hits
-            Input currentParentInput = savedInputs.get(currentParentInputIdx);
-            int targetNumChildren = getTargetChildrenForParent(currentParentInput);
-            if (numChildrenGeneratedForCurrentParentInput >= targetNumChildren) {
-                int numUniquePathsAfter = uniquePaths.size();
-
-                // Unfavor inputs that do not produce new paths
-                if (currentParentInput.isFavored() && numUniquePathsAfter <= numUniquePathsBefore) {
-                    currentParentInput.setFavored(false);
-                    numInputsUnfavored++;
-                }
-
-                numUniquePathsBefore = numUniquePathsAfter;
+            if (STUCTURAL_FUZZING) {
+                console.printf("  Input structures:   %,d\n", savedInputStructures.size());
             }
         }
-        return super.getInput();
     }
-     */
 
+    // Return a list of saving criteria that have been satisfied for a non-failure input
     @Override
     protected List<String> checkSavingCriteriaSatisfied(Result result) {
-        int uniquePathsBefore = uniquePaths.size();
-        List<String> reasonstoSave = super.checkSavingCriteriaSatisfied(result);
-        int uniquePathsAfter = uniquePaths.size();
-        if ((uniquePathsAfter > uniquePathsBefore) && !savedInputs.isEmpty()) {
-            TrackingInput currentParent = (TrackingInput) savedInputs.get(currentParentInputIdx);
-            currentParent.incrementScore();
-            if (result == Result.SUCCESS) {
+        // Update hit counts and unique paths metrics
+        boolean valid = result == Result.SUCCESS;
+        boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY || LOG_UNIQUE_PATH_INPUTS;
+        if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+            if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                if (TRACK_SEMANTIC_COVERAGE) {
+                    branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                } else {
+                    branchHitCounter.incrementBranchCounts(runCoverage);
+                }
+            }
+
+            if (LOG_UNIQUE_PATH_INPUTS) {
+                String saveFileName = String.format("id_%09d", uniquePaths.size());
+                File saveFile = new File(uniquePathInputsDirectory, saveFileName);
+                GuidanceException.wrap(() -> writeCurrentInputToFile(saveFile));
+            }
+
+            if (valid) {
+                uniqueValidPaths.add(runCoverage.hashCode());
+            }
+
+            // Update score for last performed mutation
+            if (!savedInputs.isEmpty()) {
+                TrackingInput currentParent = (TrackingInput) savedInputs.get(currentParentInputIdx);
                 currentParent.incrementScore();
             }
         }
-        return reasonstoSave;
+
+        // Coverage before
+        int nonZeroBefore = totalCoverage.getNonZeroCount();
+        int validNonZeroBefore = validCoverage.getNonZeroCount();
+
+        // Update total coverage
+        boolean coverageBitsUpdated = totalCoverage.updateBits(runCoverage);
+        if (TRACK_SEMANTIC_COVERAGE) semanticTotalCoverage.updateBits(semanticRunCoverage);
+
+        // BeDivFuzz-simple searches for valid coverage-increasing inputs
+        // BeDivFuzz-structure also requires coverage-increasing inputs to have a different structure
+        if (valid) {
+            if (STUCTURAL_FUZZING) {
+                TrackingInput tracedInput = traceCurrentInput();
+                int structuralHash = tracedInput.structuralHashCode();
+                if (!savedInputStructures.contains(structuralHash)) {
+                    validCoverage.updateBits(runCoverage);
+                }
+            } else {
+                validCoverage.updateBits(runCoverage);
+            }
+        }
+
+        // Coverage after
+        int nonZeroAfter = totalCoverage.getNonZeroCount();
+        if (nonZeroAfter > maxCoverage) {
+            maxCoverage = nonZeroAfter;
+        }
+        int validNonZeroAfter = validCoverage.getNonZeroCount();
+
+        // Possibly save input
+        List<String> reasonsToSave = new ArrayList<>();
+
+        if (!DISABLE_SAVE_NEW_COUNTS && coverageBitsUpdated) {
+            reasonsToSave.add("+count");
+        }
+
+        // Save if new total coverage found
+        if (nonZeroAfter > nonZeroBefore) {
+            reasonsToSave.add("+cov");
+        }
+
+        // Save if new total coverage found
+        if (validNonZeroAfter > validNonZeroBefore) {
+            reasonsToSave.add("+valid");
+        }
+
+        return reasonsToSave;
     }
 
     @Override
     protected void saveCurrentInput(IntHashSet responsibilities, String why) throws IOException {
-        // Trace choices of input to save
-        TrackingInput trackingInput = new TrackingInput((LinearInput) currentInput);
-        currentInput = trackingInput;
+        // Guidance decides to save the input, ensure choice types are traced
+        if (! (currentInput instanceof TrackingInput)) {
+            traceCurrentInput();
+        }
+
+        // Let Zest handle the input-saving logic on the traced input
+        super.saveCurrentInput(responsibilities, why);
+
+        // Now decide if we want to favor the input
+        boolean valid = why.endsWith("valid");
+        if (STUCTURAL_FUZZING) {
+            // BeDivFuzz-structure favors valid coverage-increasing inputs with novel structure
+            boolean favor = valid && savedInputStructures.add(((TrackingInput) currentInput).structuralHashCode());
+            currentInput.setFavored(favor);
+        } else {
+            // BeDivFuzz-simple favors valid coverage-increasing inputs
+            currentInput.setFavored(valid);
+        }
+    }
+
+    // Identifies structural and value choices of current input
+    private TrackingInput traceCurrentInput() {
+        TrackingInput tracedInput = new TrackingInput((LinearInput) currentInput);
+        currentInput = tracedInput;
 
         SplitTrackingSourceOfRandomness random = new SplitTrackingSourceOfRandomness(
                 createParameterStream(),
-                trackingInput.structureChoices,
-                trackingInput.valueChoices
+                tracedInput.structureChoices,
+                tracedInput.valueChoices
         );
 
         GenerationStatus genStatus = new NonTrackingGenerationStatus(random.getStructureDelegate());
         choiceTracer.accept(random, genStatus);
-
-        // Save tracking input
-        super.saveCurrentInput(responsibilities, why);
+        return tracedInput;
     }
 
 
@@ -183,8 +259,8 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
         }
 
         @Override
-         public Input fuzz(Random random) {
-            if (structureChoices.isEmpty() || valueChoices.isEmpty() || random.nextDouble() < HAVOC_RATE)  {
+        public Input fuzz(Random random) {
+            if (structureChoices.isEmpty() || valueChoices.isEmpty())  {
                 lastMutationType = Mutation.HAVOC;
                 return super.fuzz(random);
             } else {
@@ -243,27 +319,5 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
         protected int structuralHashCode() {
             return structureChoices.hashCode();
         }
-
-        protected void validateChoiceSequence() {
-            int structureOffset = 0;
-            if (!structureChoices.isEmpty()) {
-                Choice lastChoice = structureChoices.get(structureChoices.size() - 1);
-                structureOffset = lastChoice.getOffset() + Math.abs(lastChoice.getSize());
-            }
-
-            if (structureOffset != requested) {
-                int valueOffset = 0;
-                if (!valueChoices.isEmpty()) {
-                    Choice lastChoice = valueChoices.get(valueChoices.size() - 1);
-                    valueOffset = lastChoice.getOffset() + Math.abs(lastChoice.getSize());
-                }
-
-                if (valueOffset != requested) {
-                    throw new IllegalStateException(String.format("Choice sequence not aligned with requests: " +
-                            "requested = %d, offset = %d", requested, Math.max(structureOffset, valueOffset)));
-                }
-            }
-        }
     }
-
 }

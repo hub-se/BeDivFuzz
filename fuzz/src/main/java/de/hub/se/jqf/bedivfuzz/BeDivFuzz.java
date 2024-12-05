@@ -1,6 +1,8 @@
 package de.hub.se.jqf.bedivfuzz;
 
 import de.hub.se.jqf.bedivfuzz.guidance.BeDivFuzzGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.SplitGeneratorGuidance;
+import de.hub.se.jqf.bedivfuzz.guidance.baseline.BeDivFuzzBaselineGuidance;
 import de.hub.se.jqf.bedivfuzz.junit.quickcheck.BeDivFuzzStatement;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
@@ -23,7 +25,7 @@ public class BeDivFuzz extends JQF {
     @Override
     public Statement methodBlock(FrameworkMethod method) {
         Guidance guidance = GuidedFuzzing.getCurrentGuidance();
-        if (!(guidance instanceof BeDivFuzzGuidance)) {
+        if (!(guidance instanceof SplitGeneratorGuidance)) {
             return super.methodBlock(method);
         }
 
