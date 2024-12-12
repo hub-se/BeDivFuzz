@@ -40,10 +40,8 @@ output_dir=eval-results/$SLURM_JOB_NAME-$SLURM_ARRAY_JOB_ID/rlcheck/dry-run/$pro
 
 echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running RLCheck dry-run on $project (trial $trial), writing results to $output_dir."
 
-#bin/jqf-rl -n -T 3h -r 3000 -m UPATHS:BEDIV -f -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithInputStream edu.berkeley.cs.jqf.examples.$generator rlcheck-config/$subject.json /vol/tmp/nguyehoa/$output_dir"
-#
-bin/jqf-rl -n -T 3h -r 3000 -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithInputStream edu.berkeley.cs.jqf.examples.$generator rlcheck-config/$subject.json /vol/tmp/nguyehoa/$output_dir"
+bin/jqf-rl -n -T 3h -r 3000 -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.$subject testWithInputStream edu.berkeley.cs.jqf.examples.$generator rlcheck-config/$subject.json /vol/tmp/nguyehoa/$output_dir
 PID=$!
 wait $PID
 
-#echo "[$(date)] Finished task. Files have been written to /vol/tmp/nguyehoa/$output_dir."
+echo "[$(date)] Finished task. Files have been written to /vol/tmp/nguyehoa/$output_dir."
