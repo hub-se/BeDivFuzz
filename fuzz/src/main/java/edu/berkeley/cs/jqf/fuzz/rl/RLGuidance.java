@@ -102,8 +102,11 @@ public class RLGuidance implements Guidance {
     /** Set of hashes of all valid inputs generated so far. */
     protected Set<Integer> uniqueValidInputs = new HashSet<>();
 
-    /** Set of hashes of all paths generated so far. */
+    /** Set of hashes of all valid paths generated so far. */
     protected IntHashSet uniqueValidPaths = new IntHashSet();
+
+    /** Set of hashes of all paths generated so far. */
+    protected IntHashSet uniquePaths = new IntHashSet();
 
     /** Coverage diversity metrics for all unique paths. */
     protected BranchHitCounter branchHitCounter = new BranchHitCounter();
@@ -275,6 +278,18 @@ public class RLGuidance implements Guidance {
 
         if (result == Result.SUCCESS || result == Result.INVALID) {
 
+            // Update hit counts
+            boolean checkUniquePath = COUNT_UNIQUE_PATHS || MEASURE_BEHAVIORAL_DIVERSITY;
+            if (checkUniquePath && uniquePaths.add(runCoverage.hashCode())) {
+                if(MEASURE_BEHAVIORAL_DIVERSITY) {
+                    if (TRACK_SEMANTIC_COVERAGE) {
+                        branchHitCounter.incrementBranchCounts(semanticRunCoverage);
+                    } else {
+                        branchHitCounter.incrementBranchCounts(runCoverage);
+                    }
+                }
+            }
+
             // Coverage before
             int nonZeroBefore = totalCoverage.getNonZeroCount();
             int validNonZeroBefore = validCoverage.getNonZeroCount();
@@ -290,16 +305,6 @@ public class RLGuidance implements Guidance {
                 if (!uniqueValidInputs.contains(currentInput.hashCode())){
                     uniqueValidInputs.add(currentInput.hashCode());
 
-                    if(uniqueValidPaths.add(runCoverage.hashCode())) {
-                        if(MEASURE_BEHAVIORAL_DIVERSITY) {
-                            if (TRACK_SEMANTIC_COVERAGE) {
-                                branchHitCounter.incrementBranchCounts(semanticRunCoverage);
-                            } else {
-                                branchHitCounter.incrementBranchCounts(runCoverage);
-                            }
-                        }
-
-                    }
                     boolean has_new_branches_covered = uniqueBranchSets.add(runCoverage.nonZeroHashCode());
                     
                     if (USE_GREYBOX) {
@@ -438,7 +443,7 @@ public class RLGuidance implements Guidance {
         return "# unix_time, cycles_done, cur_path, paths_total, pending_total, " +
                 "pending_favs, map_size, unique_crashes, unique_hangs, max_depth, execs_per_sec, " +
                 "valid_inputs, invalid_inputs, valid_cov, all_covered_probes, valid_covered_probes, num_coverage_probes, " +
-                "covered_semantic_probes, num_semantic_probes, unique_valid_paths, b0, b1, b2";
+                "covered_semantic_probes, num_semantic_probes, unique_paths, unique_valid_paths, b0, b1, b2";
     }
 
     protected String getFailureStatNames() {
@@ -564,7 +569,7 @@ public class RLGuidance implements Guidance {
         }
 
         String plotData = String.format(
-                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
+                "%d, %d, %d, %d, %d, %d, %.2f%%, %d, %d, %d, %.2f, %d, %d, %.2f%%, %d, %d, %d, %d, %d, %d, %d, %.2f, %.2f, %.2f",
                 TimeUnit.MILLISECONDS.toSeconds(now.getTime()),
                 0,
                 0,
@@ -584,6 +589,7 @@ public class RLGuidance implements Guidance {
                 numTotalProbes,
                 semanticNonZeroCount,
                 numSemanticProbes,
+                uniquePaths.size(),
                 uniqueValidPaths.size(),
                 divMetrics.b0(),
                 divMetrics.b1(),
