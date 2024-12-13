@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=8000
-#SBATCH --time=0
+#SBATCH --time=4-00:00:00
 #SBATCH --array=1-360%360
 
 # Ensure tasks are only run on gruenau[3-6]
