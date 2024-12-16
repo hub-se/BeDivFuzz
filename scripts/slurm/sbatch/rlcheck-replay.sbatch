@@ -37,7 +37,7 @@ metrics=${parameters[2]}
 IFS='.' read -r project class <<< "$subject"
 
 dry_run_dir=$dry_run_base_dir/dry-run/$project/trial-$trial
-if [[ $metics == *SEMCOV* ]]; then
+if [[ $metrics == *SEMCOV* ]]; then
     output_dir=$dry_run_base_dir/replay-semantic-$SLURM_ARRAY_JOB_ID/$project/trial-$trial
 else
     output_dir=$dry_run_base_dir/replay-default-$SLURM_ARRAY_JOB_ID/$project/trial-$trial
