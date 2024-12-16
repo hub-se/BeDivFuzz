@@ -43,7 +43,11 @@ metrics=${parameters[2]}
 IFS='.' read -r project class <<< "$subject"
 
 dry_run_dir=$dry_run_base_dir/dry-run/$project/trial-$trial
-output_dir=$dry_run_base_dir/replay-$SLURM_ARRAY_JOB_ID/$project/trial-$trial
+if [[ $metics == *SEMCOV* ]]; then
+    output_dir=$dry_run_base_dir/replay-semantic-$SLURM_ARRAY_JOB_ID/$project/trial-$trial
+else
+    output_dir=$dry_run_base_dir/replay-default-$SLURM_ARRAY_JOB_ID/$project/trial-$trial
+fi
 
 num_execs=$(tail -n 1 $dry_run_dir/plot_data | awk -F', ' '{print $12 + $13}')
 echo "[$(date)] Task $SLURM_ARRAY_TASK_ID: Running RLCheck replay on $project (trial $trial, execs: $num_execs), writing results to $output_dir."
