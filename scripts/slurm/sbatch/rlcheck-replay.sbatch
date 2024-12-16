@@ -7,13 +7,7 @@
 #SBATCH --time=4-00:00:00
 #SBATCH --array=1-360%360
 
-# Ensure tasks are only run on gruenau[3-6]
-#SBATCH --constraint=ivybridge
-
-# Exclusively allocate node for task (use sparingly!)
-##SBATCH --exclusive
-
-dry_run_base_dir=/vol/tmp/nguyehoa/eval-results/eval-rlcheck-dry-run-182707/rlcheck
+dry_run_base_dir=/vol/tmp/nguyehoa/eval-results/eval-rlcheck-182707/rlcheck
 
 BENCHMARKS=(ant.ProjectBuilderTest closure.CompilerTest maven.ModelReaderTest nashorn.CompilerTest rhino.CompilerTest tomcat.WebXmlTest)
 GENERATORS=(xml.XmlRLGenerator js.JavaScriptRLGenerator xml.XmlRLGenerator js.JavaScriptRLGenerator js.JavaScriptRLGenerator xml.XmlRLGenerator)
