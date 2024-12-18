@@ -37,6 +37,7 @@ public class CompilerTest {
         }
     }
 
+    @Fuzz
     public void testWithInputStream(InputStream in) {
         testWithReader(new InputStreamReader(in));
     }
