@@ -12,7 +12,7 @@ print_usage() {
 }
 
 
-while getopts ":c:N:r:t:dflnbm:e:h:uqT:" opt; do
+while getopts ":c:N:r:t:dflnbm:e:h:uqT:N:" opt; do
   case $opt in
     /?)
       echo "Invalid option: -$OPTARG" >&2
@@ -66,6 +66,9 @@ while getopts ":c:N:r:t:dflnbm:e:h:uqT:" opt; do
       ;;
     T)
       export JVM_OPTS="$JVM_OPTS -Djqf.guidance.campaign_timeout=$OPTARG"
+      ;;
+    N)
+      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.MAX_TRIALS=$OPTARG"
       ;;
   esac
 done

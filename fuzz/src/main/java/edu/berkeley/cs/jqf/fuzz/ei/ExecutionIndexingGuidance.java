@@ -162,7 +162,7 @@ public class ExecutionIndexingGuidance extends ZestGuidance {
      * @throws IOException if the output directory could not be prepared
      */
     public ExecutionIndexingGuidance(String testName, Duration duration, File outputDirectory, File[] seedFiles) throws IOException {
-        super(testName, duration, outputDirectory, seedFiles);
+        super(testName, duration, null, outputDirectory, seedFiles);
     }
 
     /** Returns the banner to be displayed on the status screen */

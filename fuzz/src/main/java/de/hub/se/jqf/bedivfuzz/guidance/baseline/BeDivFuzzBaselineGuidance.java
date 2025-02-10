@@ -14,6 +14,7 @@ import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -34,6 +35,9 @@ public class BeDivFuzzBaselineGuidance extends ZestGuidance implements SplitGene
 
     /** Save only inputs that increase coverage and have a novel input structure. */
     protected final boolean STUCTURAL_FUZZING = Boolean.getBoolean("jqf.guidance.bedivfuzz.STRUCTUAL_FUZZING");
+
+    /** Whether to save only valid inputs **/
+    protected final boolean SAVE_ONLY_VALID = Boolean.getBoolean("jqf.guidance.bedivfuzz.SAVE_ONLY_VALID");
 
     public BeDivFuzzBaselineGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
@@ -90,6 +94,63 @@ public class BeDivFuzzBaselineGuidance extends ZestGuidance implements SplitGene
         }
     }
 
+    @Override
+    public InputStream getInput() throws GuidanceException {
+        conditionallySynchronize(multiThreaded, () -> {
+            // Clear coverage stats for this run
+            runCoverage.clear();
+            if (TRACK_SEMANTIC_COVERAGE) semanticRunCoverage.clear();
+
+            // Choose an input to execute based on state of queues
+            if (!seedInputs.isEmpty()) {
+                // First, if we have some specific seeds, use those
+                currentInput = seedInputs.removeFirst();
+
+                // Hopefully, the seeds will lead to new coverage and be added to saved inputs
+
+            } else if (savedInputs.isEmpty()) {
+                // Make fresh input using either list or maps
+                // infoLog("Spawning new input from thin air");
+                currentInput = createFreshInput();
+            } else {
+                // The number of children to produce is determined by how much of the coverage
+                // pool this parent input hits
+                Input currentParentInput = savedInputs.get(currentParentInputIdx);
+                int targetNumChildren = getTargetChildrenForParent(currentParentInput);
+                if (numChildrenGeneratedForCurrentParentInput >= targetNumChildren) {
+                    // Select the next saved input to fuzz
+                    currentParentInputIdx = (currentParentInputIdx + 1) % savedInputs.size();
+
+                    // Count cycles
+                    if (currentParentInputIdx == 0) {
+                        completeCycle();
+                    }
+
+                    numChildrenGeneratedForCurrentParentInput = 0;
+                }
+                Input parent = savedInputs.get(currentParentInputIdx);
+
+                // Fuzz it to get a new input
+                // infoLog("Mutating input: %s", parent.desc);
+                currentInput = parent.fuzz(random);
+                numChildrenGeneratedForCurrentParentInput++;
+
+                // Write it to disk for debugging
+                try {
+                    writeCurrentInputToFile(currentInputFile);
+                } catch (IOException ignore) {
+                }
+
+                // Start time-counting for timeout handling
+                this.runStart = new Date();
+                this.branchCount = 0;
+            }
+        });
+
+        return createParameterStream();
+    }
+
+
     // Return a list of saving criteria that have been satisfied for a non-failure input
     @Override
     protected List<String> checkSavingCriteriaSatisfied(Result result) {
@@ -142,6 +203,8 @@ public class BeDivFuzzBaselineGuidance extends ZestGuidance implements SplitGene
             } else {
                 validCoverage.updateBits(runCoverage);
             }
+        } else if (SAVE_ONLY_VALID) {
+            return List.of();
         }
 
         // Coverage after
@@ -169,6 +232,10 @@ public class BeDivFuzzBaselineGuidance extends ZestGuidance implements SplitGene
         }
 
         return reasonsToSave;
+    }
+
+    @Override
+    protected void completeCycle() {
     }
 
     @Override

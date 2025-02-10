@@ -78,13 +78,14 @@ public class ZestDriver {
                     throw new GuidanceException("Invalid time duration: " + campaignTimeout);
                 }
             }
+            Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");
 
             if (seedFiles == null) {
-                guidance = new ZestGuidance(title, duration, outputDirectory);
+                guidance = new ZestGuidance(title, duration, maxTrials, outputDirectory);
             } else if (seedFiles.length == 1 && seedFiles[0].isDirectory()) {
-                guidance = new ZestGuidance(title, duration, outputDirectory, seedFiles[0]);
+                guidance = new ZestGuidance(title, duration, maxTrials, outputDirectory, seedFiles[0]);
             } else {
-                guidance = new ZestGuidance(title, duration, outputDirectory, seedFiles);
+                guidance = new ZestGuidance(title, duration, maxTrials, outputDirectory, seedFiles);
             }
 
             // To ensure correct printing of float decimal separator

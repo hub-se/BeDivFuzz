@@ -51,16 +51,17 @@ public class BeDivFuzzBaselineDriver {
                     throw new GuidanceException("Invalid time duration: " + campaignTimeout);
                 }
             }
+            Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");
 
             // Disable havoc mutations
             System.setProperty("jqf.guidance.bedivfuzz.havoc_rate", "0.0");
 
             if (seedFiles == null) {
-                guidance = new BeDivFuzzBaselineGuidance(title, duration, null, outputDirectory, rnd);
+                guidance = new BeDivFuzzBaselineGuidance(title, duration, maxTrials, outputDirectory, rnd);
             } else if (seedFiles.length == 1 && seedFiles[0].isDirectory()) {
-                guidance = new BeDivFuzzBaselineGuidance(title, duration, null, outputDirectory, seedFiles[0], rnd);
+                guidance = new BeDivFuzzBaselineGuidance(title, duration, maxTrials, outputDirectory, seedFiles[0], rnd);
             } else {
-                guidance = new BeDivFuzzBaselineGuidance(title, duration, null, outputDirectory, seedFiles, rnd);
+                guidance = new BeDivFuzzBaselineGuidance(title, duration, maxTrials, outputDirectory, seedFiles, rnd);
             }
 
             Locale.setDefault(Locale.US);

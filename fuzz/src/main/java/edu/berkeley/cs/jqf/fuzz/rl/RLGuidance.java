@@ -302,6 +302,7 @@ public class RLGuidance implements Guidance {
 
             if (valid) {
                 validCoverage.updateBits(runCoverage);
+                uniqueValidPaths.add(runCoverage.hashCode());
                 if (!uniqueValidInputs.contains(currentInput.hashCode())){
                     uniqueValidInputs.add(currentInput.hashCode());
 

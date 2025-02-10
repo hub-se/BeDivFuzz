@@ -51,8 +51,9 @@ public class BeDivFuzzStructureDriver {
                     throw new GuidanceException("Invalid time duration: " + campaignTimeout);
                 }
             }
+            Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");
 
-            guidance = new BeDivFuzzStructureGuidance(title, duration, null, outputDirectory, rnd);
+            guidance = new BeDivFuzzStructureGuidance(title, duration, maxTrials, outputDirectory, rnd);
 
             Locale.setDefault(Locale.US);
 

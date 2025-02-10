@@ -51,13 +51,15 @@ public class BeDivFuzzDriver {
                     throw new GuidanceException("Invalid time duration: " + campaignTimeout);
                 }
             }
+            Long maxTrials = Long.getLong("jqf.guidance.MAX_TRIALS");
+
 
             if (seedFiles == null) {
-                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, maxTrials, outputDirectory, rnd);
             } else if (seedFiles.length == 1 && seedFiles[0].isDirectory()) {
-                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, seedFiles[0], rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, maxTrials, outputDirectory, seedFiles[0], rnd);
             } else {
-                guidance = new BeDivFuzzGuidance(title, duration, null, outputDirectory, seedFiles, rnd);
+                guidance = new BeDivFuzzGuidance(title, duration, maxTrials, outputDirectory, seedFiles, rnd);
             }
 
             Locale.setDefault(Locale.US);

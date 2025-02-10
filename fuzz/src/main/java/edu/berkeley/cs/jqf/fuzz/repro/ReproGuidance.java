@@ -29,23 +29,11 @@
  */
 package edu.berkeley.cs.jqf.fuzz.repro;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import edu.berkeley.cs.jqf.fuzz.guidance.Guidance;
 import edu.berkeley.cs.jqf.fuzz.guidance.GuidanceException;
@@ -78,6 +66,7 @@ import org.jacoco.report.csv.CSVFormatter;
 public class ReproGuidance implements Guidance {
     protected final File[] inputFiles;
     private final File traceDir;
+    protected File failureStatsFile;
     protected int nextFileIdx = 0;
     private List<PrintStream> traceStreams = new ArrayList<>();
     private InputStream inputStream;
@@ -127,6 +116,13 @@ public class ReproGuidance implements Guidance {
             System.out.println("Tracking semantic coverage: " + System.getProperty("janala.semanticAnalysisClasses"));
             FastCoverageSnoop.setFastCoverageListener((FastCoverageListener) this.totalCoverage);
             FastSemanticCoverageSnoop.setCoverageListeners((FastCoverageListener) this.totalCoverage, (FastCoverageListener) this.semanticCoverage);
+        }
+
+        String failureLogPath = System.getProperty("jqf.repro.failureLog");
+        if (failureLogPath != null) {
+            this.failureStatsFile = new File(failureLogPath);
+            failureStatsFile.delete();
+            appendLineToFile(this.failureStatsFile, "# crash_id, exception_class, location, message, stack_trace");
         }
 
     }
@@ -290,6 +286,28 @@ public class ReproGuidance implements Guidance {
             }
         }
 
+        // Maybe write to failure log
+        if (result == Result.FAILURE && failureStatsFile != null) {
+            Throwable rootCause = error;
+            while (rootCause.getCause() != null) {
+                rootCause = rootCause.getCause();
+            }
+
+            String crashId = getCurrentInputFile().getName();
+            String stackTrace = Arrays.stream(rootCause.getStackTrace())
+                    .map(StackTraceElement::toString)
+                    .limit(5)
+                    .collect(Collectors.joining("-"));
+            String location = Arrays.stream(rootCause.getStackTrace())
+                    .map(StackTraceElement::toString)
+                    .findFirst().orElse(null);
+            String msg = error.getMessage();
+
+            // "# crash_id, exception_class, location, message, stack_trace"
+            String line = String.format("%s, %s, %s, %s, %s", crashId, error.getClass(), location, (msg != null ? msg.split("\\R")[0].replace(',', ';') : "(no message)"), stackTrace);
+            appendLineToFile(failureStatsFile, line);
+        }
+
         // Maybe checkpoint JaCoCo coverage
         String jacocoAccumulateJar = System.getProperty("jqf.repro.jacocoAccumulateJar");
         if (jacocoAccumulateJar != null) {
@@ -302,6 +320,15 @@ public class ReproGuidance implements Guidance {
         nextFileIdx++;
 
 
+    }
+
+    /* Writes a line of text to a given log file. */
+    protected void appendLineToFile(File file, String line) throws GuidanceException {
+        try (PrintWriter out = new PrintWriter(new FileWriter(file, true))) {
+            out.println(line);
+        } catch (IOException e) {
+            throw new GuidanceException(e);
+        }
     }
 
     /**
