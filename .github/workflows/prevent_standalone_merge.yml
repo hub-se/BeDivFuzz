@@ -1,0 +1,16 @@
+name: Prevent merging standalone into main
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  block_merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        run: |
+          if [[ "${{ github.head_ref }}" == "standalone" ]]; then
+            echo "Merging branch 'standalone' into main is not allowed."
+            exit 1
+          fi
