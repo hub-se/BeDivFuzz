@@ -28,13 +28,13 @@ We provide two methods to run BeDivFuzz: Using a shell script and as a maven plu
 
 ### Using the `jqf-bedivfuzz` script:
 ```
-bin/jqf-bedivfuzz -c $(scripts/examples_classpath.sh) $TEST_CLASS $TEST_METHOD $OUTPUT_DIR
+bin/jqf-bedivfuzz -c $(scripts/examples_classpath.sh) <TEST_CLASS> <TEST_METHOD> <OUTPUT_DIR>
 ```
-`$TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
+`TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
 
-`$TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `$TEST_CLASS`.
+`TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `TEST_CLASS`.
 
-`$OUTPUT_DIR`: The directory where all output (fuzz corpus, failures, plot data) will be saved.
+`OUTPUT_DIR`: The directory where all output (fuzz corpus, failures, plot data) will be saved.
 Defaults to `fuzz-results`.
 
 #### Example: Fuzzing Apache Maven
@@ -45,11 +45,11 @@ bin/jqf-bedivfuzz -c $(scripts/examples_classpath.sh) de.hub.se.bedivfuzz.exampl
 <details>
 <summary><h4 style="display:inline-block">Additional options</h4></summary>
 
-`-e $EPSILON`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
+`-e <EPSILON>`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
 
-`-h $HAVOC_RATE`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
+`-h <HAVOC_RATE>`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
 
-`-T $TIMEOUT`: The total time to run the fuzzing campaign (default: no timeout).
+`-T <TIMEOUT>`: The total time to run the fuzzing campaign (default: no timeout).
 
 `-f`: Enables fast, non-colliding instrumentation, which improves fuzzer throughput.
 
@@ -66,13 +66,13 @@ bin/jqf-bedivfuzz -T 1h -fs -c $(scripts/examples_classpath.sh) de.hub.se.bedivf
 > [!NOTE]
 > The BeDivFuzz Maven plugin needs to be launched from the `examples` directory.
 ```
-mvn bedivfuzz:fuzz -Dclass=$TEST_CLASS -Dmethod=$TEST_METHOD -Dout=$OUTPUT_DIR
+mvn bedivfuzz:fuzz -Dclass=<TEST_CLASS> -Dmethod=<TEST_METHOD> -Dout=<OUTPUT_DIR>
 ```
-`$TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
+`TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
 
-`$TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `$TEST_CLASS`.
+`TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `TEST_CLASS`.
 
-`$OUTPUT_DIR`: The output directory. Defaults to `examples/target/fuzz-results/$TEST_CLASS/$TEST_METHOD`.
+`OUTPUT_DIR`: The output directory. Defaults to `examples/target/fuzz-results/<TEST_CLASS>/<TEST_METHOD>`.
 
 #### Example: Fuzzing Mozilla Rhino
 ```
@@ -82,13 +82,22 @@ mvn bedivfuzz:fuzz -Dclass=de.hub.se.bedivfuzz.examples.rhino.CompilerTest -Dmet
 <details>
 <summary><h4 style="display:inline-block">Additional options</h4></summary>
 
-`-Depsilon $EPSILON`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
+`-Depsilon <EPSILON>`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
 
-`-DhavocRate $HAVOC_RATE`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
+`-DhavocRate <HAVOC_RATE>`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
 
-`-Dtime $TIMEOUT`: The total time to run the fuzzing campaign (default: no timeout).
+`-Dtime <TIMEOUT>`: The total time to run the fuzzing campaign (default: no timeout).
 
 `-DfastInstrumentation`: Enables fast, non-colliding instrumentation, which improves fuzzer throughput.
 
 `-DstructuralFeedback`: Enables input structure feedback, favoring valid inputs with novel input structures.
 </details>
+
+
+## Reproducing failures
+Failures discovered during a fuzzing campaign are saved under `OUTPUT_DIR/failures`.
+To reproduce them, use the `jqf-repro` script:
+```
+bin/jqf-repro -c $(scripts/examples_classpath.sh) <TEST_CLASS> <TEST_METHOD> <INPUT_FILE> [<INPUT_FILE> ...]
+```
+`INPUT_FILE`: One or more space-separated input files to execute with `TEST_METHOD` in `TEST_CLASS`.
