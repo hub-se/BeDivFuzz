@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-
+/**
+ * A source of randomness that distinguishes between structural and value random choices.
+ * Additionally, keeps track of the choice indices for each choice type.
+ */
 public class SplitTracingSourceOfRandomness implements SplitRandom {
     private final List<Choice> structuralIndices;
     private final List<Choice> valueIndices;

@@ -102,12 +102,12 @@ public class FuzzGoal extends AbstractMojo {
     private String testMethod;
 
     /**
-     * The instrumentation method.
+     * Whether to use the fast instrumentation method.
      *
-     * <p>One of 'janala' and 'fast'. Default is 'fast'.</p>
+     * <p>If not provided, defaults to {@code false}.</p>
      */
-    @Parameter(property="instrumentation", defaultValue="fast")
-    private String instrumentation;
+    @Parameter(property="fastInstrumentation")
+    private boolean fastInstrumentation;
 
     /**
      * Comma-separated list of FQN prefixes to exclude from
@@ -249,7 +249,7 @@ public class FuzzGoal extends AbstractMojo {
      * <p>If not provided, defaults to {@code false}.</p>
      */
     @Parameter(property="inputStructureFeedback")
-    private boolean inputStructureFeedback;
+    private boolean structuralFeedback;
 
 
     @Override
@@ -261,15 +261,8 @@ public class FuzzGoal extends AbstractMojo {
         Result result;
 
         // Configure instrumentation
-        switch (instrumentation) {
-            case "fast":
-                System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(true));
-                break;
-            case "janala":
-                System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(false));
-                break;
-            default:
-                System.setProperty("useFastNonCollidingCoverageInstrumentation", String.valueOf(true));
+        if(fastInstrumentation) {
+            System.setProperty("useFastNonCollidingCoverageInstrumentation", "true");
         }
 
         // Configure classes to instrument
@@ -299,7 +292,7 @@ public class FuzzGoal extends AbstractMojo {
         if (epsilon > 0) {
             System.setProperty("jqf.guidance.bedivfuzz.epsilon", String.valueOf(epsilon));
         }
-        if (inputStructureFeedback) {
+        if (structuralFeedback) {
             System.setProperty("jqf.guidance.bedivfuzz.STRUCTURAL_FEEDBACK", "true");
         }
 
@@ -357,7 +350,7 @@ public class FuzzGoal extends AbstractMojo {
             }
             throw new MojoFailureException(String.format("Fuzzing resulted in the test failing on " +
                     "%d input(s). Possible bugs found. " +
-                    "Use mvn bedivfuzz:repro to reproduce failing test cases from %s/failures. ",
+                    "Use bin/jqf-repro to reproduce failing test cases from %s/failures. ",
                     result.getFailureCount(), resultsDir) +
                     "Sample exception included with this message.", e);
         }

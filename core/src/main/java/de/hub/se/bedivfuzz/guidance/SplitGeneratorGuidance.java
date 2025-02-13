@@ -5,7 +5,9 @@ import de.hub.se.bedivfuzz.junit.quickcheck.tracing.SplitTracingSourceOfRandomne
 
 import java.util.function.BiConsumer;
 
-
+/**
+ * A front-end for fuzzers that distinguish between structural and value random choices.
+ */
 public interface SplitGeneratorGuidance {
     void registerChoiceTracer(BiConsumer<SplitTracingSourceOfRandomness, GenerationStatus> tracer);
 }

@@ -1,6 +1,9 @@
 package de.hub.se.bedivfuzz.junit.quickcheck.generator;
 
-class Node {
+/**
+ * A node in a binary tree.
+ */
+public class Node {
     int value;
     Node left;
     Node right;

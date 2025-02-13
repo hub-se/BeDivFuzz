@@ -47,10 +47,8 @@ public class BeDivFuzzGuidance extends ZestGuidance implements SplitGeneratorGui
 
     public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, Random sourceOfRandomness) throws IOException {
         super(testName, duration, trials, outputDirectory, sourceOfRandomness);
-        StringBuilder sb = new StringBuilder("BeDivFuzz: Behavioral Diversity Fuzzing\n");
-        sb.append("[epsilon: " + EPSILON + ", havoc: " + HAVOC_RATE + ", structural feedback: " + STRUCTURAL_FEEDBACK + "]\n");
-        sb.append("--------------------------\n");
-        header = sb.toString();
+        header = "BeDivFuzz: Behavioral Diversity Fuzzing\n" + "[epsilon: " + EPSILON + ", havoc: " + HAVOC_RATE + ", structural feedback: " + STRUCTURAL_FEEDBACK + "]\n" +
+                "--------------------------\n";
     }
 
     public BeDivFuzzGuidance(String testName, Duration duration, Long trials, File outputDirectory, File[] seedInputFiles, Random sourceOfRandomness) throws IOException {

@@ -4,6 +4,11 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
+/**
+ * Produces values for property parameters based on a {@link SplitRandom} source of randomness.
+ *
+ * @param <T> type of property parameter to apply this generator's values to
+ */
 public abstract class SplitGenerator<T> extends Generator<T> {
 
     protected SplitGenerator(Class<T> type) {

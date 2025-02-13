@@ -31,6 +31,9 @@ import static edu.berkeley.cs.jqf.fuzz.guidance.Result.*;
  *
  * Custom JUnit {@link Statement} adapted from {@link FuzzStatement} to perform
  * guided fuzz testing with BeDivFuzz.
+ *
+ * The main change consists of a callback {@link #traceChoicesFromParameters} that
+ * allows a guidance to trace the structural and value choices of an input.
  */
 
 public class BeDivFuzzStatement extends Statement {

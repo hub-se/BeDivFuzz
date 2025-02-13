@@ -9,6 +9,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A source of randomness that records the size and offset of each random choice.
+ */
 public class TracingSourceOfRandomness extends FastSourceOfRandomness {
 
     private final List<Choice> choiceIndices;

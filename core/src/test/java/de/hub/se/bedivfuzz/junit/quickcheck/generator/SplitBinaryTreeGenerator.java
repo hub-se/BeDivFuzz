@@ -4,6 +4,9 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import de.hub.se.bedivfuzz.junit.quickcheck.SplitGenerator;
 import de.hub.se.bedivfuzz.junit.quickcheck.SplitRandom;
 
+/**
+ * A generator that produces binary trees.
+ */
 public class SplitBinaryTreeGenerator extends SplitGenerator<Node> {
     private final int MAX_DEPTH = 5;
 

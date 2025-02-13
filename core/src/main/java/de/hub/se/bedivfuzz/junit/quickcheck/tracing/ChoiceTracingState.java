@@ -4,6 +4,9 @@ import edu.berkeley.cs.jqf.fuzz.guidance.StreamBackedRandom;
 
 import java.util.List;
 
+/**
+ * The shared state of random choice indices consumed by the structural and value random number generator.
+ */
 public class ChoiceTracingState {
 
     private final StreamBackedRandom delegate;

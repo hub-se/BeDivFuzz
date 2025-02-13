@@ -10,7 +10,9 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
-
+/**
+ * Extends {@link JQF} to perform coverage-guided fuzzing with BeDivFuzz.
+ */
 public class BeDivFuzz extends JQF {
 
     public BeDivFuzz(Class<?> clazz) throws InitializationError {

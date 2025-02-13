@@ -1,5 +1,8 @@
 package de.hub.se.bedivfuzz.junit.quickcheck.tracing;
 
+/**
+ * Size and offset of an untyped choice performed by the random generator.
+ */
 public class Choice {
     private final int offset;
     private final int size;

@@ -4,6 +4,9 @@ import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
 import java.util.Collection;
 
+/**
+ * A random value generator that distinguishes between structural and value random choices.
+ */
 public interface SplitRandom {
 
     /**

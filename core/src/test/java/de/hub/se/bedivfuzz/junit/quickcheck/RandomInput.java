@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * A proxy class representing linear inputs for parametric fuzzing.
+ */
 public class RandomInput {
     int requested = 0;
     List<Integer> values = new ArrayList<>();

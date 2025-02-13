@@ -1,102 +1,93 @@
 # BeDivFuzz: Behavioral Diversity Fuzzing
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6320229.svg)](https://doi.org/10.5281/zenodo.6320229)
 
-This repository provides the code and replication instructions for our paper *BeDivFuzz: Integrating Behaviorial Diversity into Generator-based Fuzzing* ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)).
+BeDivFuzz is a generator-based fuzzer (powered by [JQF](https://github.com/rohanpadhye/JQF)) that distuingishes between *structure-preserving* and *structure-changing* mutations
+to diversely explore the space of valid program behaviors.
 
-BeDivFuzz is implemented as an extension of [JQF](https://github.com/rohanpadhye/JQF). 
+## Research Paper
+To learn more about BeDivFuzz, please refer to our research paper  ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)):
 
-### Using Docker
-First, build the image:
-```
-docker build -t bedivfuzz .
-```
+> Hoang Lam Nguyen and Lars Grunske. 2022.
+> **BeDivFuzz: integrating behavioral diversity into generator-based fuzzing.**
+> In Proceedings of the 44th International Conference on Software Engineering (ICSE '22).
+> Association for Computing Machinery, New York, NY, USA, 249–261.
+> https://doi.org/10.1145/3510003.3510182
 
-Then, run the container (with the current directory mounted to `/workspace` inside the container):
-```
-docker run -it --rm -v ${PWD}:/workspace bedivfuzz
-```
 
-## Step 1: Build BeDivFuzz, Zest, and RLCheck
-
-To build BeDivFuzz and Zest run:
+## Setup
+Install BeDivFuzz using Maven:
 ```
-mvn package
-```
-
-RLCheck needs to be build separately:
-```
-cd RLCheck/jqf/
-mvn package
-cd ../..
+git clone https://github.com/hub-se/BeDivFuzz.git && cd BeDivFuzz
+checkout standalone
+mvn install
 ```
 
-## Optional: Test BeDivFuzz
+## Fuzzing with BeDivFuzz
+We provide two methods to run BeDivFuzz: Using a shell script and as a maven plugin.
 
-We can now perform a test run of BeDivFuzz (e.g., on Rhino) as follows:
+### Using the `jqf-bedivfuzz` script:
 ```
-bin/jqf-bediv -c $(scripts/examples_classpath.sh) rhino.de.hub.se.jqf.bedivfuzz.examples.CompilerTest testWithSplitGenerator
+bin/jqf-bedivfuzz -c $(scripts/examples_classpath.sh) $TEST_CLASS $TEST_METHOD $OUTPUT_DIR
 ```
+`$TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
 
-After a while, you should see a status screen similar to this:
- ```
-BeDivFuzz: Behavioral Diversity Fuzzing.
-Test name:            rhino.de.hub.se.jqf.bedivfuzz.examples.CompilerTest#testWithSplitGenerator
-Results directory:    /Users/lam/_projects/clustering-guided-fuzzing/code/BeDivFuzz/experiments/fuzz-results
-Elapsed time:         30s (no time limit)
-Number of executions: 4,577
-Valid inputs:         3,607 (78.81%)
-Cycles completed:     0
-Unique failures:      1
-Queue size:           153 (0 favored last cycle)
-Current parent input: 14 (favored) {229/360 mutations}
-Execution speed:      215/sec now | 150/sec overall
-Valid coverage:       5,236 branches (7.99% of map)
-Behavioral Diversity: (B(0): 5367 | B(1): 3001 | B(2): 2563)
-Unique valid inputs:  1,588 (34.70%)
-Unique valid paths:   3,607
-Structure-changing mutations (exploration):    216,776
-Overall exploration score: 0.295
-Structure-preserving mutations (exploitation):    611,515
-Overall exploitation score: 0.990
- ```
+`$TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `$TEST_CLASS`.
 
-Since this process runs without a timeout, you have to manually abort it with `Ctrl+C`.
+`$OUTPUT_DIR`: The directory where all output (fuzz corpus, failures, plot data) will be saved.
+Defaults to `fuzz-results`.
 
-## Step 2: Perform the Evaluation
-The evaluation script can be executed as follows:
- ```
-scripts/run_parallel_experiments.sh -o out_dir -t timeout -n repetitions -p parallel_workers [-r]
- ```
-
-- `out_dir` is the folder where the results should be saved
-- `timeout` is the timeout (in seconds) per trial
-- `repetitions` is the number of repetitions to perform
-- `parallel_workers` is the number of parallel trials to perform and must be a factor of `repetitions` to evenly distribute the workload (e.g., with repetitions=30 and parallel_workers=10, each instance will perform 3 repetitions)
-- The `-r` flag enables coverage replay and is required to collect coverage data for RLCheck and QuickCheck 
-
-In our original evaluation, we first performed experiments with 1 hour timeout and 30 repetitions to answer RQ1 (input diversity) and RQ2 (behavioral diversity). The command for this setup (with 15 parallel instances) is:
+#### Example: Fuzzing Apache Maven
 ```
-scripts/run_parallel_experiments.sh -o coverage-results -t 3600 -n 30 -p 15 -r 
+bin/jqf-bedivfuzz -c $(scripts/examples_classpath.sh) de.hub.se.bedivfuzz.examples.maven.ModelReaderTest testWithSplitGenerator
 ```
 
-To answer RQ3 (fault finding capabilities), we extended the timeout to 24 hours, but did not measure any coverage (i.e., no `-r` flag):
+<details>
+<summary><h4 style="display:inline-block">Additional options</h4></summary>
+
+`-e $EPSILON`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
+
+`-h $HAVOC_RATE`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
+
+`-T $TIMEOUT`: The total time to run the fuzzing campaign (default: no timeout).
+
+`-f`: Enables fast, non-colliding instrumentation, which improves fuzzer throughput.
+
+`-s`: Enables input structure feedback, favoring valid inputs with novel input structures.
+
+#### Example: Fuzzing Google Closure for 1 hour with fast instrumentation and input structure feedback
 ```
-scripts/run_parallel_experiments.sh -o crash-results -t 86400 -n 30 -p 15
+bin/jqf-bedivfuzz -T 1h -fs -c $(scripts/examples_classpath.sh) de.hub.se.bedivfuzz.examples.closure.CompilerTest testWithSplitGenerator
 ```
+</details>
 
 
-## Step 3: Generate the figures
+### Using `mvn bedivfuzz:fuzz`
+> [!NOTE]
+> The BeDivFuzz Maven plugin needs to be launched from the `examples` directory.
+```
+mvn bedivfuzz:fuzz -Dclass=$TEST_CLASS -Dmethod=$TEST_METHOD -Dout=$OUTPUT_DIR
+```
+`$TEST_CLASS`: The FQN of the test class, which must be annotated with `@RunWith(BeDivFuzz.class)`.
 
-For this step, we assume that the results are stored under `coverage-results` (RQ1/RQ2) and `crash-results` (RQ3). 
+`$TEST_METHOD`: The test method (annotated with `@Fuzz`) inside `$TEST_CLASS`.
 
-To generate the plots for Figure 3 (diverse valid inputs) and Figure 4 (behavioral diversity), use:
-```
-python3 scripts/gen_figures.py coverage-results
-```
-The plots will be produced in the subdirectory `coverage-results/figs`.
+`$OUTPUT_DIR`: The output directory. Defaults to `examples/target/fuzz-results/$TEST_CLASS/$TEST_METHOD`.
 
-To generate the crash table (Table 1) from `crash-results`, the following command can be used:
+#### Example: Fuzzing Mozilla Rhino
 ```
-python3 scripts/gen_crash_table.py crash-results
+mvn bedivfuzz:fuzz -Dclass=de.hub.se.bedivfuzz.examples.rhino.CompilerTest -Dmethod=testWithSplitGenerator
 ```
-The table will be printed on the terminal, but also saved as `crash-results/crash_table.txt`.
+
+<details>
+<summary><h4 style="display:inline-block">Additional options</h4></summary>
+
+`-Depsilon $EPSILON`: The exploration vs. exploitation trade-off of the (epsilon-greedy) adaptive mutation strategy (default: `0.2`).
+
+`-DhavocRate $HAVOC_RATE`: The probability of performing a havoc (untargeted) mutation (default: `0.1`).
+
+`-Dtime $TIMEOUT`: The total time to run the fuzzing campaign (default: no timeout).
+
+`-DfastInstrumentation`: Enables fast, non-colliding instrumentation, which improves fuzzer throughput.
+
+`-DstructuralFeedback`: Enables input structure feedback, favoring valid inputs with novel input structures.
+</details>
