@@ -5,7 +5,8 @@ BeDivFuzz is a generator-based fuzzer (powered by [JQF](https://github.com/rohan
 to diversely explore the space of valid program behaviors.
 
 ## Research Paper
-To learn more about BeDivFuzz, please refer to our research paper  ([ICSE'2022](https://arxiv.org/pdf/2202.13114.pdf)):
+To learn more about BeDivFuzz, please refer to our research paper (ICSE'22)
+[[publication](https://dl.acm.org/doi/10.1145/3510003.3510182)] [[preprint](https://arxiv.org/abs/2202.13114)]:
 
 > Hoang Lam Nguyen and Lars Grunske. 2022.
 > **BeDivFuzz: integrating behavioral diversity into generator-based fuzzing.**
