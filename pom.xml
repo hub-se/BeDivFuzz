@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>edu.berkeley.cs.jqf</groupId>
-    <artifactId>jqf</artifactId>
-    <version>2.1-bedivfuzz</version>
+    <groupId>de.hub.se.bedivfuzz</groupId>
+    <artifactId>bedivfuzz</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>jqf</name>
-    <description>JQF: Feedback-directed Quickcheck for Java</description>
-    <url>https://github.com/rohanpadhye/jqf</url>
+    <name>bedivfuzz</name>
+    <description>BeDivFuzz: Behavioral Diversity Fuzzing</description>
+    <url>https://github.com/hub-se/BeDivFuzz</url>
     <licenses>
         <license>
             <name>FreeBSD License</name>
@@ -19,69 +19,22 @@
 
     <developers>
         <developer>
-            <name>Rohan Padhye</name>
-            <email>rohanpadhye@cs.berkeley.edu</email>
-            <organization>Carnegie Mellon University</organization>
-            <url>https://rohan.padhye.org</url>
-        </developer>
-        <developer>
-            <name>Caroline Lemieux</name>
-            <email>clemieux@cs.ubc.ca</email>
-            <organization>University of British Columbia</organization>
-            <url>http://www.carolemieux.com</url>
+            <name>Hoang Lam Nguyen</name>
+            <email>hoang.lam.nguyen@hu-berlin.de</email>
+            <organization>Humboldt-Universität zu Berlin</organization>
+            <url>https://hoanglam-nguyen.github.io</url>
         </developer>
     </developers>
 
-    <contributors>
-        <contributor>
-            <name>Koushik Sen</name>
-            <email>ksen@cs.berkeley.edu</email>
-            <organization>University of California, Berkeley</organization>
-        </contributor>
-        <contributor>
-            <name>Tobias Ospelt</name>
-            <url>http://www.floyd.ch</url>
-        </contributor>
-        <contributor>
-            <name>Yevgeny Pats</name>
-            <email>yp@fuzzit.dev</email>
-        </contributor>
-        <contributor>
-            <name>Vasudev Vikram</name>
-            <email>vasumv@cmu.edu</email>
-            <organization>Carnegie Mellon University</organization>
-        </contributor>
-        <contributor>
-            <name>Ao Li</name>
-            <email>aoli@cs.cmu.edu</email>
-            <organization>Carnegie Mellon University</organization>
-        </contributor>
-        <contributor>
-            <name>Isabella Laybourn</name>
-            <email>ilaybour@andrew.cmu.edu</email>
-            <organization>Carnegie Mellon University</organization>
-        </contributor>
-        <contributor>
-            <name>Jonathan Bell</name>
-            <email>jon@jonbell.net</email>
-            <organization>Northeastern University</organization>
-        </contributor>
-        <contributor>
-            <name>Katharine Hough</name>
-            <email>hough.k@northeastern.edu</email>
-            <organization>Northeastern University</organization>
-        </contributor>
-    </contributors>
-
     <scm>
-        <connection>scm:git:git@github.com:rohanpadhye/jqf.git</connection>
-        <url>https://github.com/rohanpadhye/jqf</url>
+        <connection>scm:git:git@github.com:hub-se/BeDivFuzz.git</connection>
+        <url>https://github.com/hub-se/BeDivFuzz</url>
       <tag>HEAD</tag>
   </scm>
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/rohanpadhye/jqf/issues</url>
+        <url>https://github.com/hub-se/BeDivFuzz/issues</url>
     </issueManagement>
 
     <properties>
@@ -89,15 +42,28 @@
     </properties>
 
     <modules>
-        <module>fuzz</module>
-        <module>instrument</module>
+        <module>core</module>
         <module>examples</module>
         <module>maven-plugin</module>
-        <module>bedivfuzz-parametric</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>jqf-fuzz</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>jqf-instrument</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.berkeley.cs.jqf</groupId>
+                <artifactId>jqf-examples</artifactId>
+                <version>2.0</version>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -108,65 +74,12 @@
                 <artifactId>junit-quickcheck-core</artifactId>
                 <version>1.0</version>
             </dependency>
-            <dependency>
-                <groupId>com.pholser</groupId>
-                <artifactId>junit-quickcheck-generators</artifactId>
-                <version>1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>2.23.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
-                <version>1.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>9.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.report</artifactId>
-                <version>0.8.10</version>
-            </dependency>
-            <dependency>
-                <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-fuzz</artifactId>
-                <version>2.1-bedivfuzz</version>
-            </dependency>
-            <dependency>
-                <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-instrument</artifactId>
-                <version>2.1-bedivfuzz</version>
-            </dependency>
-            <dependency>
-                <groupId>edu.berkeley.cs.jqf</groupId>
-                <artifactId>jqf-examples</artifactId>
-                <version>2.1-bedivfuzz</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <pluginManagement>
             <plugins>
-		<plugin>
-		  <groupId>com.github.spotbugs</groupId>
-		  <artifactId>spotbugs-maven-plugin</artifactId>
-		  <version>4.7.3.0</version>
-		  <dependencies>
-		    <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
-		    <dependency>
-		      <groupId>com.github.spotbugs</groupId>
-		      <artifactId>spotbugs</artifactId>
-		      <version>4.7.3</version>
-		    </dependency>
-		  </dependencies>
-		</plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
@@ -187,11 +100,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.6.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.5.0</version>
                 </plugin>
@@ -199,30 +107,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.3.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.5.0</version>
-                    <configuration>
-                        <source>1.8</source>
-                        <links>
-                            <link>http://junit.org/junit4/javadoc/latest/</link>
-                            <link>https://pholser.github.io/junit-quickcheck/site/1.0/junit-quickcheck-core/apidocs/</link>
-                            <link>https://pholser.github.io/junit-quickcheck/site/1.0/junit-quickcheck-generators/apidocs/</link>
-                        </links>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>aggregate</id>
-                            <goals>
-                                <goal>aggregate</goal>
-                            </goals>
-                            <phase>site</phase>
-                            <configuration>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -250,9 +134,9 @@
                     <version>3.9.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>edu.berkeley.cs.jqf</groupId>
-                    <artifactId>jqf-maven-plugin</artifactId>
-                    <version>2.1-bedivfuzz</version>
+                    <groupId>de.hub.se.bedivfuzz</groupId>
+                    <artifactId>bedivfuzz-maven-plugin</artifactId>
+                    <version>1.0-SNAPSHOT</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -265,7 +149,6 @@
                 <configuration>
                     <checkModificationExcludes>
                         <checkModificationExclude>README.md</checkModificationExclude>
-                        <checkModificationExclude>scripts/jqf-driver.sh</checkModificationExclude>
                     </checkModificationExcludes>
                 </configuration>
             </plugin>
@@ -285,37 +168,5 @@
         </repository>
         <downloadUrl>https://oss.sonatype.org/content/groups/public</downloadUrl>
     </distributionManagement>
-
-    <profiles>
-        <profile>
-            <id>release-profile</id>
-            <modules>
-                <module>integration-tests</module>
-            </modules>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>continuous-integration</id>
-            <modules>
-                <module>integration-tests</module>
-            </modules>
-        </profile>
-    </profiles>
 
 </project>

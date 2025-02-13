@@ -10,15 +10,9 @@ ROOT_DIR=`dirname $SCRIPT_DIR`
 
 # Create classpath using all classes from and dependencies of the `fuzz` and `instrument` packages
 
-cp="$ROOT_DIR/fuzz/target/classes:$ROOT_DIR/fuzz/target/test-classes"
+cp="$ROOT_DIR/core/target/classes:$ROOT_DIR/core/target/test-classes"
 
-for jar in $ROOT_DIR/fuzz/target/dependency/*.jar; do
-  cp="$cp:$jar"
-done
-
-cp="$cp:$ROOT_DIR/instrument/target/classes:$ROOT_DIR/instrument/target/test-classes"
-
-for jar in $ROOT_DIR/instrument/target/dependency/*.jar; do
+for jar in $ROOT_DIR//target/dependency/*.jar; do
   cp="$cp:$jar"
 done
 

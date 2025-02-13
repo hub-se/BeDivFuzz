@@ -34,15 +34,6 @@ while getopts ":c:ivres:l:" opt; do
     e)
       export JVM_OPTS="$JVM_OPTS -Djqf.tracing.MATCH_CALLEE_NAMES=true -Djqf.tracing.TRACE_GENERATORS=true"
       ;;
-    s)
-      instrument=1
-      export JVM_OPTS="$JVM_OPTS -DuseFastNonCollidingCoverageInstrumentation=true"
-      export JVM_OPTS="$JVM_OPTS -Djqf.guidance.TRACK_SEMANTIC_COVERAGE=true"
-      export JVM_OPTS="$JVM_OPTS -Djanala.semanticAnalysisClasses=$OPTARG"
-      ;;
-    l)
-      export JVM_OPTS="$JVM_OPTS -Djqf.repro.failureLog=$OPTARG"
-      ;;
   esac
 done
 shift $((OPTIND-1))

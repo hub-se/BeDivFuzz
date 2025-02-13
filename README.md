@@ -34,13 +34,13 @@ cd ../..
 
 We can now perform a test run of BeDivFuzz (e.g., on Rhino) as follows:
 ```
-bin/jqf-bediv -c $(scripts/examples_classpath.sh) edu.berkeley.cs.jqf.examples.rhino.CompilerTest testWithSplitGenerator
+bin/jqf-bediv -c $(scripts/examples_classpath.sh) rhino.de.hub.se.jqf.bedivfuzz.examples.CompilerTest testWithSplitGenerator
 ```
 
 After a while, you should see a status screen similar to this:
  ```
 BeDivFuzz: Behavioral Diversity Fuzzing.
-Test name:            edu.berkeley.cs.jqf.examples.rhino.CompilerTest#testWithSplitGenerator
+Test name:            rhino.de.hub.se.jqf.bedivfuzz.examples.CompilerTest#testWithSplitGenerator
 Results directory:    /Users/lam/_projects/clustering-guided-fuzzing/code/BeDivFuzz/experiments/fuzz-results
 Elapsed time:         30s (no time limit)
 Number of executions: 4,577

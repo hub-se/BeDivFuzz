@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+	    <groupId>de.hub.se.bedivfuzz</groupId>
+	    <artifactId>bedivfuzz</artifactId>
+	    <version>1.0-SNAPSHOT</version>
+	</parent>
+
+    <artifactId>bedivfuzz-core</artifactId>
+
+    <name>bedivfuzz-core</name>
+    <description>BeDivFuzz: Behavioral Diversity Fuzzing - Core Algorithm</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-fuzz</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-instrument</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections</artifactId>
+            <version>11.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.vyarus</groupId>
+            <artifactId>generics-resolver</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                    	<manifest>
+                    		<addClasspath>true</addClasspath>
+                    		<classpathPrefix>dependency/</classpathPrefix>
+                    	</manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin> 
+		        <groupId>org.apache.maven.plugins</groupId> 
+		        <artifactId>maven-dependency-plugin</artifactId>
+		        <executions> 
+		                <execution> 
+		                        <id>copy-dependencies</id> 
+		                        <phase>package</phase>
+		                        <goals> 
+		                                <goal>copy-dependencies</goal> 
+		                        </goals> 
+		                        <configuration> 
+		                                <includeScope>runtime</includeScope> 
+		                        </configuration>
+		                </execution> 
+		        </executions> 
+			</plugin>
+        </plugins>
+    </build>
+</project>

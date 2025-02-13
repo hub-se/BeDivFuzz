@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>edu.berkeley.cs.jqf</groupId>
-        <artifactId>jqf</artifactId>
-        <version>2.1-bedivfuzz</version>
+        <groupId>de.hub.se.bedivfuzz</groupId>
+        <artifactId>bedivfuzz</artifactId>
+        <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jqf-maven-plugin</artifactId>
+    <artifactId>bedivfuzz-maven-plugin</artifactId>
 
-    <name>jqf-maven-plugin</name>
-    <description>JQF: Feedback-directed Quickcheck for Java - Maven plugin</description>
+    <name>bedivfuzz-maven-plugin</name>
+    <description>BeDivFuzz: Behavioral Diversity Fuzzing - Maven plugin</description>
 
     <packaging>maven-plugin</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-fuzz</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-instrument</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.hub.se.bedivfuzz</groupId>
+            <artifactId>bedivfuzz-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
@@ -30,16 +47,6 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>3.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.berkeley.cs.jqf</groupId>
-            <artifactId>jqf-instrument</artifactId>
-            <version>2.1-bedivfuzz</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.berkeley.cs.jqf</groupId>
-            <artifactId>jqf-fuzz</artifactId>
-            <version>2.1-bedivfuzz</version>
         </dependency>
     </dependencies>
 
